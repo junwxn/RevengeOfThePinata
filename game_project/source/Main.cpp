@@ -2,12 +2,36 @@
 #include "AEEngine.h"
 #include <cmath>
 
+// Tile Basis Vectors (from your JS)
+const float I_X = 1.0f;
+const float I_Y = 1.0f;
+const float J_X = -1.0f;
+const float J_Y = 1.0f;
+
+// 1. GRID MATH SIZE (Perfect 2:1 ratio)
+// The diamond surface is exactly 256x128.
+const float GRID_W = 111.0f;
+const float GRID_H = 64.0f;
+
+// 2. IMAGE SIZE (Actual Texture)
+// The texture includes 10px of "dirt wall" at the bottom.
+const float SPRITE_W = 111.0f;
+const float SPRITE_H = 128.0f;
+
+// Helper struct for coordinates
+typedef struct {
+	float x;
+	float y;
+} Vec2;
+
 static bool AreCirclesIntersecting(float c1_x, float c1_y, float r1, float c2_x, float c2_y, float r2);
 static void CreateCircleMesh(f32 radius, u8 parts, u32 color);
 static void CreateRectMesh(u32 colour);
 static void DrawCircle(f32 scale_x, f32 scale_y, f32 trans_x, f32 trans_y, f32 rot);
 static void DrawRect(f32 height, f32 width, f32 pos_x, f32 pos_y, f32 rot);
 static void SetColor(f32 r, f32 g, f32 b, f32 a);
+
+Vec2 GridToScreen(int gridX, int gridY);
 
 AEMtx33 scale = { 0 };
 AEMtx33 rotate = { 0 };
@@ -62,7 +86,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	player player{};
 	player.pos_x = 0;
 	player.pos_y = 0;
-	player.speed = 500;
+	player.speed = 200;
 	player.size = 40.0f;
 
 	circle heal_circle{};
@@ -85,13 +109,15 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	healthbar.var = 100;
 	healthbar.current = (healthbar.var / 100) * (healthbar.max - healthbar.min);
 
+	AEGfxTexture* pTex = AEGfxTextureLoad("Assets/block.png");
+
 	// Game Loop
 	while (gGameRunning)
 	{
 		//start of frame
 		AESysFrameStart();
 		//background colour white
-		AEGfxSetBackgroundColor(0.95f, 0.96f, 0.95f);
+		AEGfxSetBackgroundColor(0.0f, 0.0f, 0.0f);
 
 		AEGfxSetRenderMode(AE_GFX_RM_COLOR);
 
@@ -99,6 +125,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		AEGfxSetTransparency(1.0f);
 
 		f32 dt = (f32)AEFrameRateControllerGetFrameTime();
+
+		
 
 		//check player within window boundary
 		if (player.pos_x - player.size < -AEGfxGetWindowWidth() / 2.0f) {
@@ -161,9 +189,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		SetColor(255, 0, 0, 255);
 		DrawCircle(dmg_circle.r, dmg_circle.r, dmg_circle.pos_x, dmg_circle.pos_y, 0);
 
-		//draw player
-		SetColor(0, 0, 255, 255);
-		DrawCircle(player.size, player.size, player.pos_x, player.pos_y, 0);
+		
 
 		//draw healtbar background
 		SetColor(255, 0, 0, 150);
@@ -190,6 +216,61 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 			DrawRect(healthbar.h, minibar_width, healthbar.min, healthbar.pos_y - 80, 0);
 		}
 
+		AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
+		AEGfxSetColorToMultiply(1.0f, 1.0f, 1.0f, 1.0f);
+		AEGfxSetColorToAdd(0.0f, 0.0f, 0.0f, 0.0f);
+		AEGfxSetBlendMode(AE_GFX_BM_BLEND);
+		AEGfxSetTransparency(1.0f);
+		AEGfxTextureSet(pTex, 0, 0);
+		// Example: Drawing a 10x10 map
+		for (int x = 5; x > 0; --x) {
+			for (int y = 6; y > 0; --y) {
+
+				// 1. Calculate Position
+				Vec2 pos = GridToScreen(x, y);
+
+				// 2. Setup Matrices
+				AEMtx33 scale, trans, transform;
+
+				// Scale the mesh to the sprite size (32x32)
+				AEMtx33Scale(&scale, SPRITE_W, SPRITE_H);
+
+				// Move it to the calculated isometric position
+				AEMtx33Trans(&trans, pos.x, pos.y);
+
+				// 3. Combine (Order: Scale first, then Translate)
+				// Mathematically: Trans * Scale * Vertex
+				AEMtx33Concat(&transform, &trans, &scale);
+
+				// 4. Send to Graphics Card
+				AEGfxSetTransform(transform.m);
+				AEGfxMeshDraw(pRectMesh, AE_GFX_MDM_TRIANGLES);
+			}
+		}
+
+		Vec2 pos = GridToScreen(2, 4);
+
+		// 2. Setup Matrices
+		AEMtx33 scale, trans, transform;
+
+		// Scale the mesh to the sprite size (32x32)
+		AEMtx33Scale(&scale, SPRITE_W, SPRITE_H);
+
+		// Move it to the calculated isometric position
+		AEMtx33Trans(&trans, pos.x, pos.y);
+
+		// 3. Combine (Order: Scale first, then Translate)
+		// Mathematically: Trans * Scale * Vertex
+		AEMtx33Concat(&transform, &trans, &scale);
+
+		// 4. Send to Graphics Card
+		AEGfxSetTransform(transform.m);
+		AEGfxMeshDraw(pRectMesh, AE_GFX_MDM_TRIANGLES);
+
+		//draw player
+		AEGfxSetRenderMode(AE_GFX_RM_COLOR);
+		SetColor(0, 0, 255, 255);
+		DrawCircle(player.size, player.size, player.pos_x, player.pos_y, 0);
 		// Informing the system about the loop's end
 		AESysFrameEnd();
 
@@ -198,7 +279,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 			gGameRunning = 0;
 	}
 	AEGfxMeshFree(pCircleMesh);
+	AEGfxMeshFree(pRectMesh);
 	// free the system
+	AEGfxTextureUnload(pTex);
 	AESysExit();
 }
 
@@ -283,4 +366,19 @@ static void SetColor(f32 r, f32 g, f32 b, f32 a)
 {
 	AEGfxSetColorToMultiply(0.0f, 0.0f, 0.0f, 0.0f);
 	AEGfxSetColorToAdd(r / 255.0f, g / 255.0f, b / 255.0f, a / 255.0f);
+}
+
+
+Vec2 GridToScreen(int gridX, int gridY) {
+	Vec2 result;
+
+	// Use the GRID dimensions (128), NOT the sprite dimensions (138)
+	float halfW = GRID_W * 0.5f;
+	float halfH = GRID_H * 0.5f;
+
+	// Standard Isometric logic
+	result.x = (gridX * I_X * halfW) + (gridY * J_X * halfW);
+	result.y = (gridX * I_Y * halfH) + (gridY * J_Y * halfH);
+
+	return result;
 }
