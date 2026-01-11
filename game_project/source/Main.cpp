@@ -109,7 +109,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	healthbar.var = 100;
 	healthbar.current = (healthbar.var / 100) * (healthbar.max - healthbar.min);
 
-	AEGfxTexture* pTex = AEGfxTextureLoad("Assets/block.png");
+	AEGfxTexture* pTex = AEGfxTextureLoad("Assets/block2.png");
+	AEGfxTexture* qTex = AEGfxTextureLoad("Assets/block.png");
 
 	// Game Loop
 	while (gGameRunning)
@@ -117,7 +118,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		//start of frame
 		AESysFrameStart();
 		//background colour white
-		AEGfxSetBackgroundColor(0.0f, 0.0f, 0.0f);
+		AEGfxSetBackgroundColor(0.85f, 0.9f, 0.86f);
 
 		AEGfxSetRenderMode(AE_GFX_RM_COLOR);
 
@@ -223,11 +224,11 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		AEGfxSetTransparency(1.0f);
 		AEGfxTextureSet(pTex, 0, 0);
 		// Example: Drawing a 10x10 map
-		for (int x = 5; x > 0; --x) {
-			for (int y = 6; y > 0; --y) {
+		for (int x = 15; x > 0; --x) {
+			for (int y = 15; y > 0; --y) {
 
 				// 1. Calculate Position
-				Vec2 pos = GridToScreen(x, y);
+				Vec2 pos = GridToScreen(x-10, y-10);
 
 				// 2. Setup Matrices
 				AEMtx33 scale, trans, transform;
@@ -248,24 +249,58 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 			}
 		}
 
-		Vec2 pos = GridToScreen(2, 4);
+		
+		AEGfxTextureSet(qTex, 0, 0);
+		for (int x = 10; x > 0; --x) {
+			for (int y = 12; y > 0; --y) {
 
-		// 2. Setup Matrices
-		AEMtx33 scale, trans, transform;
+				// 1. Calculate Position
+				Vec2 pos = GridToScreen(x - 7, y - 8);
 
-		// Scale the mesh to the sprite size (32x32)
-		AEMtx33Scale(&scale, SPRITE_W, SPRITE_H);
+				// 2. Setup Matrices
+				AEMtx33 scale, trans, transform;
 
-		// Move it to the calculated isometric position
-		AEMtx33Trans(&trans, pos.x, pos.y);
+				// Scale the mesh to the sprite size (32x32)
+				AEMtx33Scale(&scale, SPRITE_W, SPRITE_H);
 
-		// 3. Combine (Order: Scale first, then Translate)
-		// Mathematically: Trans * Scale * Vertex
-		AEMtx33Concat(&transform, &trans, &scale);
+				// Move it to the calculated isometric position
+				AEMtx33Trans(&trans, pos.x, pos.y);
 
-		// 4. Send to Graphics Card
-		AEGfxSetTransform(transform.m);
-		AEGfxMeshDraw(pRectMesh, AE_GFX_MDM_TRIANGLES);
+				// 3. Combine (Order: Scale first, then Translate)
+				// Mathematically: Trans * Scale * Vertex
+				AEMtx33Concat(&transform, &trans, &scale);
+
+				// 4. Send to Graphics Card
+				AEGfxSetTransform(transform.m);
+				AEGfxMeshDraw(pRectMesh, AE_GFX_MDM_TRIANGLES);
+			}
+		}
+
+		AEGfxTextureSet(pTex, 0, 0);
+		for (int x = 5; x > 0; --x) {
+			for (int y = 5; y > 0; --y) {
+
+				// 1. Calculate Position
+				Vec2 pos = GridToScreen(x - 4, y - 2);
+
+				// 2. Setup Matrices
+				AEMtx33 scale, trans, transform;
+
+				// Scale the mesh to the sprite size (32x32)
+				AEMtx33Scale(&scale, SPRITE_W, SPRITE_H);
+
+				// Move it to the calculated isometric position
+				AEMtx33Trans(&trans, pos.x, pos.y);
+
+				// 3. Combine (Order: Scale first, then Translate)
+				// Mathematically: Trans * Scale * Vertex
+				AEMtx33Concat(&transform, &trans, &scale);
+
+				// 4. Send to Graphics Card
+				AEGfxSetTransform(transform.m);
+				AEGfxMeshDraw(pRectMesh, AE_GFX_MDM_TRIANGLES);
+			}
+		}
 
 		//draw player
 		AEGfxSetRenderMode(AE_GFX_RM_COLOR);
@@ -281,6 +316,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	AEGfxMeshFree(pCircleMesh);
 	AEGfxMeshFree(pRectMesh);
 	// free the system
+	AEGfxTextureUnload(qTex);
 	AEGfxTextureUnload(pTex);
 	AESysExit();
 }
