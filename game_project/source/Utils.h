@@ -1,0 +1,30 @@
+#pragma once
+#include "AEEngine.h"
+#include <cmath>
+
+// --- Constants ---
+const float GRID_W = 111.0f;
+const float GRID_H = 64.0f;
+const float SPRITE_W = 111.0f;
+const float SPRITE_H = 128.0f;
+
+// --- Structs ---
+struct Vec2 {
+    float x, y;
+};
+
+// --- Math Helpers ---
+// Converts Grid (Iso) coordinates to Screen (Cartesian) coordinates
+Vec2 GridToScreen(int gridX, int gridY);
+
+// Collision check
+bool AreCirclesIntersecting(float c1_x, float c1_y, float r1, float c2_x, float c2_y, float r2);
+
+// --- Graphics Helpers ---
+// Creates a mesh and RETURNS the pointer (instead of setting a global)
+AEGfxVertexList* CreateCircleMesh(f32 radius, u8 parts, u32 color);
+AEGfxVertexList* CreateRectMesh(u32 color);
+
+// Generic Draw function that can draw ANY mesh (Circle or Rect)
+// This replaces specific DrawCircle/DrawRect functions by letting you pass the mesh you want to draw.
+void DrawMesh(AEGfxVertexList* pMesh, float width, float height, float x, float y, float rot, float r, float g, float b, float a);
