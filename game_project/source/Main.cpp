@@ -8,7 +8,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
     UNREFERENCED_PARAMETER(lpCmdLine);
 
     AESysInit(hInstance, nCmdShow, 1600, 900, 1, 60, true, NULL);
-    AESysSetWindowTitle("Solo Project!!!");
+    AESysSetWindowTitle("i love prasanna");
 
     Game game;
     game.Init();
