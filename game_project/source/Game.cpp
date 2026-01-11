@@ -8,9 +8,9 @@ void Game::Init() {
     m_pTexBlock2 = AEGfxTextureLoad("Assets/block2.png");
     m_pTexBlock = AEGfxTextureLoad("Assets/block.png");
 
-    m_Player = { 0, 0, 200.0f, 40.0f };
-    m_HealCircle = { -400.0f, 0.0f, 150.0f };
-    m_DmgCircle = { 400.0f, 0.0f, 150.0f };
+    m_Player = { 0, 0, 200.0f, 40.0f };         // x, y, speed, size
+    m_HealCircle = { -400.0f, 0.0f, 150.0f };   // x, y, radius
+    m_DmgCircle = { 400.0f, 0.0f, 150.0f };     // x, y, radius
 
     m_Healthbar.w = 1200;
     m_Healthbar.h = 50;
