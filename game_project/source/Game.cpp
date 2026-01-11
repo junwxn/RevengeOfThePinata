@@ -91,6 +91,8 @@ void Game::Draw() {
     AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
     AEGfxSetColorToMultiply(1.0f, 1.0f, 1.0f, 1.0f);
     AEGfxSetColorToAdd(0.0f, 0.0f, 0.0f, 0.0f);
+    AEGfxSetBlendMode(AE_GFX_BM_BLEND);
+    AEGfxSetTransparency(1.0f);
 
     AEGfxTextureSet(m_pTexBlock2, 0, 0);
     for (int x = 15; x > 0; --x) {
@@ -98,6 +100,34 @@ void Game::Draw() {
             Vec2 pos = GridToScreen(x - 10, y - 10);
 
             // For texture drawing, we manually transform because we want to use generic logic or specific texture logic
+            AEMtx33 scale, trans, transform;
+            AEMtx33Scale(&scale, SPRITE_W, SPRITE_H);
+            AEMtx33Trans(&trans, pos.x, pos.y);
+            AEMtx33Concat(&transform, &trans, &scale);
+            AEGfxSetTransform(transform.m);
+            AEGfxMeshDraw(m_pRectMesh, AE_GFX_MDM_TRIANGLES);
+        }
+    }
+
+    AEGfxTextureSet(m_pTexBlock, 0, 0);
+    for (int x = 10; x > 0; --x) {
+        for (int y = 10; y > 0; --y) {
+            Vec2 pos = GridToScreen(x - 6, y - 6);
+
+            AEMtx33 scale, trans, transform;
+            AEMtx33Scale(&scale, SPRITE_W, SPRITE_H);
+            AEMtx33Trans(&trans, pos.x, pos.y);
+            AEMtx33Concat(&transform, &trans, &scale);
+            AEGfxSetTransform(transform.m);
+            AEGfxMeshDraw(m_pRectMesh, AE_GFX_MDM_TRIANGLES);
+        }
+    }
+
+    AEGfxTextureSet(m_pTexBlock2, 0, 0);
+    for (int x = 5; x > 0; --x) {
+        for (int y = 5; y > 0; --y) {
+            Vec2 pos = GridToScreen(x - 2, y - 2);
+
             AEMtx33 scale, trans, transform;
             AEMtx33Scale(&scale, SPRITE_W, SPRITE_H);
             AEMtx33Trans(&trans, pos.x, pos.y);
