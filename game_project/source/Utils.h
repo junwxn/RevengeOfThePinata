@@ -3,14 +3,14 @@
 #include <cmath>
 
 // --- Constants ---
-const float GRID_W = 111.0f;
-const float GRID_H = 64.0f;
-const float SPRITE_W = 111.0f;
-const float SPRITE_H = 128.0f;
+const f32 GRID_W = 111.0f;
+const f32 GRID_H = 64.0f;
+const f32 SPRITE_W = 111.0f;
+const f32 SPRITE_H = 128.0f;
 
 // --- Structs ---
 struct Vec2 {
-    float x, y;
+    f32 x, y;
 };
 
 // --- Math Helpers ---

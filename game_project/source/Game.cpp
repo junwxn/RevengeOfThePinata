@@ -26,8 +26,8 @@ void Game::Update() {
     f32 dt = (f32)AEFrameRateControllerGetFrameTime();
 
    // --- 1. Gather Input State ---
-    int moveX = 0;
-    int moveY = 0;
+    s8 moveX = 0;
+    s8 moveY = 0;
 
     if (AEInputCheckCurr(AEVK_W)) moveY += 1;
     if (AEInputCheckCurr(AEVK_S)) moveY -= 1;
@@ -36,20 +36,20 @@ void Game::Update() {
 
     // --- 2. Apply Logic ---
     if (moveX != 0 || moveY != 0) {
-        float dirX = 0.0f;
-        float dirY = 0.0f;
+        f32 dirX = 0.0f;
+        f32 dirY = 0.0f;
 
         // Check if moving Diagonally (Both X and Y are non-zero)
         if (moveX != 0 && moveY != 0) {
             // Calculate vector aligned with the Isometric Grid Slope
             // We use GRID_W and GRID_H from Utils.h to get the perfect angle
-            float halfW = GRID_W * 0.5f;
-            float halfH = GRID_H * 0.5f;
-            float length = sqrt(halfW * halfW + halfH * halfH);
+            f32 halfW = GRID_W * 0.5f;
+            f32 halfH = GRID_H * 0.5f;
+            f32 length = sqrt(halfW * halfW + halfH * halfH);
 
             // Normalized components for isometric movement
-            float isoStepX = halfW / length; // approx 0.87
-            float isoStepY = halfH / length; // approx 0.50
+            f32 isoStepX = halfW / length; // approx 0.87
+            f32 isoStepY = halfH / length; // approx 0.50
 
             // Apply direction signs based on input
             dirX = (moveX > 0 ? isoStepX : -isoStepX);
@@ -58,8 +58,8 @@ void Game::Update() {
         else {
             // Moving Orthogonally (Screen Axes)
             // Just use the raw input (1.0 or -1.0)
-            dirX = (float)moveX;
-            dirY = (float)moveY;
+            dirX = (f32)moveX;
+            dirY = (f32)moveY;
         }
 
         // Apply Velocity
@@ -68,8 +68,8 @@ void Game::Update() {
     }
 
     // Bounds
-    float winW = (float)AEGfxGetWindowWidth();
-    float winH = (float)AEGfxGetWindowHeight();
+    f32 winW = (f32)AEGfxGetWindowWidth();
+    f32 winH = (f32)AEGfxGetWindowHeight();
     if (m_Player.pos_x - m_Player.size < -winW / 2) m_Player.pos_x = -winW / 2 + m_Player.size;
     if (m_Player.pos_x + m_Player.size > winW / 2)  m_Player.pos_x = winW / 2 - m_Player.size;
     if (m_Player.pos_y - m_Player.size < -winH / 2) m_Player.pos_y = -winH / 2 + m_Player.size;
