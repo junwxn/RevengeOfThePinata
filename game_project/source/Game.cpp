@@ -8,7 +8,7 @@ void Game::Init() {
     m_pTexBlock2 = AEGfxTextureLoad("Assets/block2.png");
     m_pTexBlock = AEGfxTextureLoad("Assets/block.png");
 
-    m_Player = { 0, 0, 200.0f, 40.0f };         // x, y, speed, size
+    m_Player = { 0, 0, 300.0f, 40.0f };         // x, y, speed, size
     m_HealCircle = { -400.0f, 0.0f, 150.0f };   // x, y, radius
     m_DmgCircle = { 400.0f, 0.0f, 150.0f };     // x, y, radius
 
@@ -145,7 +145,7 @@ void Game::Draw() {
         }
     }
 
-    AEGfxTextureSet(m_pTexBlock, 0, 0);
+    /*AEGfxTextureSet(m_pTexBlock, 0, 0);
     for (int x = 10; x > 0; --x) {
         for (int y = 10; y > 0; --y) {
             Vec2 pos = GridToScreen(x - 6, y - 6);
@@ -157,9 +157,9 @@ void Game::Draw() {
             AEGfxSetTransform(transform.m);
             AEGfxMeshDraw(m_pRectMesh, AE_GFX_MDM_TRIANGLES);
         }
-    }
+    }*/
 
-    AEGfxTextureSet(m_pTexBlock2, 0, 0);
+    /*AEGfxTextureSet(m_pTexBlock2, 0, 0);
     for (int x = 5; x > 0; --x) {
         for (int y = 5; y > 0; --y) {
             Vec2 pos = GridToScreen(x - 2, y - 2);
@@ -171,7 +171,7 @@ void Game::Draw() {
             AEGfxSetTransform(transform.m);
             AEGfxMeshDraw(m_pRectMesh, AE_GFX_MDM_TRIANGLES);
         }
-    }
+    }*/
 
     // Player
     AEGfxSetRenderMode(AE_GFX_RM_COLOR);
