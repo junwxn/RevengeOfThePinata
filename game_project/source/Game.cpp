@@ -25,11 +25,47 @@ void Game::Init() {
 void Game::Update() {
     f32 dt = (f32)AEFrameRateControllerGetFrameTime();
 
-    // Input
-    if (AEInputCheckCurr(AEVK_W)) m_Player.pos_y += m_Player.speed * dt;
-    if (AEInputCheckCurr(AEVK_A)) m_Player.pos_x -= m_Player.speed * dt;
-    if (AEInputCheckCurr(AEVK_S)) m_Player.pos_y -= m_Player.speed * dt;
-    if (AEInputCheckCurr(AEVK_D)) m_Player.pos_x += m_Player.speed * dt;
+   // --- 1. Gather Input State ---
+    int moveX = 0;
+    int moveY = 0;
+
+    if (AEInputCheckCurr(AEVK_W)) moveY += 1;
+    if (AEInputCheckCurr(AEVK_S)) moveY -= 1;
+    if (AEInputCheckCurr(AEVK_A)) moveX -= 1;
+    if (AEInputCheckCurr(AEVK_D)) moveX += 1;
+
+    // --- 2. Apply Logic ---
+    if (moveX != 0 || moveY != 0) {
+        float dirX = 0.0f;
+        float dirY = 0.0f;
+
+        // Check if moving Diagonally (Both X and Y are non-zero)
+        if (moveX != 0 && moveY != 0) {
+            // Calculate vector aligned with the Isometric Grid Slope
+            // We use GRID_W and GRID_H from Utils.h to get the perfect angle
+            float halfW = GRID_W * 0.5f;
+            float halfH = GRID_H * 0.5f;
+            float length = sqrt(halfW * halfW + halfH * halfH);
+
+            // Normalized components for isometric movement
+            float isoStepX = halfW / length; // approx 0.87
+            float isoStepY = halfH / length; // approx 0.50
+
+            // Apply direction signs based on input
+            dirX = (moveX > 0 ? isoStepX : -isoStepX);
+            dirY = (moveY > 0 ? isoStepY : -isoStepY);
+        }
+        else {
+            // Moving Orthogonally (Screen Axes)
+            // Just use the raw input (1.0 or -1.0)
+            dirX = (float)moveX;
+            dirY = (float)moveY;
+        }
+
+        // Apply Velocity
+        m_Player.pos_x += dirX * m_Player.speed * dt;
+        m_Player.pos_y += dirY * m_Player.speed * dt;
+    }
 
     // Bounds
     float winW = (float)AEGfxGetWindowWidth();
