@@ -66,7 +66,7 @@ void Game::Update() {
         m_Player.pos_x += dirX * m_Player.speed * dt;
         m_Player.pos_y += dirY * m_Player.speed * dt;
     }
-
+    AEGfxSetCamPosition(m_Player.pos_x, m_Player.pos_y);
     // Bounds
     f32 winW = (f32)AEGfxGetWindowWidth();
     f32 winH = (f32)AEGfxGetWindowHeight();
