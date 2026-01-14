@@ -29,15 +29,15 @@ private:
     int m_GameRunning = 1;
 
     // Game Objects
-    Player m_Player;
-    Circle m_HealCircle;
-    Circle m_DmgCircle;
-    RectData m_Healthbar;
+    Player m_Player{ 0 };
+    Circle m_HealCircle{ 0 };
+    Circle m_DmgCircle{ 0 };
+    RectData m_Healthbar{ 0 };
 
     // Logic Vars
-    f32 m_Barcount;
+    f32 m_Barcount{ 0 };
     f32 m_MinibarWidth = 100;
-    u8 m_CurrentBars = 0;
+    u8 m_CurrentBars{ 0 };
 
     // Assets
     AEGfxVertexList* m_pCircleMesh = nullptr;
