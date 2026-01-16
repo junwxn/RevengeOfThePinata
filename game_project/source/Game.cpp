@@ -37,7 +37,8 @@ void Game::Update() {
     if (AEInputCheckCurr(AEVK_S)) moveY -= 1;
     if (AEInputCheckCurr(AEVK_A)) moveX -= 1;
     if (AEInputCheckCurr(AEVK_D)) moveX += 1;
-
+    f32 halfW = GRID_W * 0.5f;
+    f32 halfH = GRID_H * 0.5f;
     // --- 2. Apply Logic ---
     if (moveX != 0 || moveY != 0) {
         f32 dirX = 0.0f;
@@ -47,8 +48,7 @@ void Game::Update() {
         if (moveX != 0 && moveY != 0) {
             // Calculate vector aligned with the Isometric Grid Slope
             // We use GRID_W and GRID_H from Utils.h to get the perfect angle
-            f32 halfW = GRID_W * 0.5f;
-            f32 halfH = GRID_H * 0.5f;
+            
             f32 length = sqrt(halfW * halfW + halfH * halfH);
 
             // Normalized components for isometric movement
@@ -66,9 +66,23 @@ void Game::Update() {
             dirY = (f32)moveY;
         }
         if (AEInputCheckTriggered(AEVK_SPACE) && m_DashCooldown <= 0.0f) {
-            // "Roughly 1 tile" distance. GRID_W is a safe bet for tile size.
-            // You can adjust this multiplier (e.g., 1.5f * GRID_W) if it feels too short.
-            f32 blinkDist = GRID_W * 1.0f;
+            f32 blinkDist = 0.0f;
+            if (moveX != 0 && moveY != 0) {
+                // DIAGONAL: Move length of one tile edge
+                // Calculate hypotenuse of the tile's half-width/height
+                blinkDist = sqrt(halfW * halfW + halfH * halfH);
+            }
+            else {
+                // ORTHOGONAL: Check if moving Horizontal or Vertical
+                if (moveX != 0) {
+                    // Horizontal: Move 1 Tile Width
+                    blinkDist = GRID_W;
+                }
+                else {
+                    // Vertical: Move 1 Tile Height (prevents the "super jump" feeling)
+                    blinkDist = GRID_H;
+                }
+            }
 
             m_Player.pos_x += dirX * blinkDist;
             m_Player.pos_y += dirY * blinkDist;
@@ -82,8 +96,6 @@ void Game::Update() {
         m_Player.pos_y += dirY * m_Player.speed * dt;
     }
     AEGfxSetCamPosition(m_Player.pos_x, m_Player.pos_y);
-    float halfW = GRID_W * 0.5f;
-    float halfH = GRID_H * 0.5f;
 
     // Inverse of GridToScreen:
     // ScreenX = (GridX - GridY) * halfW  =>  invX = GridX - GridY
