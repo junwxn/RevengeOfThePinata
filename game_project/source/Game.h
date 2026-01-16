@@ -1,11 +1,8 @@
 #pragma once
-#include "Utils.h" // Include our new Utils file
+#include "Utils.h"
+#include "Player.h" // INCLUDE THE NEW HEADER
 
-struct Player {
-    f32 pos_x, pos_y;
-    f32 speed;
-    f32 size;
-};
+// Note: Removed old 'struct Player' because we now have a class in Player.h
 
 struct Circle {
     f32 pos_x, pos_y;
@@ -26,17 +23,13 @@ public:
     bool IsRunning() const { return m_GameRunning; }
 
 private:
-
     int m_GameRunning = 1;
 
-    // NEW: Dash Cooldown Timer
-    f32 m_DashCooldown = 0.1f;
+    // --- Game Objects ---
 
+    // NEW: Use the Class, not the struct
+    Player m_Player;
 
-    
-
-    // Game Objects
-    Player m_Player{ 0 };
     Circle m_HealCircle{ 0 };
     Circle m_DmgCircle{ 0 };
     RectData m_Healthbar{ 0 };

@@ -1,4 +1,5 @@
 #include "Game.h"
+#include <iostream>
 
 void Game::Init() {
     // Use Utils to create meshes
@@ -8,10 +9,14 @@ void Game::Init() {
     m_pTexBlock2 = AEGfxTextureLoad("Assets/block2.png");
     m_pTexBlock = AEGfxTextureLoad("Assets/block.png");
 
-    m_Player = { 0, 0, 300.0f, 40.0f };         // x, y, speed, size
+    // Initialize the Player Class
+    m_Player.Init();
+
+    // Logic Objects
     m_HealCircle = { -400.0f, 0.0f, 150.0f };   // x, y, radius
     m_DmgCircle = { 400.0f, 0.0f, 150.0f };     // x, y, radius
 
+    // Healthbar Init
     m_Healthbar.w = 1200;
     m_Healthbar.h = 50;
     m_Healthbar.pos_x = -m_Healthbar.w / 2;
@@ -25,117 +30,57 @@ void Game::Init() {
 void Game::Update() {
     f32 dt = (f32)AEFrameRateControllerGetFrameTime();
 
-    if (m_DashCooldown > 0.0f) {
-        m_DashCooldown -= dt;
-    }
+    // --- 1. Update Player ---
+    // The player class now handles its own Input, Movement, and Dashing
+    m_Player.Update(dt);
 
-   // --- 1. Gather Input State ---
-    s8 moveX = 0;
-    s8 moveY = 0;
+    // --- 2. Map Boundaries (Clamping) ---
+    // We get the player's new position to ensure they haven't walked off the map
+    f32 playerX = m_Player.GetX();
+    f32 playerY = m_Player.GetY();
 
-    if (AEInputCheckCurr(AEVK_W)) moveY += 1;
-    if (AEInputCheckCurr(AEVK_S)) moveY -= 1;
-    if (AEInputCheckCurr(AEVK_A)) moveX -= 1;
-    if (AEInputCheckCurr(AEVK_D)) moveX += 1;
-    f32 halfW = GRID_W * 0.5f;
-    f32 halfH = GRID_H * 0.5f;
-    // --- 2. Apply Logic ---
-    if (moveX != 0 || moveY != 0) {
-        f32 dirX = 0.0f;
-        f32 dirY = 0.0f;
+    float halfW = GRID_W * 0.5f;
+    float halfH = GRID_H * 0.5f;
 
-        // Check if moving Diagonally (Both X and Y are non-zero)
-        if (moveX != 0 && moveY != 0) {
-            // Calculate vector aligned with the Isometric Grid Slope
-            // We use GRID_W and GRID_H from Utils.h to get the perfect angle
-            
-            f32 length = sqrt(halfW * halfW + halfH * halfH);
-
-            // Normalized components for isometric movement
-            f32 isoStepX = halfW / length; // approx 0.87
-            f32 isoStepY = halfH / length; // approx 0.50
-
-            // Apply direction signs based on input
-            dirX = (moveX > 0 ? isoStepX : -isoStepX);
-            dirY = (moveY > 0 ? isoStepY : -isoStepY);
-        }
-        else {
-            // Moving Orthogonally (Screen Axes)
-            // Just use the raw input (1.0 or -1.0)
-            dirX = (f32)moveX;
-            dirY = (f32)moveY;
-        }
-        if (AEInputCheckTriggered(AEVK_SPACE) && m_DashCooldown <= 0.0f) {
-            f32 blinkDist = 0.0f;
-            if (moveX != 0 && moveY != 0) {
-                // DIAGONAL: Move length of one tile edge
-                // Calculate hypotenuse of the tile's half-width/height
-                blinkDist = sqrt(halfW * halfW + halfH * halfH);
-            }
-            else {
-                // ORTHOGONAL: Check if moving Horizontal or Vertical
-                if (moveX != 0) {
-                    // Horizontal: Move 1 Tile Width
-                    blinkDist = GRID_W;
-                }
-                else {
-                    // Vertical: Move 1 Tile Height (prevents the "super jump" feeling)
-                    blinkDist = GRID_H;
-                }
-            }
-
-            m_Player.pos_x += dirX * blinkDist;
-            m_Player.pos_y += dirY * blinkDist;
-
-            // Set cooldown (e.g., 0.5 seconds)
-            m_DashCooldown = 0.1f;
-        }
-
-        // Apply Velocity
-        m_Player.pos_x += dirX * m_Player.speed * dt;
-        m_Player.pos_y += dirY * m_Player.speed * dt;
-    }
-    AEGfxSetCamPosition(m_Player.pos_x, m_Player.pos_y);
-
-    // Inverse of GridToScreen:
-    // ScreenX = (GridX - GridY) * halfW  =>  invX = GridX - GridY
-    // ScreenY = (GridX + GridY) * halfH  =>  invY = GridX + GridY
-    float invX = m_Player.pos_x / halfW;
-    float invY = m_Player.pos_y / halfH;
-
-    // Solve for GridX and GridY
+    // Convert Screen -> Grid
+    float invX = playerX / halfW;
+    float invY = playerY / halfH;
     float gridX = 0.5f * (invX + invY);
     float gridY = 0.5f * (invY - invX);
 
-    // Map Loop is x:1->15, y:1->15. Offset is -10.
-    // Range is [-9, 5]. We add +/- 0.5f to reach the edge of the tile.
-    const float MAP_MAX_X = 6.0f;  // Top Right Boundary
-    const float MAP_MIN_X = -8.0f; // Bottom Left Boundary
+    // Map Limits (Matches your previous loop logic)
+    const float MAP_MAX_X = 6.0f;
+    const float MAP_MIN_X = -8.0f;
+    const float MAP_MAX_Y = 5.0f;
+    const float MAP_MIN_Y = -9.0f;
 
-    const float MAP_MAX_Y = 5.0f;  // Top Left Boundary
-    const float MAP_MIN_Y = -9.0f; // Bottom Right Boundary
+    bool clamped = false;
+    if (gridX < MAP_MIN_X) { gridX = MAP_MIN_X; clamped = true; }
+    if (gridX > MAP_MAX_X) { gridX = MAP_MAX_X; clamped = true; }
+    if (gridY < MAP_MIN_Y) { gridY = MAP_MIN_Y; clamped = true; }
+    if (gridY > MAP_MAX_Y) { gridY = MAP_MAX_Y; clamped = true; }
 
-    // Clamp Grid Coordinates
-    if (gridX < MAP_MIN_X) gridX = MAP_MIN_X;
-    if (gridX > MAP_MAX_X) gridX = MAP_MAX_X;
-    if (gridY < MAP_MIN_Y) gridY = MAP_MIN_Y;
-    if (gridY > MAP_MAX_Y) gridY = MAP_MAX_Y;
+    // If we clamped the coordinates, convert back to screen space and update player
+    if (clamped) {
+        float newScreenX = (gridX - gridY) * halfW;
+        float newScreenY = (gridX + gridY) * halfH;
+        m_Player.SetPosition(newScreenX, newScreenY);
+    }
 
-    // Convert Back to Screen Space
-    m_Player.pos_x = (gridX - gridY) * halfW;
-    m_Player.pos_y = (gridX + gridY) * halfH;
+    // --- 3. Camera ---
+    // Update camera to follow the player
+    AEGfxSetCamPosition(m_Player.GetX(), m_Player.GetY());
 
-    // Update Camera (Now that player is clamped)
-    AEGfxSetCamPosition(m_Player.pos_x, m_Player.pos_y);
-
-    // Logic using Utils function
-    if (AreCirclesIntersecting(m_HealCircle.pos_x, m_HealCircle.pos_y, m_HealCircle.r, m_Player.pos_x, m_Player.pos_y, m_Player.size)) {
+    // --- 4. Game Logic (Health Circles) ---
+    // We use getters for player position/size
+    if (AreCirclesIntersecting(m_HealCircle.pos_x, m_HealCircle.pos_y, m_HealCircle.r, m_Player.GetX(), m_Player.GetY(), m_Player.GetSize())) {
         m_Healthbar.var += 15 * dt;
     }
-    if (AreCirclesIntersecting(m_DmgCircle.pos_x, m_DmgCircle.pos_y, m_DmgCircle.r, m_Player.pos_x, m_Player.pos_y, m_Player.size)) {
+    if (AreCirclesIntersecting(m_DmgCircle.pos_x, m_DmgCircle.pos_y, m_DmgCircle.r, m_Player.GetX(), m_Player.GetY(), m_Player.GetSize())) {
         m_Healthbar.var -= 15 * dt;
     }
 
+    // Healthbar Cap
     if (m_Healthbar.var < 0) m_Healthbar.var = 0;
     if (m_Healthbar.var > 100) m_Healthbar.var = 100;
 
@@ -149,23 +94,19 @@ void Game::Update() {
 
 void Game::Draw() {
     AESysFrameStart();
-    AEGfxSetBackgroundColor(0.0f, 0.17f, 0.27f);
+    AEGfxSetBackgroundColor(0.0f, 0.23f, 0.34f);
     AEGfxSetRenderMode(AE_GFX_RM_COLOR);
     AEGfxSetBlendMode(AE_GFX_BM_BLEND);
     AEGfxSetTransparency(1.0f);
 
-    // Using generic DrawMesh from Utils
-    // Heal Circle
+    // --- Draw UI/Logic Elements ---
     DrawMesh(m_pCircleMesh, m_HealCircle.r, m_HealCircle.r, m_HealCircle.pos_x, m_HealCircle.pos_y, 0, 0, 255, 0, 255);
-    // Dmg Circle
     DrawMesh(m_pCircleMesh, m_DmgCircle.r, m_DmgCircle.r, m_DmgCircle.pos_x, m_DmgCircle.pos_y, 0, 255, 0, 0, 255);
 
-    // Healthbar BG
     DrawMesh(m_pRectMesh, m_Healthbar.w, m_Healthbar.h, m_Healthbar.pos_x, m_Healthbar.pos_y, 0, 255, 0, 0, 150);
-    // Healthbar Fill
     DrawMesh(m_pRectMesh, m_Healthbar.current, m_Healthbar.h, m_Healthbar.pos_x, m_Healthbar.pos_y, 0, 255, 0, 0, 255);
 
-    // Minibars
+    // Draw Minibars
     int tempBars = m_CurrentBars;
     while (tempBars <= m_Barcount && tempBars != 0) {
         float xPos = (tempBars == 1) ? m_Healthbar.min : m_Healthbar.min + (tempBars - 1) * ((m_Healthbar.w / 10) + (((m_Healthbar.w / 10.0f) - m_MinibarWidth) / 9.0f));
@@ -176,7 +117,7 @@ void Game::Draw() {
         DrawMesh(m_pRectMesh, m_MinibarWidth, m_Healthbar.h, m_Healthbar.min, m_Healthbar.pos_y - 80, 0, 255, 0, 0, 255);
     }
 
-    // ISOMETRIC MAP
+    // --- Draw Map ---
     AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
     AEGfxSetColorToMultiply(1.0f, 1.0f, 1.0f, 1.0f);
     AEGfxSetColorToAdd(0.0f, 0.0f, 0.0f, 0.0f);
@@ -187,8 +128,6 @@ void Game::Draw() {
     for (int x = 15; x > 0; --x) {
         for (int y = 15; y > 0; --y) {
             Vec2 pos = GridToScreen(x - 10, y - 10);
-
-            // For texture drawing, we manually transform because we want to use generic logic or specific texture logic
             AEMtx33 scale, trans, transform;
             AEMtx33Scale(&scale, SPRITE_W, SPRITE_H);
             AEMtx33Trans(&trans, pos.x, pos.y);
@@ -198,12 +137,8 @@ void Game::Draw() {
         }
     }
 
-    // Player
-    AEGfxSetRenderMode(AE_GFX_RM_COLOR);
-
-    f32 isoHeight = m_Player.size * (GRID_H / GRID_W);
-
-    DrawMesh(m_pCircleMesh, m_Player.size, isoHeight, m_Player.pos_x, m_Player.pos_y, 0, 0, 0, 255, 255);
+    // --- Draw Player ---
+    m_Player.Draw();
 
     AESysFrameEnd();
 }
@@ -213,4 +148,7 @@ void Game::Free() {
     AEGfxMeshFree(m_pRectMesh);
     AEGfxTextureUnload(m_pTexBlock);
     AEGfxTextureUnload(m_pTexBlock2);
+
+    // Free Player resources
+    m_Player.Free();
 }
