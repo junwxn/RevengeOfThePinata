@@ -54,6 +54,10 @@ void Game::Update() {
             // Apply direction signs based on input
             dirX = (moveX > 0 ? isoStepX : -isoStepX);
             dirY = (moveY > 0 ? isoStepY : -isoStepY);
+
+            // Apply Velocity
+            m_Player.pos_x += dirX * m_Player.speed * dt;
+            m_Player.pos_y += dirY * m_Player.speed * dt;
         }
         else {
             // Moving Orthogonally (Screen Axes)
@@ -67,13 +71,39 @@ void Game::Update() {
         m_Player.pos_y += dirY * m_Player.speed * dt;
     }
     AEGfxSetCamPosition(m_Player.pos_x, m_Player.pos_y);
-    // Bounds
-    f32 winW = (f32)AEGfxGetWindowWidth();
-    f32 winH = (f32)AEGfxGetWindowHeight();
-    if (m_Player.pos_x - m_Player.size < -winW / 2) m_Player.pos_x = -winW / 2 + m_Player.size;
-    if (m_Player.pos_x + m_Player.size > winW / 2)  m_Player.pos_x = winW / 2 - m_Player.size;
-    if (m_Player.pos_y - m_Player.size < -winH / 2) m_Player.pos_y = -winH / 2 + m_Player.size;
-    if (m_Player.pos_y + m_Player.size > winH / 2)  m_Player.pos_y = winH / 2 - m_Player.size;
+    float halfW = GRID_W * 0.5f;
+    float halfH = GRID_H * 0.5f;
+
+    // Inverse of GridToScreen:
+    // ScreenX = (GridX - GridY) * halfW  =>  invX = GridX - GridY
+    // ScreenY = (GridX + GridY) * halfH  =>  invY = GridX + GridY
+    float invX = m_Player.pos_x / halfW;
+    float invY = m_Player.pos_y / halfH;
+
+    // Solve for GridX and GridY
+    float gridX = 0.5f * (invX + invY);
+    float gridY = 0.5f * (invY - invX);
+
+    // Map Loop is x:1->15, y:1->15. Offset is -10.
+    // Range is [-9, 5]. We add +/- 0.5f to reach the edge of the tile.
+    const float MAP_MAX_X = 6.0f;  // Top Right Boundary
+    const float MAP_MIN_X = -8.0f; // Bottom Left Boundary
+
+    const float MAP_MAX_Y = 5.0f;  // Top Left Boundary
+    const float MAP_MIN_Y = -9.0f; // Bottom Right Boundary
+
+    // Clamp Grid Coordinates
+    if (gridX < MAP_MIN_X) gridX = MAP_MIN_X;
+    if (gridX > MAP_MAX_X) gridX = MAP_MAX_X;
+    if (gridY < MAP_MIN_Y) gridY = MAP_MIN_Y;
+    if (gridY > MAP_MAX_Y) gridY = MAP_MAX_Y;
+
+    // Convert Back to Screen Space
+    m_Player.pos_x = (gridX - gridY) * halfW;
+    m_Player.pos_y = (gridX + gridY) * halfH;
+
+    // Update Camera (Now that player is clamped)
+    AEGfxSetCamPosition(m_Player.pos_x, m_Player.pos_y);
 
     // Logic using Utils function
     if (AreCirclesIntersecting(m_HealCircle.pos_x, m_HealCircle.pos_y, m_HealCircle.r, m_Player.pos_x, m_Player.pos_y, m_Player.size)) {
@@ -96,7 +126,7 @@ void Game::Update() {
 
 void Game::Draw() {
     AESysFrameStart();
-    AEGfxSetBackgroundColor(0.85f, 0.9f, 0.86f);
+    AEGfxSetBackgroundColor(0.0f, 0.23f, 0.34f);
     AEGfxSetRenderMode(AE_GFX_RM_COLOR);
     AEGfxSetBlendMode(AE_GFX_BM_BLEND);
     AEGfxSetTransparency(1.0f);
@@ -175,7 +205,10 @@ void Game::Draw() {
 
     // Player
     AEGfxSetRenderMode(AE_GFX_RM_COLOR);
-    DrawMesh(m_pCircleMesh, m_Player.size, m_Player.size, m_Player.pos_x, m_Player.pos_y, 0, 0, 0, 255, 255);
+
+    f32 isoHeight = m_Player.size * (GRID_H / GRID_W);
+
+    DrawMesh(m_pCircleMesh, m_Player.size, isoHeight, m_Player.pos_x, m_Player.pos_y, 0, 0, 0, 255, 255);
 
     AESysFrameEnd();
 }
