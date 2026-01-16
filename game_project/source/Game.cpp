@@ -54,10 +54,6 @@ void Game::Update() {
             // Apply direction signs based on input
             dirX = (moveX > 0 ? isoStepX : -isoStepX);
             dirY = (moveY > 0 ? isoStepY : -isoStepY);
-
-            // Apply Velocity
-            m_Player.pos_x += dirX * m_Player.speed * dt;
-            m_Player.pos_y += dirY * m_Player.speed * dt;
         }
         else {
             // Moving Orthogonally (Screen Axes)
