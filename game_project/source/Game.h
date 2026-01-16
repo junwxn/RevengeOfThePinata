@@ -26,7 +26,14 @@ public:
     bool IsRunning() const { return m_GameRunning; }
 
 private:
+
     int m_GameRunning = 1;
+
+    // NEW: Dash Cooldown Timer
+    f32 m_DashCooldown = 0.1f;
+
+
+    
 
     // Game Objects
     Player m_Player{ 0 };

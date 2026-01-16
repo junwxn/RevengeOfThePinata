@@ -25,6 +25,10 @@ void Game::Init() {
 void Game::Update() {
     f32 dt = (f32)AEFrameRateControllerGetFrameTime();
 
+    if (m_DashCooldown > 0.0f) {
+        m_DashCooldown -= dt;
+    }
+
    // --- 1. Gather Input State ---
     s8 moveX = 0;
     s8 moveY = 0;
@@ -60,6 +64,17 @@ void Game::Update() {
             // Just use the raw input (1.0 or -1.0)
             dirX = (f32)moveX;
             dirY = (f32)moveY;
+        }
+        if (AEInputCheckTriggered(AEVK_SPACE) && m_DashCooldown <= 0.0f) {
+            // "Roughly 1 tile" distance. GRID_W is a safe bet for tile size.
+            // You can adjust this multiplier (e.g., 1.5f * GRID_W) if it feels too short.
+            f32 blinkDist = GRID_W * 1.0f;
+
+            m_Player.pos_x += dirX * blinkDist;
+            m_Player.pos_y += dirY * blinkDist;
+
+            // Set cooldown (e.g., 0.5 seconds)
+            m_DashCooldown = 0.1f;
         }
 
         // Apply Velocity
@@ -122,7 +137,7 @@ void Game::Update() {
 
 void Game::Draw() {
     AESysFrameStart();
-    AEGfxSetBackgroundColor(0.0f, 0.23f, 0.34f);
+    AEGfxSetBackgroundColor(0.0f, 0.17f, 0.27f);
     AEGfxSetRenderMode(AE_GFX_RM_COLOR);
     AEGfxSetBlendMode(AE_GFX_BM_BLEND);
     AEGfxSetTransparency(1.0f);
@@ -170,34 +185,6 @@ void Game::Draw() {
             AEGfxMeshDraw(m_pRectMesh, AE_GFX_MDM_TRIANGLES);
         }
     }
-
-    /*AEGfxTextureSet(m_pTexBlock, 0, 0);
-    for (int x = 10; x > 0; --x) {
-        for (int y = 10; y > 0; --y) {
-            Vec2 pos = GridToScreen(x - 6, y - 6);
-
-            AEMtx33 scale, trans, transform;
-            AEMtx33Scale(&scale, SPRITE_W, SPRITE_H);
-            AEMtx33Trans(&trans, pos.x, pos.y);
-            AEMtx33Concat(&transform, &trans, &scale);
-            AEGfxSetTransform(transform.m);
-            AEGfxMeshDraw(m_pRectMesh, AE_GFX_MDM_TRIANGLES);
-        }
-    }*/
-
-    /*AEGfxTextureSet(m_pTexBlock2, 0, 0);
-    for (int x = 5; x > 0; --x) {
-        for (int y = 5; y > 0; --y) {
-            Vec2 pos = GridToScreen(x - 2, y - 2);
-
-            AEMtx33 scale, trans, transform;
-            AEMtx33Scale(&scale, SPRITE_W, SPRITE_H);
-            AEMtx33Trans(&trans, pos.x, pos.y);
-            AEMtx33Concat(&transform, &trans, &scale);
-            AEGfxSetTransform(transform.m);
-            AEGfxMeshDraw(m_pRectMesh, AE_GFX_MDM_TRIANGLES);
-        }
-    }*/
 
     // Player
     AEGfxSetRenderMode(AE_GFX_RM_COLOR);
