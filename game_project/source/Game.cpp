@@ -12,6 +12,7 @@ void Game::Init() {
 
     // Initialize the Player Class
     m_Player.Init();
+    m_Enemy.Init();
 
     // Logic Objects
     m_HealCircle = { -400.0f, 0.0f, 150.0f };   // x, y, radius
@@ -36,7 +37,8 @@ void Game::Update() {
 
     // --- 1. Update Player ---
     // The player class now handles its own Input, Movement, and Dashing
-    m_Player.Update(dt);
+    m_Player.Update(dt, m_Enemy);
+    m_Enemy.Update(dt, m_Player);
 
     // --- 2. Map Boundaries (Clamping) ---
     // We get the player's new position to ensure they haven't walked off the map
@@ -144,6 +146,7 @@ void Game::Draw() {
 
     // --- Draw Player ---
     m_Player.Draw();
+    m_Enemy.Draw();
 
     AESysFrameEnd();
 }
@@ -156,4 +159,5 @@ void Game::Free() {
 
     // Free Player resources
     m_Player.Free();
+    m_Enemy.Free();
 }

@@ -48,6 +48,15 @@ AEGfxVertexList* CreateRectMesh(u32 color) {
     return AEGfxMeshEnd();
 }
 
+AEGfxVertexList* CreateTriangleMesh(u32 color) {
+    AEGfxMeshStart();
+    AEGfxTriAdd( // Triangle 1
+        0.0f, 0.5f, color, 0.0f, 0.0f,  // left-top
+        0.0f, -0.5f, color, 0.0f, 0.0f,   // left-bottom
+        -0.5f, 0.5f, color, 0.0f, 0.0f);  // right-top
+    return AEGfxMeshEnd();
+}
+
 void DrawMesh(AEGfxVertexList* pMesh, float width, float height, float x, float y, float rot, float r, float g, float b, float a) {
     AEGfxSetColorToMultiply(0.0f, 0.0f, 0.0f, 0.0f);
     AEGfxSetColorToAdd(r / 255.0f, g / 255.0f, b / 255.0f, a / 255.0f);

@@ -24,6 +24,7 @@ bool AreCirclesIntersecting(float c1_x, float c1_y, float r1, float c2_x, float 
 // Creates a mesh and RETURNS the pointer (instead of setting a global)
 AEGfxVertexList* CreateCircleMesh(f32 radius, u8 parts, u32 color);
 AEGfxVertexList* CreateRectMesh(u32 color);
+AEGfxVertexList* CreateTriangleMesh(u32 color);
 
 // Generic Draw function that can draw ANY mesh (Circle or Rect)
 // This replaces specific DrawCircle/DrawRect functions by letting you pass the mesh you want to draw.
