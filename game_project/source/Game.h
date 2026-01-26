@@ -1,6 +1,7 @@
 #pragma once
 #include "Utils.h"
-#include "Player.h" // INCLUDE THE NEW HEADER
+#include "Player.h" 
+#include "Camera.h"
 
 // Note: Removed old 'struct Player' because we now have a class in Player.h
 
@@ -44,4 +45,7 @@ private:
     AEGfxVertexList* m_pRectMesh = nullptr;
     AEGfxTexture* m_pTexBlock2 = nullptr;
     AEGfxTexture* m_pTexBlock = nullptr;
+
+    // Camera
+    Camera m_Camera;
 };
