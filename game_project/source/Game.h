@@ -1,6 +1,7 @@
 #pragma once
 #include "Utils.h"
 #include "Player.h" // INCLUDE THE NEW HEADER
+#include "Enemy.h" // INCLUDE THE NEW HEADER
 
 // Note: Removed old 'struct Player' because we now have a class in Player.h
 
@@ -29,6 +30,7 @@ private:
 
     // NEW: Use the Class, not the struct
     Player m_Player;
+    Enemy m_Enemy;
 
     Circle m_HealCircle{ 0 };
     Circle m_DmgCircle{ 0 };

@@ -1,13 +1,30 @@
 #pragma once
 #include "Utils.h" // Access to AE system and Grid constants
+//#include "Enemy.h"
+
+//-----------------------//
+//---- Player States ----//
+//-----------------------//
+enum class PlayerState {
+    STATE_IDLE,
+    STATE_MOVING,
+    STATE_ATTACK,
+    STATE_PARRY,
+    STATE_DEAD
+};
+
+class Enemy;
 
 class Player
 {
 public:
     void Init();
-    void Update(float dt);
+    void Update(float dt, Enemy const& enemy);
     void Draw();
     void Free();
+
+    void StartAttack();
+    bool IsAttacking() const { return m_AttackActive; }
 
     // Getters allowing Game.cpp to access position for Camera/Collisions
     float GetX() const { return m_PosX; }
@@ -29,4 +46,32 @@ private:
 
     // Visual Assets
     AEGfxVertexList* m_pMesh = nullptr;
+
+    // -------------------------- //
+    //      COMBAT VARIABLES      //
+    // -------------------------- //
+    // Attack Logic
+    // --------------------
+    bool  m_AttackActive = false;
+    bool  m_AllowAttack = true;
+
+    float m_AttackDuration = 0.15f;
+    float m_AttackTimer = 0.0f;
+
+    float m_AttackRange = 200.0f;
+    float m_ConeHalfAngleDeg = 30.0f;
+    float m_ConeThreshold;
+
+    float m_StartAngle = 0.0f;
+    float m_EndAngle = 0.0f;
+    float m_CurrentAngle = 0.0f;
+
+    // Attack Visual
+    AEGfxVertexList* m_AttackRangeMesh = nullptr;
+    AEMtx33 atkScale, atkRot, atkTrans, atkTransform;
+    AEMtx33 pointScale, pointRot, pointTrans, pointTransform;
+
+    // Mouse Aiming
+    AEVec2 m_AimVector;
+    float m_AimAngle;
 };
