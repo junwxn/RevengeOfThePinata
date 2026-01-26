@@ -1,5 +1,5 @@
-#include "pch.h"
 #include "Player.h"
+#include <math.h> // For sqrt
 
 void Player::Init()
 {
@@ -43,7 +43,7 @@ void Player::Update(float dt)
             // Diagonal Normalization
             float halfW = GRID_W * 0.5f;
             float halfH = GRID_H * 0.5f;
-            float length = std::sqrt(halfW * halfW + halfH * halfH);
+            float length = sqrt(halfW * halfW + halfH * halfH);
 
             float isoStepX = halfW / length;
             float isoStepY = halfH / length;
@@ -68,7 +68,7 @@ void Player::Update(float dt)
                 // Diagonal: Move Hypotenuse of one tile
                 float halfW = GRID_W * 0.5f;
                 float halfH = GRID_H * 0.5f;
-                blinkDist = std::sqrt(halfW * halfW + halfH * halfH);
+                blinkDist = sqrt(halfW * halfW + halfH * halfH);
             }
             else
             {

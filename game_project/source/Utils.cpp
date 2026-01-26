@@ -1,4 +1,3 @@
-#include "pch.h"
 #include "Utils.h"
 
 // Tile Basis Vectors
@@ -20,7 +19,7 @@ bool AreCirclesIntersecting(float c1_x, float c1_y, float r1, float c2_x, float 
     return (sqrt(pow((c1_x - c2_x), 2) + pow((c1_y - c2_y), 2)) < (r1 + r2));
 }
 
-AEGfxVertexList* CreateCircleMesh(f32 radius, u8 parts, u32 color = 0x00000000) {
+AEGfxVertexList* CreateCircleMesh(f32 radius, u8 parts, u32 color) {
     AEGfxMeshStart();
     f32 angleStep = (2.0f * PI) / parts;
     f32 currentAngle = 0.0f;
