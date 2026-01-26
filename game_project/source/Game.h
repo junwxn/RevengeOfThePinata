@@ -44,4 +44,9 @@ private:
     AEGfxVertexList* m_pRectMesh = nullptr;
     AEGfxTexture* m_pTexBlock2 = nullptr;
     AEGfxTexture* m_pTexBlock = nullptr;
+
+    // Camera
+    f32 m_CamPosX{ 0.0f };
+    f32 m_CamPosY{ 0.0f };
+    f32 m_CamSpeed{ 5.0f };
 };
