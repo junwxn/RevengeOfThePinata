@@ -1,6 +1,7 @@
 #pragma once
 #include "Utils.h"
-#include "Player.h" // INCLUDE THE NEW HEADER
+#include "Player.h" 
+#include "Camera.h"
 
 // Note: Removed old 'struct Player' because we now have a class in Player.h
 
@@ -46,7 +47,5 @@ private:
     AEGfxTexture* m_pTexBlock = nullptr;
 
     // Camera
-    f32 m_CamPosX{ 0.0f };
-    f32 m_CamPosY{ 0.0f };
-    f32 m_CamSpeed{ 5.0f };
+    Camera m_Camera;
 };

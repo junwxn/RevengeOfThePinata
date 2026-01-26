@@ -1,5 +1,6 @@
 #include "Game.h"
 #include <iostream>
+#include "Camera.h"
 
 void Game::Init() {
     // Use Utils to create meshes
@@ -27,9 +28,7 @@ void Game::Init() {
     m_Healthbar.current = (m_Healthbar.var / 100) * (m_Healthbar.max - m_Healthbar.min);
 
 	// Camera Init
-	m_CamPosX = m_Player.GetX();
-	m_CamPosY = m_Player.GetY();
-	m_CamSpeed = 1.0f;
+    m_Camera.Init(m_Player.GetX(), m_Player.GetY());
 }
 
 void Game::Update() {
@@ -75,15 +74,7 @@ void Game::Update() {
     // --- 3. Camera ---
     // Update camera to follow the player
 
-    f32 targetX = m_Player.GetX();
-    f32 targetY = m_Player.GetY();
-
-    m_CamPosX += (targetX - m_CamPosX) * m_CamSpeed * dt;
-    m_CamPosY += (targetY - m_CamPosY) * m_CamSpeed * dt;
-
-    //std::cout << "camX: " << m_CamPosX << "\tcamY: " << m_CamPosY <<  "\tplayer(x,y): " << "(" << m_Player.GetX() << ", " << m_Player.GetY() << ")" << std::endl;
-
-    AEGfxSetCamPosition(m_CamPosX, m_CamPosY);
+    m_Camera.Update(dt, m_Player.GetX(), m_Player.GetY());
 
     // --- 4. Game Logic (Health Circles) ---
     // We use getters for player position/size
