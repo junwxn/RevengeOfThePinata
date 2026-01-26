@@ -1,5 +1,5 @@
+#include "pch.h"
 #include "Game.h"
-#include <iostream>
 
 void Game::Init() {
     // Use Utils to create meshes
