@@ -1,33 +1,66 @@
 #include "Camera.h"
+#include "Utils.h"
 
 void Camera::Init(f32 startX, f32 startY) {
-	m_X = startX;
-	m_Y = startY;
+    m_X = startX;
+    m_Y = startY;
 
-	m_Speed = 2.0f;
-	m_LookDist = 300.0f;
+    m_Speed = 2.5f;
+    m_LookDist = 350.0f;
 }
 
 void Camera::Update(f32 dt, f32 playerX, f32 playerY) {
-    // --- 1. Determine Look-Ahead Offset ---
+    // --- 1. Determine Input Direction ---
+    float dirX = 0.0f;
+    float dirY = 0.0f;
+
+    if (AEInputCheckCurr(AEVK_W)) dirY += 1.0f;
+    if (AEInputCheckCurr(AEVK_S)) dirY -= 1.0f;
+    if (AEInputCheckCurr(AEVK_D)) dirX += 1.0f;
+    if (AEInputCheckCurr(AEVK_A)) dirX -= 1.0f;
+
+    // --- 2. Calculate Isometric Offset ---
     float lookOffsetX = 0.0f;
     float lookOffsetY = 0.0f;
 
-    // Check Input (AEInput is global, so we can check it here)
-    if (AEInputCheckCurr(AEVK_W)) lookOffsetY += m_LookDist;
-    if (AEInputCheckCurr(AEVK_S)) lookOffsetY -= m_LookDist;
-    if (AEInputCheckCurr(AEVK_D)) lookOffsetX += m_LookDist;
-    if (AEInputCheckCurr(AEVK_A)) lookOffsetX -= m_LookDist;
+    if (dirX != 0.0f || dirY != 0.0f)
+    {
+        // CASE A: Diagonal Movement (W+D, W+A, etc.)
+        // We must align with the Isometric Grid (approx 30 degrees), not Screen (45 degrees)
+        if (dirX != 0.0f && dirY != 0.0f)
+        {
+            // Get the dimensions of one diagonal tile edge
+            float halfW = GRID_W * 0.5f;
+            float halfH = GRID_H * 0.5f;
 
-    // --- 2. Calculate Target Position ---
+            // Calculate the length of that edge (Hypotenuse)
+            float length = sqrt(halfW * halfW + halfH * halfH);
+
+            // Normalize based on Tile Shape
+            float isoStepX = halfW / length; // Approx 0.86
+            float isoStepY = halfH / length; // Approx 0.50
+
+            // Apply direction signs
+            lookOffsetX = (dirX > 0 ? isoStepX : -isoStepX) * m_LookDist;
+            lookOffsetY = (dirY > 0 ? isoStepY : -isoStepY) * m_LookDist;
+        }
+        // CASE B: Orthogonal Movement (Just W, A, S, or D)
+        // Move straight up/down/left/right
+        else
+        {
+            lookOffsetX = dirX * m_LookDist;
+            lookOffsetY = dirY * m_LookDist;
+        }
+    }
+
+    // --- 3. Calculate Target Position ---
     float targetX = playerX + lookOffsetX;
     float targetY = playerY + lookOffsetY;
 
-    // --- 3. Smooth Movement (Lerp) ---
-    // Formula: Current += (Target - Current) * Speed * dt
+    // --- 4. Smooth Movement (Lerp) ---
     m_X += (targetX - m_X) * m_Speed * dt;
     m_Y += (targetY - m_Y) * m_Speed * dt;
 
-    // --- 4. Apply to Alpha Engine ---
+    // --- 5. Apply to Alpha Engine ---
     AEGfxSetCamPosition(m_X, m_Y);
 }
