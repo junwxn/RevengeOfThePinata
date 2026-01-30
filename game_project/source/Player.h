@@ -1,5 +1,6 @@
 #pragma once
 #include "Utils.h" // Access to AE system and Grid constants
+#include "Combat.h"
 //#include "Enemy.h"
 
 //-----------------------//
@@ -30,6 +31,7 @@ public:
     void StartBlock();
     bool IsBlocking() const { return m_BlockActive; }
 
+    void ResetCombatVariables();
 
     // Getters allowing Game.cpp to access position for Camera/Collisions
     float GetX() const { return m_PosX; }
@@ -40,6 +42,9 @@ public:
     // Getters for Combat related purposes
     bool GetBlockStatus() const { return m_BlockActive; }
     bool GetParryStatus() const { return m_ParryActive; }
+
+    Combat::CombatFlags GetCombatFlag() const { return m_CombatFlags; }
+    Combat::CombatStats GetCombatStats() const { return m_CombatStats; }
 
     // Setters if you need to teleport the player (e.g. respawning)
     void SetPosition(float x, float y) { m_PosX = x; m_PosY = y; }
@@ -61,6 +66,8 @@ private:
     // -------------------------- //
     //      COMBAT VARIABLES      //
     // -------------------------- //
+    Combat::CombatStats m_CombatStats{ 10.0f, 5.0f };
+    Combat::CombatFlags m_CombatFlags{ false, false };
     // Attack Logic
     // --------------------
     bool  m_AttackActive = false;
