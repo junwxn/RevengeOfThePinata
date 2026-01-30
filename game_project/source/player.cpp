@@ -1,5 +1,6 @@
 #include "Player.h"
 #include "Enemy.h"
+#include "Game.h"
 #include "Colors.h"
 #include "MathFunctions.h"
 #include <math.h> // For sqrt
@@ -95,19 +96,18 @@ void Player::Update(float dt, Enemy const& enemy)
         StartAttack();
         if (dotProduct >= m_ConeThreshold && m_AttackRange >= distMag_PD) {
             std::cout << "ENEMY HIT!" << std::endl;
+            m_CombatFlags.attackHit = true;
         }
     }
+    else m_CombatFlags.attackHit = false;
+
     if (AEInputCheckTriggered(AEVK_RBUTTON) && m_AllowBlock && !m_AttackActive)
     {
         std::cout << "BLOCK" << std::endl;
         m_AllowAttack = false;
         StartBlock();
     }
-    else {
-        m_BlockActive = false;
-        m_AllowBlock = true;
-        m_AllowAttack = true;
-    }
+    if (AEInputCheckReleased(AEVK_RBUTTON)) ResetCombatVariables();
 
     // Update attack
     if (m_AttackActive)
@@ -125,8 +125,9 @@ void Player::Update(float dt, Enemy const& enemy)
 
         if (attackProgress >= 1.0f)
         {
-            m_AttackActive = false;
-            m_AllowAttack = true;
+            /*m_AttackActive = false;
+            m_AllowAttack = true;*/
+            ResetCombatVariables();
             attackProgress = 1.0f;
         }
     }
@@ -135,19 +136,33 @@ void Player::Update(float dt, Enemy const& enemy)
     if (m_BlockActive) {
         m_CurrentState = PlayerState::STATE_PARRY;
         m_ParryActive = true;
+        m_CombatFlags.parryOn = true;
         m_BlockTimer += dt;
 
         float blockProgress = m_BlockTimer / m_ParryDuration;
         if (m_ParryActive) m_CurrentAngle = Vectors::lerp(m_StartAngle, m_EndAngle, blockProgress);
 
-        if (m_BlockTimer > m_ParryDuration) {
+        if (m_BlockTimer >= m_ParryDuration) {
             m_CurrentState = PlayerState::STATE_BLOCK;
             m_ParryActive = false;
+            m_CombatFlags.parryOn = false;
+            blockProgress = 1.0f;
         }
+
+        m_CombatFlags.blockOn = true;
+        std::cout << "Player.blocking: " << m_CombatFlags.blockOn << std::endl;
+        std::cout << "Player.parryOn: " << m_CombatFlags.parryOn << std::endl;
+        //std::cout << "m_BlockTimer: " << m_BlockTimer << std::endl;
+    }
+    else {
+        m_CombatFlags.blockOn = false;
+        m_CombatFlags.parryOn = false;
     }
 
-    std::cout << "m_ParryActive: " << m_ParryActive << std::endl;
-    std::cout << "m_BlockTimer: " << m_BlockTimer << std::endl;
+    std::cout << "Player.blocking: " << m_CombatFlags.blockOn << std::endl;
+    std::cout << "Player.parryOn: " << m_CombatFlags.parryOn << std::endl;
+
+    //std::cout << "m_BlockTimer: " << m_BlockTimer << std::endl;
     //std::cout << "m_AttackActive: " << m_AttackActive << std::endl;
     //std::cout << "m_BlockActive: " << m_BlockActive << std::endl;
 
@@ -232,45 +247,22 @@ void Player::Draw()
 
     // Draw using Utils helper
     // Color: Black (0,0,0) with full alpha (255)
+    // Player Mesh
     DrawMesh(m_pMesh, m_Size, isoHeight, m_PosX, m_PosY, 0.0f, 44, 145, 57, 255);
     
-    // Draw 
-    DrawMesh(m_AttackRangeMesh, 1.0f, 5.0f, m_PosX, m_PosY, m_AimAngle, 255, 255, 53, 255);
+    // Aiming Pointer
+    if (!m_AttackActive) {
+        DrawMesh(m_AttackRangeMesh, 1.0f, 5.0f, m_PosX, m_PosY, m_AimAngle, 255, 255, 53, 255);
+    }
 
-    //AEMtx33Scale(&atkScale, 1.0f, 5.0f);
-    //AEMtx33Rot(&atkRot, m_AimAngle);
-    //AEMtx33Trans(&atkTrans, m_PosX, m_PosY);
-    //AEMtx33Concat(&atkTransform, &atkRot, &atkScale);
-    //AEMtx33Concat(&atkTransform, &atkTrans, &atkTransform);
-    //AEGfxSetTransform(atkTransform.m);
-    //AEGfxMeshDraw(m_AttackRangeMesh, AE_GFX_MDM_TRIANGLES);
-
-    if (m_AttackActive)
+    else if (m_AttackActive)
     {
         DrawMesh(m_AttackRangeMesh, 1.0f, 5.0f, m_PosX, m_PosY, m_CurrentAngle, 255, 255, 53, 255);
-
-        //AEMtx33Rot(&atkRot, m_CurrentAngle);
-        //AEMtx33Trans(&atkTrans, m_PosX, m_PosY);
-
-        //AEMtx33Concat(&atkTransform, &atkRot, &atkScale);
-        //AEMtx33Concat(&atkTransform, &atkTrans, &atkTransform);
-
-        //AEGfxSetTransform(atkTransform.m);
-        //AEGfxMeshDraw(m_AttackRangeMesh, AE_GFX_MDM_TRIANGLES);
     }
 
     if (m_BlockActive)
     {
-        if(m_ParryActive) DrawMesh(m_BlockRangeMesh, 1.0f, 5.0f, m_PosX, m_PosY, m_CurrentAngle, 255, 0, 0, 255);   
-        //AEMtx33Scale(&blockScale, 1.0f, 5.0f);
-        //AEMtx33Rot(&blockRot, m_CurrentAngle);
-        //AEMtx33Trans(&blockTrans, m_PosX, m_PosY);
-
-        //AEMtx33Concat(&blockTransform, &blockRot, &blockScale);
-        //AEMtx33Concat(&blockTransform, &blockTrans, &blockTransform);
-
-        //AEGfxSetTransform(blockTransform.m);
-        //AEGfxMeshDraw(m_BlockRangeMesh, AE_GFX_MDM_TRIANGLES);
+        if (m_ParryActive) DrawMesh(m_BlockRangeMesh, 1.0f, 5.0f, m_PosX, m_PosY, m_CurrentAngle, 255, 0, 0, 255);   
     }
 }
 
@@ -295,10 +287,20 @@ void Player::StartAttack()
 void Player::StartBlock()
 {
     m_BlockActive = true;
+    m_AllowBlock = false;
     m_BlockTimer = 0.0f;
 
     // 60-degree cone
     m_CurrentAngle = m_AimAngle;
     m_StartAngle = m_AimAngle + AEDegToRad(30.0f);
     m_EndAngle = m_AimAngle - AEDegToRad(30.0f);
+}
+
+void Player::ResetCombatVariables()
+{
+    m_AttackActive = false;
+    m_AllowAttack = true;
+
+    m_BlockActive = false;
+    m_AllowBlock = true;
 }

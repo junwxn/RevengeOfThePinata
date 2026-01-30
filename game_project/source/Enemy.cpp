@@ -56,8 +56,10 @@ void Enemy::Update(float dt, Player const& player)
     // Start attack
     if ((e_AttackRange >= distMag_PD) && e_AllowAttack)
     {
+        e_CombatFlags.attackHit = true;
         StartAttack();
     }
+    else e_CombatFlags.attackHit = false;
 
     // Update attack
     if (e_AttackActive)

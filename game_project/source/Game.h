@@ -24,6 +24,8 @@ public:
     void Free();
     bool IsRunning() const { return m_GameRunning; }
 
+    void DealDamage(f32 damageAmount);
+
 private:
     int m_GameRunning = 1;
 

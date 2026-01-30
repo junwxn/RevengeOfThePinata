@@ -87,6 +87,17 @@ void Game::Update() {
         m_Healthbar.var -= 15 * dt;
     }
 
+    if (m_Player.GetCombatFlag().attackHit) {
+        m_Healthbar.var -= m_Player.GetCombatStats().attack;
+    }
+    if (m_Enemy.GetCombatFlag().attackHit) {
+        if (!m_Player.GetCombatFlag().parryOn) {
+            if (m_Player.GetCombatFlag().blockOn) m_Healthbar.var -= (m_Player.GetCombatStats().attack) / 2;
+            else m_Healthbar.var -= m_Player.GetCombatStats().attack;
+        }
+    }
+    
+
     // Healthbar Cap
     if (m_Healthbar.var < 0) m_Healthbar.var = 0;
     if (m_Healthbar.var > 100) m_Healthbar.var = 100;
@@ -160,4 +171,8 @@ void Game::Free() {
     // Free Player resources
     m_Player.Free();
     m_Enemy.Free();
+}
+
+void Game::DealDamage(f32 damageAmount) {
+    m_Healthbar.var -= damageAmount;
 }

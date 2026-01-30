@@ -1,5 +1,6 @@
 #pragma once
 #include "Utils.h"
+#include "Combat.h"
 //#include "Player.h"
 
 //-----------------------//
@@ -34,6 +35,9 @@ public:
 
     AEVec2 GetAimVector() const { return e_AimVector; }
 
+    Combat::CombatFlags GetCombatFlag() const { return e_CombatFlags; }
+    Combat::CombatStats GetCombatStats() const { return e_CombatStats; }
+
     // Setters if you need to teleport the player (e.g. respawning)
     void SetPosition(float x, float y) { e_PosX = x; e_PosY = y; }
 
@@ -53,6 +57,9 @@ private:
     // -------------------------- //
     //      COMBAT VARIABLES      //
     // -------------------------- //
+    Combat::CombatStats e_CombatStats{ 10.0f, 5.0f };
+    Combat::CombatFlags e_CombatFlags{ false, false };
+     
     // Attack Logic
     // --------------------
     bool  e_AttackActive = false;
