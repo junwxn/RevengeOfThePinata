@@ -47,6 +47,12 @@ void Enemy::Update(float dt, Player const& player)
     // Angle towards Player
     e_AimAngle = atan2(e_AimVector.y, e_AimVector.x);
 
+    if (e_AttackCooldown <= 0.0f)
+    {
+        e_AttackCooldown = 0.0f; // Clamp
+        e_AllowAttack = true;
+    }
+
     // Start attack
     if ((e_AttackRange >= distMag_PD) && e_AllowAttack)
     {
@@ -56,6 +62,7 @@ void Enemy::Update(float dt, Player const& player)
     // Update attack
     if (e_AttackActive)
     {
+        e_AttackCooldown = 2.0f;
         e_AttackTimer += dt;
 
         // For normalized value between 0.0 - 1.0 range
@@ -69,10 +76,21 @@ void Enemy::Update(float dt, Player const& player)
         if (attackProgress >= 1.0f)
         {
             e_AttackActive = false;
-            e_AllowAttack = true;
+            //e_AllowAttack = true;
             attackProgress = 1.0f;
         }
+
+        if (attackProgress < 0.5f && player.GetBlockStatus() && player.GetParryStatus())
+        {
+            e_PosX += 20.0f;
+            std::cout << "PARRIED" << std::endl;
+        }
     }
+    else {
+        e_AttackCooldown -= dt;
+        e_AllowAttack = false;
+    }
+
 }
 
 void Enemy::Draw()
@@ -86,7 +104,7 @@ void Enemy::Draw()
 
     // Draw using Utils helper
     // Color: Black (0,0,0) with full alpha (255)
-    DrawMesh(e_eMesh, e_Size, isoHeight, e_PosX, e_PosY, 0.0f, 44, 145, 57, 255);
+    DrawMesh(e_eMesh, e_Size, isoHeight, e_PosX, e_PosY, 0.0f, 44, 255, 255, 255);
     //DrawMesh(e_AttackRangeMesh, 1.0f, 5.0f, e_PosX, e_PosY, e_AimAngle, 44, 145, 57, 255);
     //AEGfxSetTransform(pointTransform.m);
     //AEGfxMeshDraw(triangleMesh, AE_GFX_MDe_TRIANGLES);
@@ -128,4 +146,9 @@ void Enemy::StartAttack()
     e_CurrentAngle = e_AimAngle;
     e_StartAngle = e_AimAngle - AEDegToRad(30.0f);
     e_EndAngle = e_AimAngle + AEDegToRad(30.0f);
+}
+
+void Enemy::DamageInfo()
+{
+
 }

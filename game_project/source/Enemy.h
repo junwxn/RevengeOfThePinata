@@ -25,11 +25,14 @@ public:
 
     void StartAttack();
     bool IsAttacking() const { return e_AttackActive; }
+    void DamageInfo();
 
     // Getters allowing Game.cpp to access position for Camera/Collisions
     float GetX() const { return e_PosX; }
     float GetY() const { return e_PosY; }
     float GetSize() const { return e_Size; }
+
+    AEVec2 GetAimVector() const { return e_AimVector; }
 
     // Setters if you need to teleport the player (e.g. respawning)
     void SetPosition(float x, float y) { e_PosX = x; e_PosY = y; }
@@ -54,6 +57,7 @@ private:
     // --------------------
     bool  e_AttackActive = false;
     bool  e_AllowAttack = true;
+    float e_AttackCooldown = 0.0f;
 
     float e_AttackDuration = 0.15f;
     float e_AttackTimer = 0.0f;
@@ -65,6 +69,9 @@ private:
     float e_StartAngle = 0.0f;
     float e_EndAngle = 0.0f;
     float e_CurrentAngle = 0.0f;
+
+    // Damage Logic
+    // --------------------
 
     // Attack Visual
     AEGfxVertexList* e_AttackRangeMesh = nullptr;

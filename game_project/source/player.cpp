@@ -1,7 +1,9 @@
 #include "Player.h"
+#include "Enemy.h"
 #include "Colors.h"
 #include "MathFunctions.h"
 #include <math.h> // For sqrt
+#include <iostream>
 
 void Player::Init()
 {
@@ -13,29 +15,13 @@ void Player::Init()
     m_DashCooldown_Default = 0.1f;
     m_DashCooldown = 0.1f;
 
+    m_CurrentState = PlayerState::STATE_IDLE;
+
     // --- Attack setup ---
     m_ConeThreshold = cos(AEDegToRad(m_ConeHalfAngleDeg));
 
-    AEGfxMeshStart();
-    AEGfxTriAdd(
-        0.0f, 0.5f, Colors::bananaYellow, 0, 0,
-        0.0f, -0.5f, Colors::bananaYellow, 0, 0,
-        m_AttackRange, 0.5f, Colors::bananaYellow, 0, 0);
-
-    AEGfxTriAdd(
-        m_AttackRange, 0.5f, Colors::bananaYellow, 0, 0,
-        m_AttackRange, -0.5f, Colors::bananaYellow, 0, 0,
-        0.0f, -0.5f, Colors::bananaYellow, 0, 0);
-
-    m_AttackRangeMesh = AEGfxMeshEnd();
-
-    //AEGfxMeshStart();
-    //AEGfxTriAdd(0.5f, 0.0f, Colors::red, 0.0f, 0.0f,
-    //    -0.5f, 0.5f, Colors::red, 0.0f, 0.0f,
-    //    -0.5f, -0.5f, Colors::red, 0.0f, 0.0f);
-    //triangleMesh = AEGfxMeshEnd();
-    //AEMtx33Scale(&pointScale, 30, 30);
-
+    m_AttackRangeMesh = CreateLineMesh(m_AttackRange, Colors::bananaYellow);
+    m_BlockRangeMesh = CreateLineMesh(m_AttackRange, Colors::red);
     // Create a local mesh for the player
     // (Assuming CreateCircleMesh is defined in Utils.h/cpp)
     m_pMesh = CreateCircleMesh(1.0f, 32, 0x50A655);
@@ -46,8 +32,6 @@ void Player::Update(float dt, Enemy const& enemy)
     // Attack / Combat Logic
     // Mouse input
     s32 mouseX, mouseY;
-
-
     AEInputGetCursorPosition(&mouseX, &mouseY);
 
     // Convert mouse to world space
@@ -81,10 +65,6 @@ void Player::Update(float dt, Enemy const& enemy)
     //									|
     // 									|
     m_AimAngle = atan2(m_AimVector.y, m_AimVector.x);
-    //AEMtx33Rot(&pointRot, m_AimAngle);
-    //AEMtx33Trans(&pointTrans, m_PosX, m_PosY);
-    //AEMtx33Concat(&pointTransform, &pointRot, &pointScale);
-    //AEMtx33Concat(&pointTransform, &pointTrans, &pointTransform);
 
     // Dot product between AIM and TARGET direction
     // Eg. How wide is the angle?
@@ -94,7 +74,10 @@ void Player::Update(float dt, Enemy const& enemy)
     //			\  30°
     //			 \
 
-    //f32 dotProduct = normalized_MP.x * normalized_PD.x + normalized_MP.y * normalized_PD.y;
+    AEVec2 vectorBtw_PD { enemy.GetX() - m_PosX, enemy.GetY() - m_PosY };
+    f32 distMag_PD = Vectors::magnitude(vectorBtw_PD.x, vectorBtw_PD.y);// Dist between dummy and player
+    AEVec2 normalized_PD = Vectors::normalize(Vectors::magnitude(enemy.GetAimVector().x, enemy.GetAimVector().y), enemy.GetAimVector().x, enemy.GetAimVector().y);
+    f32 dotProduct = normalized_MP.x * normalized_PD.x + normalized_MP.y * normalized_PD.y;
 
     // Convert mouse to world space if needed (camera offset later)
 
@@ -105,14 +88,31 @@ void Player::Update(float dt, Enemy const& enemy)
     }
 
     // Start attack
-    if (AEInputCheckTriggered(AEVK_LBUTTON) && m_AllowAttack)
+    if (AEInputCheckTriggered(AEVK_LBUTTON) && m_AllowAttack && !m_BlockActive)
     {
+        std::cout << "ATTACK" << std::endl;
+        m_AllowBlock = false;
         StartAttack();
+        if (dotProduct >= m_ConeThreshold && m_AttackRange >= distMag_PD) {
+            std::cout << "ENEMY HIT!" << std::endl;
+        }
+    }
+    if (AEInputCheckTriggered(AEVK_RBUTTON) && m_AllowBlock && !m_AttackActive)
+    {
+        std::cout << "BLOCK" << std::endl;
+        m_AllowAttack = false;
+        StartBlock();
+    }
+    else {
+        m_BlockActive = false;
+        m_AllowBlock = true;
+        m_AllowAttack = true;
     }
 
     // Update attack
     if (m_AttackActive)
     {
+        m_CurrentState = PlayerState::STATE_ATTACK;
         m_AttackTimer += dt;
 
         // For normalized value between 0.0 - 1.0 range
@@ -130,6 +130,26 @@ void Player::Update(float dt, Enemy const& enemy)
             attackProgress = 1.0f;
         }
     }
+
+    // Update block
+    if (m_BlockActive) {
+        m_CurrentState = PlayerState::STATE_PARRY;
+        m_ParryActive = true;
+        m_BlockTimer += dt;
+
+        float blockProgress = m_BlockTimer / m_ParryDuration;
+        if (m_ParryActive) m_CurrentAngle = Vectors::lerp(m_StartAngle, m_EndAngle, blockProgress);
+
+        if (m_BlockTimer > m_ParryDuration) {
+            m_CurrentState = PlayerState::STATE_BLOCK;
+            m_ParryActive = false;
+        }
+    }
+
+    std::cout << "m_ParryActive: " << m_ParryActive << std::endl;
+    std::cout << "m_BlockTimer: " << m_BlockTimer << std::endl;
+    //std::cout << "m_AttackActive: " << m_AttackActive << std::endl;
+    //std::cout << "m_BlockActive: " << m_BlockActive << std::endl;
 
     // --- 1. Update Timers ---
     if (m_DashCooldown > 0.0f)
@@ -206,7 +226,6 @@ void Player::Draw()
 {
     // Ensure Color Mode is set
     AEGfxSetRenderMode(AE_GFX_RM_COLOR);
-    
 
     // Calculate isometric squashed height for drawing
     float isoHeight = m_Size * (GRID_H / GRID_W);
@@ -214,28 +233,44 @@ void Player::Draw()
     // Draw using Utils helper
     // Color: Black (0,0,0) with full alpha (255)
     DrawMesh(m_pMesh, m_Size, isoHeight, m_PosX, m_PosY, 0.0f, 44, 145, 57, 255);
-    //DrawMesh(m_AttackRangeMesh, 1.0f, 5.0f, m_PosX, m_PosY, m_AimAngle, 44, 145, 57, 255);
-    //AEGfxSetTransform(pointTransform.m);
-    //AEGfxMeshDraw(triangleMesh, AE_GFX_MDM_TRIANGLES);
+    
+    // Draw 
+    DrawMesh(m_AttackRangeMesh, 1.0f, 5.0f, m_PosX, m_PosY, m_AimAngle, 255, 255, 53, 255);
 
-    AEMtx33Scale(&atkScale, 1.0f, 5.0f);
-    AEMtx33Rot(&atkRot, m_AimAngle);
-    AEMtx33Trans(&atkTrans, m_PosX, m_PosY);
-    AEMtx33Concat(&atkTransform, &atkRot, &atkScale);
-    AEMtx33Concat(&atkTransform, &atkTrans, &atkTransform);
-    AEGfxSetTransform(atkTransform.m);
-    AEGfxMeshDraw(m_AttackRangeMesh, AE_GFX_MDM_TRIANGLES);
+    //AEMtx33Scale(&atkScale, 1.0f, 5.0f);
+    //AEMtx33Rot(&atkRot, m_AimAngle);
+    //AEMtx33Trans(&atkTrans, m_PosX, m_PosY);
+    //AEMtx33Concat(&atkTransform, &atkRot, &atkScale);
+    //AEMtx33Concat(&atkTransform, &atkTrans, &atkTransform);
+    //AEGfxSetTransform(atkTransform.m);
+    //AEGfxMeshDraw(m_AttackRangeMesh, AE_GFX_MDM_TRIANGLES);
 
     if (m_AttackActive)
     {
-        AEMtx33Rot(&atkRot, m_CurrentAngle);
-        AEMtx33Trans(&atkTrans, m_PosX, m_PosY);
+        DrawMesh(m_AttackRangeMesh, 1.0f, 5.0f, m_PosX, m_PosY, m_CurrentAngle, 255, 255, 53, 255);
 
-        AEMtx33Concat(&atkTransform, &atkRot, &atkScale);
-        AEMtx33Concat(&atkTransform, &atkTrans, &atkTransform);
+        //AEMtx33Rot(&atkRot, m_CurrentAngle);
+        //AEMtx33Trans(&atkTrans, m_PosX, m_PosY);
 
-        AEGfxSetTransform(atkTransform.m);
-        AEGfxMeshDraw(m_AttackRangeMesh, AE_GFX_MDM_TRIANGLES);
+        //AEMtx33Concat(&atkTransform, &atkRot, &atkScale);
+        //AEMtx33Concat(&atkTransform, &atkTrans, &atkTransform);
+
+        //AEGfxSetTransform(atkTransform.m);
+        //AEGfxMeshDraw(m_AttackRangeMesh, AE_GFX_MDM_TRIANGLES);
+    }
+
+    if (m_BlockActive)
+    {
+        if(m_ParryActive) DrawMesh(m_BlockRangeMesh, 1.0f, 5.0f, m_PosX, m_PosY, m_CurrentAngle, 255, 0, 0, 255);   
+        //AEMtx33Scale(&blockScale, 1.0f, 5.0f);
+        //AEMtx33Rot(&blockRot, m_CurrentAngle);
+        //AEMtx33Trans(&blockTrans, m_PosX, m_PosY);
+
+        //AEMtx33Concat(&blockTransform, &blockRot, &blockScale);
+        //AEMtx33Concat(&blockTransform, &blockTrans, &blockTransform);
+
+        //AEGfxSetTransform(blockTransform.m);
+        //AEGfxMeshDraw(m_BlockRangeMesh, AE_GFX_MDM_TRIANGLES);
     }
 }
 
@@ -255,4 +290,15 @@ void Player::StartAttack()
     m_CurrentAngle = m_AimAngle;
     m_StartAngle = m_AimAngle - AEDegToRad(30.0f);
     m_EndAngle = m_AimAngle + AEDegToRad(30.0f);
+}
+
+void Player::StartBlock()
+{
+    m_BlockActive = true;
+    m_BlockTimer = 0.0f;
+
+    // 60-degree cone
+    m_CurrentAngle = m_AimAngle;
+    m_StartAngle = m_AimAngle + AEDegToRad(30.0f);
+    m_EndAngle = m_AimAngle - AEDegToRad(30.0f);
 }
