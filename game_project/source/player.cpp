@@ -213,7 +213,10 @@ void Player::Draw()
 
     // Draw using Utils helper
     // Color: Black (0,0,0) with full alpha (255)
-    DrawMesh(m_pMesh, m_Size, isoHeight, m_PosX, m_PosY, 0.0f, 44, 145, 57, 255);
+
+    //DrawMesh(m_pMesh, m_Size, isoHeight, m_PosX, m_PosY, 0.0f, 44, 145, 57, 255);
+    DrawMesh(m_pMesh, m_Size, isoHeight, m_PosX, m_PosY, 0.0f, 255, 255, 255, 255); // made this white for my eyes :') - Charles
+
     //DrawMesh(m_AttackRangeMesh, 1.0f, 5.0f, m_PosX, m_PosY, m_AimAngle, 44, 145, 57, 255);
     //AEGfxSetTransform(pointTransform.m);
     //AEGfxMeshDraw(triangleMesh, AE_GFX_MDM_TRIANGLES);

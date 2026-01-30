@@ -3,6 +3,7 @@
 #include "Player.h" 
 #include "Camera.h"
 #include "Enemy.h" // INCLUDE THE NEW HEADER
+#include "Augments.h"
 
 // Note: Removed old 'struct Player' because we now have a class in Player.h
 
@@ -50,4 +51,8 @@ private:
 
     // Camera
     Camera m_Camera;
+
+    // Augment Ball
+    // Augment Ball Init
+    Augments aug_ball;
 };

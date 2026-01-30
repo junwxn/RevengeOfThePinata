@@ -86,7 +86,10 @@ void Enemy::Draw()
 
     // Draw using Utils helper
     // Color: Black (0,0,0) with full alpha (255)
-    DrawMesh(e_eMesh, e_Size, isoHeight, e_PosX, e_PosY, 0.0f, 44, 145, 57, 255);
+    
+    //DrawMesh(e_eMesh, e_Size, isoHeight, e_PosX, e_PosY, 0.0f, 44, 145, 57, 255);
+    DrawMesh(e_eMesh, e_Size, isoHeight, e_PosX, e_PosY, 0.0f, 255, 255, 255, 255); // made this white for my eyes :') - Charles
+
     //DrawMesh(e_AttackRangeMesh, 1.0f, 5.0f, e_PosX, e_PosY, e_AimAngle, 44, 145, 57, 255);
     //AEGfxSetTransform(pointTransform.m);
     //AEGfxMeshDraw(triangleMesh, AE_GFX_MDe_TRIANGLES);
