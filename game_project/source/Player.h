@@ -21,7 +21,7 @@ class Player
 {
 public:
     void Init();
-    void Update(float dt, Enemy const& enemy);
+    void Update(float dt, Combat::System& combat, const Enemy& enemy);
     void Draw();
     void Free();
 
@@ -30,6 +30,7 @@ public:
 
     void StartBlock();
     bool IsBlocking() const { return m_BlockActive; }
+    int GainAttackCharge() { return ++m_AttackCharges; }
 
     void ResetCombatVariables();
 
@@ -40,16 +41,32 @@ public:
     PlayerState GetState() const { return m_CurrentState; }
 
     // Getters for Combat related purposes
+    // Combat Vectors
+    AEVec2 GetNormalizedVector() const { return m_VectorNormalizedMP; }
+    f32 GetDistMag() const { return m_DistMagMP; }
+    AEVec2 GetAimVector() const { return m_AimVector; }
+    float GetAimAngle() const{ return m_AimAngle; }
+
+    f32 GetAttackRange() const { return m_AttackRange; }
+    f32 GetConeThreshold() const { return m_ConeThreshold; }
+
     bool GetBlockStatus() const { return m_BlockActive; }
     bool GetParryStatus() const { return m_ParryActive; }
+    bool GetAttackCharges() const { return m_AttackCharges; }
 
     Combat::CombatFlags GetCombatFlag() const { return m_CombatFlags; }
     Combat::CombatStats GetCombatStats() const { return m_CombatStats; }
 
+    void DeductHealth(f32 damage) { m_CombatStats.health -= damage; }
+
     // Setters if you need to teleport the player (e.g. respawning)
     void SetPosition(float x, float y) { m_PosX = x; m_PosY = y; }
+    void SetAimVector(float x, float y ) { m_AimVector.x = x, m_AimVector.y = y; }
+    void SetAimAngle(float angle) { m_AimAngle = angle; }
 
 private:
+    Combat::System combatSystem;
+
     // Position & Stats
     float m_PosX, m_PosY;
     float m_Speed;
@@ -66,12 +83,15 @@ private:
     // -------------------------- //
     //      COMBAT VARIABLES      //
     // -------------------------- //
-    Combat::CombatStats m_CombatStats{ 10.0f, 5.0f };
-    Combat::CombatFlags m_CombatFlags{ false, false };
+    Combat::CombatStats m_CombatStats{ 200.0f, 10.0f, 5.0f };
+    Combat::CombatFlags m_CombatFlags{ false, false, false, false };
+
     // Attack Logic
     // --------------------
     bool  m_AttackActive = false;
     bool  m_AllowAttack = true;
+
+    int m_AttackCharges = 3;
 
     float m_AttackDuration = 0.15f;
     float m_AttackTimer = 0.0f;
@@ -90,7 +110,7 @@ private:
     bool m_AllowBlock = true;
     bool m_ParryActive = false;
 
-    float m_ParryDuration = 0.2f;
+    float m_ParryDuration = 0.5f;
 
     float m_BlockTimer = 0.0f;
 
@@ -103,6 +123,8 @@ private:
     AEMtx33 pointScale, pointRot, pointTrans, pointTransform;
 
     // Mouse Aiming
+    f32 m_DistMagMP;
+    AEVec2 m_VectorNormalizedMP;
     AEVec2 m_AimVector;
     float m_AimAngle;
 };
