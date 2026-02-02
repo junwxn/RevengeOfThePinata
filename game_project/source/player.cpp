@@ -1,5 +1,6 @@
 #include "Player.h"
 #include "Enemy.h"
+#include "Combat.h"
 #include "Game.h"
 #include "Colors.h"
 #include "MathFunctions.h"
@@ -28,7 +29,7 @@ void Player::Init()
     m_pMesh = CreateCircleMesh(1.0f, 32, 0x50A655);
 }
 
-void Player::Update(float dt, Enemy const& enemy)
+void Player::Update(float dt, Combat::System& combat, const Enemy& enemy)
 {
     // Attack / Combat Logic
     // Mouse input
@@ -43,12 +44,12 @@ void Player::Update(float dt, Enemy const& enemy)
     // Mouse and Player
     // Vector X and Y between
     m_AimVector = { mouseWorld.x - m_PosX, mouseWorld.y - m_PosY };
-    //std::cout << "m_PosX: " << m_PosX << " " << "m_PosY: " << m_PosY;
+    ////std::cout << "m_PosX: " << m_PosX << " " << "m_PosY: " << m_PosY;
 
-    // Distance magnitude between
-    f32 distMag_MP = Vectors::magnitude(m_AimVector.x, m_AimVector.y); // Dist between mouse and player
-    // Normalize vectors (To get direction)
-    AEVec2 normalized_MP = Vectors::normalize(distMag_MP, m_AimVector.x, m_AimVector.y); // Normalized vector between mouse and player
+    //// Distance magnitude between
+    m_DistMagMP = Vectors::magnitude(m_AimVector.x, m_AimVector.y); // Dist between mouse and player
+    //// Normalize vectors (To get direction)
+    m_VectorNormalizedMP = Vectors::normalize(m_DistMagMP, m_AimVector.x, m_AimVector.y); // Normalized vector between mouse and player
 
     // Angle
     // Returns the angle at which quadrant the mouse is at
@@ -75,10 +76,10 @@ void Player::Update(float dt, Enemy const& enemy)
     //			\  30°
     //			 \
 
-    AEVec2 vectorBtw_PD { enemy.GetX() - m_PosX, enemy.GetY() - m_PosY };
-    f32 distMag_PD = Vectors::magnitude(vectorBtw_PD.x, vectorBtw_PD.y);// Dist between dummy and player
-    AEVec2 normalized_PD = Vectors::normalize(Vectors::magnitude(enemy.GetAimVector().x, enemy.GetAimVector().y), enemy.GetAimVector().x, enemy.GetAimVector().y);
-    f32 dotProduct = normalized_MP.x * normalized_PD.x + normalized_MP.y * normalized_PD.y;
+    //AEVec2 vectorBtw_PD { enemy.GetX() - m_PosX, enemy.GetY() - m_PosY };
+    //f32 distMag_PD = Vectors::magnitude(vectorBtw_PD.x, vectorBtw_PD.y);// Dist between dummy and player
+    //AEVec2 normalized_PD = Vectors::normalize(Vectors::magnitude(enemy.GetAimVector().x, enemy.GetAimVector().y), enemy.GetAimVector().x, enemy.GetAimVector().y);
+    //f32 dotProduct = normalized_MP.x * normalized_PD.x + normalized_MP.y * normalized_PD.y;
 
     // Convert mouse to world space if needed (camera offset later)
 
@@ -88,13 +89,16 @@ void Player::Update(float dt, Enemy const& enemy)
         //std::cout << "m_AllowAttack: " << m_AllowAttack << std::endl;
     }
 
+    if (m_AttackCharges <= 0) m_AllowAttack = false;
+    else m_AllowAttack = true;
+
     // Start attack
     if (AEInputCheckTriggered(AEVK_LBUTTON) && m_AllowAttack && !m_BlockActive)
     {
         std::cout << "ATTACK" << std::endl;
         m_AllowBlock = false;
         StartAttack();
-        if (dotProduct >= m_ConeThreshold && m_AttackRange >= distMag_PD) {
+        if (combatSystem.IsEnemyInRange(*this, enemy)) {
             std::cout << "ENEMY HIT!" << std::endl;
             m_CombatFlags.attackHit = true;
         }
@@ -127,10 +131,12 @@ void Player::Update(float dt, Enemy const& enemy)
         {
             /*m_AttackActive = false;
             m_AllowAttack = true;*/
+            --m_AttackCharges;
             ResetCombatVariables();
             attackProgress = 1.0f;
         }
     }
+    //std::cout << "m_AttackCharges: " << m_AttackCharges << std::endl;
 
     // Update block
     if (m_BlockActive) {
@@ -140,7 +146,10 @@ void Player::Update(float dt, Enemy const& enemy)
         m_BlockTimer += dt;
 
         float blockProgress = m_BlockTimer / m_ParryDuration;
-        if (m_ParryActive) m_CurrentAngle = Vectors::lerp(m_StartAngle, m_EndAngle, blockProgress);
+        if (m_ParryActive) {
+            m_CurrentAngle = Vectors::lerp(m_StartAngle, m_EndAngle, blockProgress);
+        }
+
 
         if (m_BlockTimer >= m_ParryDuration) {
             m_CurrentState = PlayerState::STATE_BLOCK;
@@ -150,8 +159,8 @@ void Player::Update(float dt, Enemy const& enemy)
         }
 
         m_CombatFlags.blockOn = true;
-        std::cout << "Player.blocking: " << m_CombatFlags.blockOn << std::endl;
-        std::cout << "Player.parryOn: " << m_CombatFlags.parryOn << std::endl;
+        //std::cout << "Player.blocking: " << m_CombatFlags.blockOn << std::endl;
+        //std::cout << "Player.parryOn: " << m_CombatFlags.parryOn << std::endl;
         //std::cout << "m_BlockTimer: " << m_BlockTimer << std::endl;
     }
     else {
@@ -159,9 +168,8 @@ void Player::Update(float dt, Enemy const& enemy)
         m_CombatFlags.parryOn = false;
     }
 
-    std::cout << "Player.blocking: " << m_CombatFlags.blockOn << std::endl;
-    std::cout << "Player.parryOn: " << m_CombatFlags.parryOn << std::endl;
-
+    //std::cout << "Player.blocking: " << m_CombatFlags.blockOn << std::endl;
+    //std::cout << "Player.parryOn: " << m_CombatFlags.parryOn << std::endl;
     //std::cout << "m_BlockTimer: " << m_BlockTimer << std::endl;
     //std::cout << "m_AttackActive: " << m_AttackActive << std::endl;
     //std::cout << "m_BlockActive: " << m_BlockActive << std::endl;
@@ -270,6 +278,10 @@ void Player::Free()
 {
     if (m_pMesh)
         AEGfxMeshFree(m_pMesh);
+    if (m_AttackRangeMesh)
+        AEGfxMeshFree(m_AttackRangeMesh);
+    if (m_BlockRangeMesh)
+        AEGfxMeshFree(m_BlockRangeMesh);
 }
 
 void Player::StartAttack()

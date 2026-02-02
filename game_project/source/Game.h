@@ -32,6 +32,7 @@ private:
     // --- Game Objects ---
 
     // NEW: Use the Class, not the struct
+    Combat::System m_CombatSystem;
     Player m_Player;
     Enemy m_Enemy;
 
