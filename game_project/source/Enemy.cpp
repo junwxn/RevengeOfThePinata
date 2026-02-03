@@ -81,7 +81,7 @@ void Enemy::BaseUpdate(f32 dt, Combat::System& combat, Player const& player) {
         }
     }
     else {
-        m_AttackCooldown -= dt;
+        if(!m_CombatFlags.stunned) m_AttackCooldown -= dt;
         m_AllowAttack = false;
     }
 
@@ -96,7 +96,9 @@ void Enemy::Draw() {
 
     // Draw Meshes --------------------
     // Enemy
-    DrawMesh(m_enemyMesh, m_size, isoHeight, m_pos.x, m_pos.y, 0.0f, 44, 255, 255, 255);
+    if (!m_CombatFlags.stunned && m_AttackCooldown >= 0.5f) DrawMesh(m_enemyMesh, m_size, isoHeight, m_pos.x, m_pos.y, 0.0f, 44, 255, 255, 255);
+    else if(m_AttackCooldown < 0.5f) DrawMesh(m_enemyMesh, m_size, isoHeight, m_pos.x, m_pos.y, 0.0f, 255, 255, 0, 255);
+    else DrawMesh(m_enemyMesh, m_size, isoHeight, m_pos.x, m_pos.y, 0.0f, 255, 0, 0, 255);
 
     // Enemy sword
     f32 swordAngle = m_AttackActive ? m_CurrentAngle : m_AimAngle;
@@ -142,7 +144,7 @@ void Walker::ChildUpdate(f32 dt, Combat::System& combat, Player const& player) {
         AEVec2Scale(&enemyToPlayer, &enemyToPlayer, dt);
 
         // Move enemy towards player
-        AEVec2Add(&m_pos, &m_pos, &enemyToPlayer);
+        if(!m_CombatFlags.stunned) AEVec2Add(&m_pos, &m_pos, &enemyToPlayer);
     }
 }
 

@@ -23,6 +23,17 @@ namespace Combat {
 
 	void System::Update(Player& player, Enemy& enemy, float dt) {
 			
+		if (enemy.IsStunned()) {
+			stunDuration -= dt;
+			//std::cout << stunDuration << std::endl;
+
+			if (stunDuration <= 0) {
+				enemy.ResetStunFlag();
+				stunDuration = 2.0f;
+			}
+			return;
+		}
+
 		if (enemy.IsAttacking() && !enemy.GetCombatFlag().attackResolved) {
 			CombatOutcome outcome =
 				EvaluateAttack(player, enemy, enemy.GetAttackProgress());
@@ -34,6 +45,7 @@ namespace Combat {
 				player.GainAttackCharge();
 				ApplyParryReaction_Enemy(enemy);
 				enemy.SetParried(true);
+				enemy.SetStunned(true);
 				std::cout << "Attack Charges: " << player.GetAttackCharges() << std::endl;
 
 				break;
@@ -46,8 +58,8 @@ namespace Combat {
 				ApplyDamage(player, enemy);
 				break;
 			}
-
-			enemy.MarkAttackResolved();
+			
+			if(!enemy.IsStunned()) enemy.MarkAttackResolved();
 		}
 		else return;
 
@@ -96,6 +108,7 @@ namespace Combat {
 	}
 
 	void System::ApplyParryReaction_Enemy(Enemy& enemy) {
+		ColorIndicator(enemy, 255, 255, 0, 1);
 		enemy.SetPosition(enemy.GetX() + 50.0f, enemy.GetY()); // Knock enemy back
 	}
 
@@ -107,6 +120,14 @@ namespace Combat {
 	void System::ApplyDamage(Player& player, Enemy& enemy) {
 		player.DeductHealth(ComputeDamage(enemy, player));
 	}
+
+	void System::ColorIndicator(Enemy& enemy, f32 r, f32 g, f32 b, f32 a) {
+		f32 isoHeight = enemy.GetSize() * (GRID_H / GRID_W);
+
+		AEGfxSetRenderMode(AE_GFX_RM_COLOR);
+		DrawMesh(enemy.GetEnemyMesh(), enemy.GetSize(), isoHeight, enemy.GetX(), enemy.GetY(), 0.0f, r, g, b, a);
+	}
+
 
 	void System::Resolve(Player& player, Enemy& enemy, CombatOutcome outcome) {
 		switch (outcome) 

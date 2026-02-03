@@ -28,13 +28,15 @@ namespace Combat {
         bool parryOn;
         bool blocked;
         bool parried;
+        bool stunned;
 
         bool attackResolved;
         bool parryResolved;
         bool blockResolved;
     };
 
-    f32 ComputeDamage(CombatStats& attacker, CombatStats& defender);
+    f32 ComputeDamage(Player& attacker, Enemy& defender);
+    f32 ComputeDamage(Enemy& attacker, Player& defender);
 
     class System 
     {
@@ -50,6 +52,7 @@ namespace Combat {
             void ApplyParryReaction_Enemy(Enemy& enemy);
             void ApplyBlockReaction_Enemy(Player& player, Enemy& enemy);
             void ApplyDamage(Player& player, Enemy& enemy);
+            void ColorIndicator(Enemy& enemy, f32 r, f32 g, f32 b, f32 a);
 
             // Getters
             //AEVec2 GetVectorBetweenPE() const { return s_VectorBetweenPE; }
@@ -60,6 +63,7 @@ namespace Combat {
         private:
             bool m_InRange;
             bool m_InCone;
+            f32 stunDuration = 2.0f;
             CombatOutcome outcome;
     };
 }

@@ -43,10 +43,13 @@ public:
     f32 GetAimAngle() const { return m_AimAngle; }
 
     bool IsAttacking() const { return m_AttackActive; }
+    bool IsStunned() const { return m_CombatFlags.stunned; }
     bool CanAttack() const { return m_AllowAttack; }
     f32 GetAttackRange() const { return m_AttackRange; }
     f32 GetConeThreshold() const { return m_ConeThreshold; }
     f32 GetAttackProgress() const { return m_attackProgress; }
+
+    AEGfxVertexList* GetEnemyMesh() const { return m_enemyMesh; }
 
     Combat::CombatFlags GetCombatFlag() const { return m_CombatFlags; }
     Combat::CombatStats GetCombatStats() const { return m_CombatStats; }
@@ -58,7 +61,9 @@ public:
 
     // Flag Setters
     void SetParried(bool set) { m_CombatFlags.parried = set; }
+    void SetStunned(bool set) { m_CombatFlags.stunned = set; }
     void ResetParryFlag() { m_CombatFlags.parried = false; }
+    void ResetStunFlag() { m_CombatFlags.stunned = false; }
     
     void MarkAttackResolved() {
         m_CombatFlags.attackResolved = true;
@@ -93,7 +98,7 @@ protected:
 
     Combat::System m_combatSystem;
     Combat::CombatStats m_CombatStats{ 10.0f, 5.0f };
-    Combat::CombatFlags m_CombatFlags{ false, false, false, false, false, false, false, false };
+    Combat::CombatFlags m_CombatFlags{ false, false, false, false, false, false, false, false, false };
 
     // Damage Logic -------------------
     
