@@ -109,6 +109,7 @@ void Player::Update(float dt, Combat::System& combat, std::vector<std::unique_pt
                 m_CombatFlags.attackHit = true;
             }
         }
+		std::cout << "Attack Charges Left: " << m_AttackCharges - 1 << std::endl;
     }
     else m_CombatFlags.attackHit = false;
 

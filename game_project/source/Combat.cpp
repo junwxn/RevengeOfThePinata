@@ -23,7 +23,7 @@ namespace Combat {
 
 	void System::Update(Player& player, Enemy& enemy, float dt) {
 			
-		if (enemy.IsAttacking()) {
+		if (enemy.IsAttacking() && !enemy.GetCombatFlag().attackResolved) {
 			CombatOutcome outcome =
 				EvaluateAttack(player, enemy, enemy.GetAttackProgress());
 			std::cout << "Outcome: " << outcome << std::endl;
@@ -31,8 +31,11 @@ namespace Combat {
 			switch (outcome)
 			{
 			case CombatOutcome::OUTCOME_PARRIED:
+				player.GainAttackCharge();
 				ApplyParryReaction_Enemy(enemy);
 				enemy.SetParried(true);
+				std::cout << "Attack Charges: " << player.GetAttackCharges() << std::endl;
+
 				break;
 
 			case CombatOutcome::OUTCOME_BLOCKED:
@@ -44,7 +47,7 @@ namespace Combat {
 				break;
 			}
 
-			Resolve(player, enemy, outcome);
+			enemy.MarkAttackResolved();
 		}
 		else return;
 

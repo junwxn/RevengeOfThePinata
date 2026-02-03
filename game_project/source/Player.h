@@ -33,7 +33,12 @@ public:
 
     void StartBlock();
     bool IsBlocking() const { return m_BlockActive; }
-    int GainAttackCharge() { return ++m_AttackCharges; }
+    void GainAttackCharge() { 
+        ++m_AttackCharges;
+        if (m_AttackCharges > m_MaxAttackCharge) {
+            m_AttackCharges = m_MaxAttackCharge;
+        }
+    }
 
     void ResetCombatVariables();
 
@@ -55,7 +60,7 @@ public:
 
     bool GetBlockStatus() const { return m_BlockActive; }
     bool GetParryStatus() const { return m_ParryActive; }
-    bool GetAttackCharges() const { return m_AttackCharges; }
+    int GetAttackCharges() const { return m_AttackCharges; }
 
     Combat::CombatFlags GetCombatFlag() const { return m_CombatFlags; }
     Combat::CombatStats GetCombatStats() const { return m_CombatStats; }
@@ -95,6 +100,7 @@ private:
     bool  m_AllowAttack = true;
 
     int m_AttackCharges = 3;
+	int m_MaxAttackCharge = 5;
 
     float m_AttackDuration = 0.15f;
     float m_AttackTimer = 0.0f;

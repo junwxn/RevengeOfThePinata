@@ -108,6 +108,7 @@ void Enemy::StartAttack() {
     m_CombatFlags.attackResolved = false;
     m_CombatFlags.blockResolved = false;
     m_CombatFlags.parryResolved = false;
+
     m_AttackActive = true;
     m_AllowAttack = false;
     m_AttackTimer = 0.0f;
