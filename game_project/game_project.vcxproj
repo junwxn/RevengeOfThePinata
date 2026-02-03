@@ -96,6 +96,7 @@ xcopy "$(SolutionDir)Extern\AlphaEngine\lib\fmod.dll" "$(OutDir)" /s /r /y /q</C
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="source\Augments.cpp" />
     <ClCompile Include="source\Camera.cpp" />
     <ClCompile Include="source\Combat.cpp" />
     <ClCompile Include="source\Enemy.cpp" />
@@ -106,6 +107,7 @@ xcopy "$(SolutionDir)Extern\AlphaEngine\lib\fmod.dll" "$(OutDir)" /s /r /y /q</C
     <ClCompile Include="source\Utils.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="source\Augments.h" />
     <ClInclude Include="source\Camera.h" />
     <ClInclude Include="source\Colors.h" />
     <ClInclude Include="source\Combat.h" />

@@ -36,6 +36,9 @@
     <ClCompile Include="source\Camera.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="source\Augments.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="source\Combat.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -60,6 +63,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="source\Camera.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Augments.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="source\Combat.h">

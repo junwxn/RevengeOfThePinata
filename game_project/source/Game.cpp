@@ -45,6 +45,9 @@ void Game::Init() {
 
 	// Camera Init
     m_Camera.Init(m_Player.GetX(), m_Player.GetY());
+
+    // Augment Ball Init
+    aug_ball.Init();
 }
 
 void Game::Update() {
@@ -131,9 +134,14 @@ void Game::Update() {
 
     if (AEInputCheckTriggered(AEVK_ESCAPE) || 0 == AESysDoesWindowExist())
         m_GameRunning = 0;
+
+    // Augment Ball Interaction
+    aug_ball.Interact(m_Player.GetX(), m_Player.GetY());
+    aug_ball.Choosing();
 }
 
 void Game::Draw() {
+    f32 dt = (f32)AEFrameRateControllerGetFrameTime();
     AESysFrameStart();
     AEGfxSetBackgroundColor(0.0f, 0.23f, 0.34f);
     AEGfxSetRenderMode(AE_GFX_RM_COLOR);
@@ -185,6 +193,9 @@ void Game::Draw() {
     for (auto& enemy : m_Wave1) {
         enemy->Draw();
     }
+
+    // Draw Augment Ball
+    aug_ball.Draw(m_Player.GetX(), m_Player.GetY(),dt);
 
     AESysFrameEnd();
 }

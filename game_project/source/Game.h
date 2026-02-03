@@ -4,7 +4,10 @@
 #include "Utils.h"
 #include "Player.h" 
 #include "Camera.h"
-#include "Enemy.h"
+#include "Enemy.h" // INCLUDE THE NEW HEADER
+#include "Augments.h"
+
+// Note: Removed old 'struct Player' because we now have a class in Player.h
 
 struct Circle {
     f32 pos_x, pos_y;
@@ -55,4 +58,8 @@ private:
 
     // Camera
     Camera m_Camera;
+
+    // Augment Ball
+    // Augment Ball Init
+    Augments aug_ball;
 };
