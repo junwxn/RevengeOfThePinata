@@ -29,23 +29,28 @@ void Player::Init()
     m_pMesh = CreateCircleMesh(1.0f, 32, 0x50A655);
 }
 
-void Player::Update(float dt, Combat::System& combat, const Enemy& enemy)
+void Player::Update(float dt, Combat::System& combat, const Enemy& enemy, float camX, float camY)
 {
     // Attack / Combat Logic
     // Mouse input
     s32 mouseX, mouseY;
     AEInputGetCursorPosition(&mouseX, &mouseY);
 
-    // Convert mouse to world space
-    // Get mouse current position on X and Y and subtract by screen X and Y max
-    AEVec2 mouseWorld{ mouseX - AEGfxGetWinMaxX(), AEGfxGetWinMaxY() - mouseY };
+    float halfWindowW = (float)AEGfxGetWindowWidth() / 2.0f;
+    float halfWindowH = (float)AEGfxGetWindowHeight() / 2.0f;
 
-    // Direction vector / Forward vector
-    // Mouse and Player
-    // Vector X and Y between
-    m_AimVector = { mouseWorld.x - m_PosX, mouseWorld.y - m_PosY };
-    ////std::cout << "m_PosX: " << m_PosX << " " << "m_PosY: " << m_PosY;
+    // Calculate Mouse Offset from Center (in pixels/screen units)
+    // Center is (0,0)
+    float mouseScreenX = (float)mouseX - halfWindowW;
+    float mouseScreenY = halfWindowH - (float)mouseY; // Standard Y-flip for 2D coords
 
+    // Convert to World Position by adding the Camera Position (passed from Game.cpp)
+    float mouseWorldX = mouseScreenX + camX;
+    float mouseWorldY = mouseScreenY + camY;
+
+    // Vector from Player to Mouse World Position
+    m_AimVector = { mouseWorldX - m_PosX, mouseWorldY - m_PosY };
+  
     //// Distance magnitude between
     m_DistMagMP = Vectors::magnitude(m_AimVector.x, m_AimVector.y); // Dist between mouse and player
     //// Normalize vectors (To get direction)

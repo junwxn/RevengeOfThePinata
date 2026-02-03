@@ -21,7 +21,7 @@ class Player
 {
 public:
     void Init();
-    void Update(float dt, Combat::System& combat, const Enemy& enemy);
+    void Update(float dt, Combat::System& combat, const Enemy& enemy, float camX, float camY);
     void Draw();
     void Free();
 

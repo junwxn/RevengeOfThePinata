@@ -37,7 +37,7 @@ void Game::Update() {
 
     // --- 1. Update Player ---
     // The player class now handles its own Input, Movement, and Dashing
-    m_Player.Update(dt, m_CombatSystem, m_Enemy);
+    m_Player.Update(dt, m_CombatSystem, m_Enemy, m_Camera.GetX(), m_Camera.GetY());
     m_Enemy.Update(dt, m_CombatSystem, m_Player);
     m_CombatSystem.Update(m_Player, m_Enemy, dt);
 
