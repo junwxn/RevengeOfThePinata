@@ -1,5 +1,7 @@
-#include "Game.h"
 #include <iostream>
+#include <cmath>
+
+#include "Game.h"
 #include "Camera.h"
 
 void Game::Init() {
@@ -12,22 +14,6 @@ void Game::Init() {
 
     // Initialize the Player Class
     m_Player.Init();
-
-    // Wave 1 enemies -----------------
-    m_Wave1.push_back(std::make_unique<Walker>(
-        AEVec2{ 150.0f, 100.0f }, 40.0f, 100.0f, 0.0f)
-    );
-    m_Wave1.push_back(std::make_unique<Walker>(
-        AEVec2{ 150.0f, 0.0f }, 40.0f, 100.0f, 200.0f)
-    );
-    m_Wave1.push_back(std::make_unique<Dasher>(
-        AEVec2{ 150.0f, -100.0f }, 40.0f, 100.0f, 200.0f, 0.1f)
-    );
-
-    for (auto& enemy : m_Wave1) {
-        enemy->Init();
-    }
-
 
     // Logic Objects
     m_HealCircle = { -400.0f, 0.0f, 150.0f };   // x, y, radius
@@ -53,10 +39,56 @@ void Game::Update() {
     // --- 1. Update Player ---
     m_Player.Update(dt, m_CombatSystem, m_Wave1, m_Camera.GetX(), m_Camera.GetY());
 
+    if (AEInputCheckTriggered(AEVK_1)) {
+        if (m_wave1Active) {
+            m_Wave1.clear();
+        }
+        else {
+            SpawnWave1();
+        }
+        m_wave1Active = m_wave1Active ? false : true;
+    }
+    else if (AEInputCheckTriggered(AEVK_2)) {
+        if (m_wave2Active) {
+            m_Wave2.clear();
+        }
+        else {
+            SpawnWave2();
+        }
+        m_wave2Active = m_wave2Active ? false : true;
+    }
+
     // Update Enemy
-    for (auto& enemy : m_Wave1) {
-        enemy->Update(dt, m_CombatSystem, m_Player);
-        m_CombatSystem.Update(m_Player, *enemy, dt);
+    if (m_wave1Active) {
+        for (auto& enemy : m_Wave1) {
+            enemy->Update(dt, m_CombatSystem, m_Player);
+            m_CombatSystem.Update(m_Player, *enemy, dt);
+        }
+
+        for (auto& enemy : m_Wave2) {
+            if (enemy->GetCombatFlag().attackHit) {
+                if (!m_Player.GetCombatFlag().parryOn) {
+                    if (m_Player.GetCombatFlag().blockOn) m_Healthbar.var -= (m_Player.GetCombatStats().attack) / 2;
+                    else m_Healthbar.var -= m_Player.GetCombatStats().attack;
+                }
+            }
+        }
+    }
+    
+    if (m_wave2Active) {
+        for (auto& enemy : m_Wave2) {
+            enemy->Update(dt, m_CombatSystem, m_Player);
+            m_CombatSystem.Update(m_Player, *enemy, dt);
+        }
+
+        for (auto& enemy : m_Wave2) {
+            if (enemy->GetCombatFlag().attackHit) {
+                if (!m_Player.GetCombatFlag().parryOn) {
+                    if (m_Player.GetCombatFlag().blockOn) m_Healthbar.var -= (m_Player.GetCombatStats().attack) / 2;
+                    else m_Healthbar.var -= m_Player.GetCombatStats().attack;
+                }
+            }
+        }
     }
 
     // --- 2. Map Boundaries (Clamping) ---
@@ -109,17 +141,6 @@ void Game::Update() {
     if (m_Player.GetCombatFlag().attackHit) {
         m_Healthbar.var -= m_Player.GetCombatStats().attack;
     }
-
-    for (auto& enemy : m_Wave1) {
-        if (enemy->GetCombatFlag().attackHit) {
-            if (!m_Player.GetCombatFlag().parryOn) {
-                if (m_Player.GetCombatFlag().blockOn) m_Healthbar.var -= (m_Player.GetCombatStats().attack) / 2;
-                else m_Healthbar.var -= m_Player.GetCombatStats().attack;
-            }
-        }
-    }
-    
-    
 
     // Healthbar Cap
     if (m_Healthbar.var < 0) m_Healthbar.var = 0;
@@ -182,9 +203,18 @@ void Game::Draw() {
     m_Player.Draw();
 
     // --- Draw Enemy ---
-    for (auto& enemy : m_Wave1) {
-        enemy->Draw();
+    if (m_wave1Active){
+        for (auto& enemy : m_Wave1) {
+            enemy->Draw();
+        }
     }
+    
+    if (m_wave2Active) {
+        for (auto& enemy : m_Wave2) {
+            enemy->Draw();
+        }
+    }
+    
 
     AESysFrameEnd();
 }
@@ -201,4 +231,42 @@ void Game::Free() {
 
 void Game::DealDamage(f32 damageAmount) {
     m_Healthbar.var -= damageAmount;
+}
+
+void Game::SpawnWave1() {
+    m_Wave1.clear();
+    m_Wave1.push_back(std::make_unique<Walker>(
+        AEVec2{ 150.0f, 100.0f }, 40.0f, 100.0f, 200.0f)
+    );
+    m_Wave1.push_back(std::make_unique<Dasher>(
+        AEVec2{ 150.0f, -100.0f }, 40.0f, 100.0f, 200.0f, 0.1f)
+    );
+
+    for (auto& enemy : m_Wave1) {
+        enemy->Init();
+    }
+}
+
+void Game::SpawnWave2() {
+    m_Wave2.clear();
+
+    f32 centerX = 0.0f;
+    f32 centerY = 0.0f;
+    f32 widthSpacing = 80.0f;
+    f32 heightSpacing = 2.0f;
+    for (int i{}; i < 15; ++i) {
+        f32 theta = i * heightSpacing;
+        f32 r = widthSpacing * theta;
+        f32 posX = centerX + r * cosf(theta);
+        f32 posY = centerY + r * sinf(theta);
+
+        if (i < 5) continue;
+        m_Wave2.push_back(std::make_unique<Walker>(
+            AEVec2{ posX, posY }, 40.0f, 100.0f, 200.0f)
+        );
+    }
+
+    for (auto& enemy : m_Wave2) {
+        enemy->Init();
+    }
 }

@@ -26,8 +26,13 @@ public:
 
     void DealDamage(f32 damageAmount);
 
+    void SpawnWave1();
+    void SpawnWave2();
+
 private:
     int m_GameRunning = 1;
+    bool m_wave1Active{};
+    bool m_wave2Active{};
 
     // --- Game Objects ---
 
