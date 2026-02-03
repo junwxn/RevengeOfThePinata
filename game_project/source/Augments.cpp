@@ -50,7 +50,7 @@ void Augments::Choosing() {
     if (choose == true) {
         printf("Choosing...\n");
 
-        if (AEInputCheckTriggered(AEVK_C)) {
+        if (AEInputCheckTriggered(AEVK_X)) {
 			choose = false;
         }
         // tie rand seed to delt time
