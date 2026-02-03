@@ -96,7 +96,7 @@ namespace Combat {
 	}
 
 	void System::ApplyParryReaction_Enemy(Enemy& enemy) {
-		enemy.SetPosition(enemy.GetX() + 5.0f, enemy.GetY()); // Knock enemy back
+		enemy.SetPosition(enemy.GetX() + 50.0f, enemy.GetY()); // Knock enemy back
 	}
 
 	void System::ApplyBlockReaction_Enemy(Player& player, Enemy& enemy) {
