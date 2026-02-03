@@ -5,7 +5,7 @@ void Camera::Init(f32 startX, f32 startY) {
     m_X = startX;
     m_Y = startY;
 
-    m_Speed = 2.5f;
+    m_Speed = 2.0f;
     m_LookDist = 350.0f;
 }
 
