@@ -171,6 +171,7 @@ void Player::Update(float dt, Combat::System& combat, std::vector<std::unique_pt
         //std::cout << "m_BlockTimer: " << m_BlockTimer << std::endl;
     }
     else {
+        m_ParryActive = false;
         m_CombatFlags.blockOn = false;
         m_CombatFlags.parryOn = false;
     }
