@@ -48,12 +48,38 @@ AEGfxVertexList* CreateRectMesh(u32 color) {
     return AEGfxMeshEnd();
 }
 
+
 AEGfxVertexList* CreateTriangleMesh(u32 color) {
     AEGfxMeshStart();
     AEGfxTriAdd( // Triangle 1
         0.0f, 0.5f, color, 0.0f, 0.0f,  // left-top
         0.0f, -0.5f, color, 0.0f, 0.0f,   // left-bottom
         -0.5f, 0.5f, color, 0.0f, 0.0f);  // right-top
+    return AEGfxMeshEnd();
+}
+
+AEGfxVertexList* CreateLineMesh(float range, u32 color) {
+    AEGfxMeshStart();
+    // Isometric Left-Anchored Rectangle
+    AEGfxTriAdd(0.0f, 0.5f, color, 0.0f, 0.0f, 0.0f, -0.5f, color, 0.0f, 1.0f, 1.0f, -0.5f, color, 1.0f, 1.0f);
+    AEGfxTriAdd(0.0f, 0.5f, color, 0.0f, 0.0f, 1.0f, -0.5f, color, 1.0f, 1.0f, 1.0f, 0.5f, color, 1.0f, 0.0f);
+    AEGfxTriAdd(0.0f, 0.5f, color, 0, 0, 0.0f, -0.5f, color, 0, 0, range, 0.5f, color, 0, 0);
+    AEGfxTriAdd(range, 0.5f, color, 0, 0,range, -0.5f, color, 0, 0,0.0f, -0.5f, color, 0, 0);
+    return AEGfxMeshEnd();
+}
+
+
+AEGfxVertexList* CreateAttackRangeMesh(f32 attackRange, u32 color) {
+    AEGfxMeshStart();
+    AEGfxTriAdd(
+        0.0f, 0.5f, color, 0, 0,
+        0.0f, -0.5f, color, 0, 0,
+        -attackRange, 0.5f, color, 0, 0);
+
+    AEGfxTriAdd(
+        -attackRange, 0.5f, color, 0, 0,
+        -attackRange, -0.5f, color, 0, 0,
+        0.0f, -0.5f, color, 0, 0);
     return AEGfxMeshEnd();
 }
 

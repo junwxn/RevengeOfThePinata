@@ -1,4 +1,6 @@
 #pragma once
+#include<vector>
+
 #include "Utils.h"
 #include "Player.h" 
 #include "Camera.h"
@@ -25,14 +27,19 @@ public:
     void Free();
     bool IsRunning() const { return m_GameRunning; }
 
+    void DealDamage(f32 damageAmount);
+
 private:
     int m_GameRunning = 1;
 
     // --- Game Objects ---
 
     // NEW: Use the Class, not the struct
+    Combat::System m_CombatSystem;
     Player m_Player;
-    Enemy m_Enemy;
+    std::vector<std::unique_ptr<Enemy>> m_Wave1;
+    std::vector<std::unique_ptr<Enemy>> m_Wave2;
+
 
     Circle m_HealCircle{ 0 };
     Circle m_DmgCircle{ 0 };
