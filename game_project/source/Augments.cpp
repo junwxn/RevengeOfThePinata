@@ -50,6 +50,9 @@ void Augments::Choosing() {
     if (choose == true) {
         printf("Choosing...\n");
 
+        if (AEInputCheckTriggered(AEVK_C)) {
+			choose = false;
+        }
         // tie rand seed to delt time
         // choices of cards, pick and display
         // clickbox for the cards, once picked set choose = false
