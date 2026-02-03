@@ -1,7 +1,10 @@
 #pragma once
+#include <vector>
+#include <memory>
+
 #include "Utils.h" // Access to AE system and Grid constants
 #include "Combat.h"
-//#include "Enemy.h"
+#include "Enemy.h"
 
 //-----------------------//
 //---- Player States ----//
@@ -21,7 +24,7 @@ class Player
 {
 public:
     void Init();
-    void Update(float dt, Combat::System& combat, const Enemy& enemy, float camX, float camY);
+    void Update(float dt, Combat::System& combat, std::vector<std::unique_ptr<Enemy>> const& wave, f32 camX, f32 camY);
     void Draw();
     void Free();
 

@@ -1,10 +1,10 @@
 #pragma once
+#include<vector>
+
 #include "Utils.h"
 #include "Player.h" 
 #include "Camera.h"
-#include "Enemy.h" // INCLUDE THE NEW HEADER
-
-// Note: Removed old 'struct Player' because we now have a class in Player.h
+#include "Enemy.h"
 
 struct Circle {
     f32 pos_x, pos_y;
@@ -34,7 +34,9 @@ private:
     // NEW: Use the Class, not the struct
     Combat::System m_CombatSystem;
     Player m_Player;
-    Enemy m_Enemy;
+    std::vector<std::unique_ptr<Enemy>> m_Wave1;
+    std::vector<std::unique_ptr<Enemy>> m_Wave2;
+
 
     Circle m_HealCircle{ 0 };
     Circle m_DmgCircle{ 0 };

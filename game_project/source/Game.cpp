@@ -12,7 +12,22 @@ void Game::Init() {
 
     // Initialize the Player Class
     m_Player.Init();
-    m_Enemy.Init();
+
+    // Wave 1 enemies -----------------
+    m_Wave1.push_back(std::make_unique<Walker>(
+        AEVec2{ 150.0f, 100.0f }, 40.0f, 100.0f, 0.0f)
+    );
+    m_Wave1.push_back(std::make_unique<Walker>(
+        AEVec2{ 150.0f, 0.0f }, 40.0f, 100.0f, 200.0f)
+    );
+    m_Wave1.push_back(std::make_unique<Dasher>(
+        AEVec2{ 150.0f, -100.0f }, 40.0f, 100.0f, 200.0f, 0.1f)
+    );
+
+    for (auto& enemy : m_Wave1) {
+        enemy->Init();
+    }
+
 
     // Logic Objects
     m_HealCircle = { -400.0f, 0.0f, 150.0f };   // x, y, radius
@@ -36,10 +51,13 @@ void Game::Update() {
     f32 dt = (f32)AEFrameRateControllerGetFrameTime();
 
     // --- 1. Update Player ---
-    // The player class now handles its own Input, Movement, and Dashing
-    m_Player.Update(dt, m_CombatSystem, m_Enemy, m_Camera.GetX(), m_Camera.GetY());
-    m_Enemy.Update(dt, m_CombatSystem, m_Player);
-    m_CombatSystem.Update(m_Player, m_Enemy, dt);
+    m_Player.Update(dt, m_CombatSystem, m_Wave1, m_Camera.GetX(), m_Camera.GetY());
+
+    // Update Enemy
+    for (auto& enemy : m_Wave1) {
+        enemy->Update(dt, m_CombatSystem, m_Player);
+        m_CombatSystem.Update(m_Player, *enemy, dt);
+    }
 
     // --- 2. Map Boundaries (Clamping) ---
     // We get the player's new position to ensure they haven't walked off the map
@@ -91,12 +109,16 @@ void Game::Update() {
     if (m_Player.GetCombatFlag().attackHit) {
         m_Healthbar.var -= m_Player.GetCombatStats().attack;
     }
-    if (m_Enemy.GetCombatFlag().attackHit) {
-        if (!m_Player.GetCombatFlag().parryOn) {
-            if (m_Player.GetCombatFlag().blockOn) m_Healthbar.var -= (m_Player.GetCombatStats().attack) / 2;
-            else m_Healthbar.var -= m_Player.GetCombatStats().attack;
+
+    for (auto& enemy : m_Wave1) {
+        if (enemy->GetCombatFlag().attackHit) {
+            if (!m_Player.GetCombatFlag().parryOn) {
+                if (m_Player.GetCombatFlag().blockOn) m_Healthbar.var -= (m_Player.GetCombatStats().attack) / 2;
+                else m_Healthbar.var -= m_Player.GetCombatStats().attack;
+            }
         }
     }
+    
     
 
     // Healthbar Cap
@@ -158,7 +180,11 @@ void Game::Draw() {
 
     // --- Draw Player ---
     m_Player.Draw();
-    m_Enemy.Draw();
+
+    // --- Draw Enemy ---
+    for (auto& enemy : m_Wave1) {
+        enemy->Draw();
+    }
 
     AESysFrameEnd();
 }
@@ -171,7 +197,6 @@ void Game::Free() {
 
     // Free Player resources
     m_Player.Free();
-    m_Enemy.Free();
 }
 
 void Game::DealDamage(f32 damageAmount) {

@@ -68,6 +68,21 @@ AEGfxVertexList* CreateLineMesh(float range, u32 color) {
     return AEGfxMeshEnd();
 }
 
+
+AEGfxVertexList* CreateAttackRangeMesh(f32 attackRange, u32 color) {
+    AEGfxMeshStart();
+    AEGfxTriAdd(
+        0.0f, 0.5f, color, 0, 0,
+        0.0f, -0.5f, color, 0, 0,
+        -attackRange, 0.5f, color, 0, 0);
+
+    AEGfxTriAdd(
+        -attackRange, 0.5f, color, 0, 0,
+        -attackRange, -0.5f, color, 0, 0,
+        0.0f, -0.5f, color, 0, 0);
+    return AEGfxMeshEnd();
+}
+
 void DrawMesh(AEGfxVertexList* pMesh, float width, float height, float x, float y, float rot, float r, float g, float b, float a) {
     AEGfxSetColorToMultiply(0.0f, 0.0f, 0.0f, 0.0f);
     AEGfxSetColorToAdd(r / 255.0f, g / 255.0f, b / 255.0f, a / 255.0f);

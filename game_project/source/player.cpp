@@ -29,7 +29,7 @@ void Player::Init()
     m_pMesh = CreateCircleMesh(1.0f, 32, 0x50A655);
 }
 
-void Player::Update(float dt, Combat::System& combat, const Enemy& enemy, float camX, float camY)
+void Player::Update(float dt, Combat::System& combat, std::vector<std::unique_ptr<Enemy>> const& wave, f32 camX, f32 camY)
 {
     // Attack / Combat Logic
     // Mouse input
@@ -76,9 +76,9 @@ void Player::Update(float dt, Combat::System& combat, const Enemy& enemy, float 
     // Dot product between AIM and TARGET direction
     // Eg. How wide is the angle?
     //			 /
-    //			/  30°
+    //			/  30ï¿½
     //-------- > Aim direction(mouse)
-    //			\  30°
+    //			\  30ï¿½
     //			 \
 
     //AEVec2 vectorBtw_PD { enemy.GetX() - m_PosX, enemy.GetY() - m_PosY };
@@ -103,9 +103,11 @@ void Player::Update(float dt, Combat::System& combat, const Enemy& enemy, float 
         std::cout << "ATTACK" << std::endl;
         m_AllowBlock = false;
         StartAttack();
-        if (combatSystem.IsEnemyInRange(*this, enemy)) {
-            std::cout << "ENEMY HIT!" << std::endl;
-            m_CombatFlags.attackHit = true;
+        for (auto& enemy : wave) {
+            if (combatSystem.IsEnemyInRange(*this, *enemy)) {
+                std::cout << "ENEMY HIT!" << std::endl;
+                m_CombatFlags.attackHit = true;
+            }
         }
     }
     else m_CombatFlags.attackHit = false;
