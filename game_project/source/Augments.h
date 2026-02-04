@@ -28,7 +28,7 @@ private:
 
     float hoverPosY, hoverTime, hoverPower, hoverSpeed;
 
-    bool choose;
+    bool choose = false;
 
     // Visual Assets
     AEGfxVertexList* augmentMesh = nullptr;

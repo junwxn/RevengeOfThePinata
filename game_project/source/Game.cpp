@@ -137,7 +137,7 @@ void Game::Update() {
 
     // Augment Ball Interaction
     aug_ball.Interact(m_Player.GetX(), m_Player.GetY());
-    aug_ball.Choosing();
+    //aug_ball.Choosing();
 }
 
 void Game::Draw() {
@@ -195,7 +195,13 @@ void Game::Draw() {
     }
 
     // Draw Augment Ball
-    aug_ball.Draw(m_Player.GetX(), m_Player.GetY(),dt);
+    if (AEInputCheckTriggered(AEVK_P)) {
+        tempdrawball = true;
+    }
+
+    if (tempdrawball) {
+        aug_ball.Draw(m_Player.GetX(), m_Player.GetY(),dt);
+    }
 
     AESysFrameEnd();
 }

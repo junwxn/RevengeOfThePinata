@@ -29,6 +29,9 @@ public:
 
     void DealDamage(f32 damageAmount);
 
+    //TEMP
+    bool tempdrawball{};
+
 private:
     int m_GameRunning = 1;
 

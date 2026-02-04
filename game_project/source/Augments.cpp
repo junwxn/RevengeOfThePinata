@@ -30,33 +30,33 @@ void Augments::Interact(f32 playerX, f32 playerY) {
     //printf("Player y: %f\n", dy);
     //printf("Playerballdist: %f\n", playerballdist);
 
-    if (playerballdist < interactRange) {
+    if (playerballdist < interactRange && !choose) {
         //printf("PRESS X TO INTERACT\n");
 
         if (AEInputCheckTriggered(AEVK_X)) {
             printf("CHOOSE BRO\n");
             choose = true;
         }
-
-    }
-    else {
-        choose = false;
     }
 
 }
 
 void Augments::Choosing() {
 
-    if (choose == true) {
-        printf("Choosing...\n");
-
-        if (AEInputCheckTriggered(AEVK_X)) {
-			choose = false;
-        }
-        // tie rand seed to delt time
-        // choices of cards, pick and display
-        // clickbox for the cards, once picked set choose = false
+    if (!choose) {
+        return;
     }
+
+    // tie rand seed to delt time
+    // choices of cards, pick and display
+    // clickbox for the cards, once picked set choose = false
+    
+    printf("Choosing...\n");
+
+    if (AEInputCheckTriggered(AEVK_X)) {
+        choose = false;
+    }
+
 
 }
 
