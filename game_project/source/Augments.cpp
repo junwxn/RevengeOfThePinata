@@ -38,27 +38,25 @@ void Augments::Interact(f32 playerX, f32 playerY) {
             choose = true;
         }
     }
+    else if (choose) {
+        printf("Choosing...\n");
+    }
 
 }
 
-void Augments::Choosing() {
-
-    if (!choose) {
-        return;
-    }
-
-    // tie rand seed to delt time
-    // choices of cards, pick and display
-    // clickbox for the cards, once picked set choose = false
-    
-    printf("Choosing...\n");
-
-    if (AEInputCheckTriggered(AEVK_X)) {
-        choose = false;
-    }
-
-
-}
+//void Augments::Choosing() {
+//
+//    // tie rand seed to delt time
+//    // choices of cards, pick and display
+//    // clickbox for the cards, once picked set choose = false
+//
+//
+//    if (choose) {
+//        printf("Choosing...\n");
+//    }
+//
+//
+//}
 
 void Augments::Draw(f32 playerX, f32 playerY, f32 dt) {
     // Ensure Color Mode is set
@@ -76,7 +74,7 @@ void Augments::Draw(f32 playerX, f32 playerY, f32 dt) {
     DrawMesh(augmentMesh, augSize, augSize, augPosX, hoverPosY + sinf(hoverTime) * hoverPower, 0.0f, 44, 50, 150, 255);
 
     if (choose == true) {
-        DrawMesh(cardMesh, 1600, 900, playerX - 800, playerY, 0.0f, 0, 0, 0, 100); // Tinted Window
+        DrawMesh(cardMesh, 3200, 1800, playerX - 1600, playerY, 0.0f, 0, 0, 0, 100); // Tinted Window
 
         DrawMesh(cardMesh, 400, 600, playerX - 700, playerY, 0.0f, 0, 0, 0, 255); // First card
         DrawMesh(cardMesh, 400, 600, playerX - 200, playerY, 0.0f, 0, 0, 0, 255); // Second card

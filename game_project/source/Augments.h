@@ -6,7 +6,7 @@ class Augments
 public:
     void Init();
     void Interact(f32 playerX, f32 playerY);
-    void Choosing();
+    //void Choosing();
     void Draw(f32 playerX, f32 playerY, f32 dt);
     void DrawShadow(f32 dt);
     void Free();
@@ -18,6 +18,12 @@ public:
 
     //// Setters if you need to teleport the player (e.g. respawning)
     //void SetPosition(float x, float y) { m_PosX = x; m_PosY = y; }
+
+
+    // takes choose from private
+    bool GetChoose() const {
+        return choose;
+    }
 
 private:
     // Position & Stats

@@ -29,7 +29,7 @@ public:
 
     void DealDamage(f32 damageAmount);
 
-    //TEMP
+    //TEMP FOR AUGMENT BALL SPAWN
     bool tempdrawball{};
 
 private:

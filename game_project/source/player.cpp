@@ -27,9 +27,10 @@ void Player::Init()
     // Create a local mesh for the player
     // (Assuming CreateCircleMesh is defined in Utils.h/cpp)
     m_pMesh = CreateCircleMesh(1.0f, 32, 0x50A655);
+
 }
 
-void Player::Update(float dt, Combat::System& combat, std::vector<std::unique_ptr<Enemy>> const& wave, f32 camX, f32 camY)
+void Player::Update(float dt, Combat::System& combat, std::vector<std::unique_ptr<Enemy>> const& wave, f32 camX, f32 camY, bool preventing_movement)
 {
     // Attack / Combat Logic
     // Mouse input
@@ -191,10 +192,15 @@ void Player::Update(float dt, Combat::System& combat, std::vector<std::unique_pt
     s8 moveX = 0;
     s8 moveY = 0;
 
-    if (AEInputCheckCurr(AEVK_W)) moveY += 1;
-    if (AEInputCheckCurr(AEVK_S)) moveY -= 1;
-    if (AEInputCheckCurr(AEVK_A)) moveX -= 1;
-    if (AEInputCheckCurr(AEVK_D)) moveX += 1;
+
+    if (!preventing_movement) {
+
+        if (AEInputCheckCurr(AEVK_W)) moveY += 1;
+        if (AEInputCheckCurr(AEVK_S)) moveY -= 1;
+        if (AEInputCheckCurr(AEVK_A)) moveX -= 1;
+        if (AEInputCheckCurr(AEVK_D)) moveX += 1;
+
+    }
 
     // --- 3. Execute Movement Logic ---
     if (moveX != 0 || moveY != 0)

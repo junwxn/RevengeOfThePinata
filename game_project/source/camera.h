@@ -5,7 +5,7 @@ class Camera
 {
 public:
 	void Init(f32 startX, f32 startY);
-	void Update(f32 dt, f32 playerX, f32 playerY);
+	void Update(f32 dt, f32 playerX, f32 playerY, bool preventing_movement);
 
 	float GetX() const { return m_X; }
 	float GetY() const { return m_Y; }

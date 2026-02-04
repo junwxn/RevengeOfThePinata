@@ -54,7 +54,7 @@ void Game::Update() {
     f32 dt = (f32)AEFrameRateControllerGetFrameTime();
 
     // --- 1. Update Player ---
-    m_Player.Update(dt, m_CombatSystem, m_Wave1, m_Camera.GetX(), m_Camera.GetY());
+    m_Player.Update(dt, m_CombatSystem, m_Wave1, m_Camera.GetX(), m_Camera.GetY(), aug_ball.GetChoose());
 
     // Update Enemy
     for (auto& enemy : m_Wave1) {
@@ -98,7 +98,7 @@ void Game::Update() {
     // --- 3. Camera ---
     // Update camera to follow the player
 
-    m_Camera.Update(dt, m_Player.GetX(), m_Player.GetY());
+    m_Camera.Update(dt, m_Player.GetX(), m_Player.GetY(), aug_ball.GetChoose());
 
     // --- 4. Game Logic (Health Circles) ---
     // We use getters for player position/size
@@ -137,7 +137,9 @@ void Game::Update() {
 
     // Augment Ball Interaction
     aug_ball.Interact(m_Player.GetX(), m_Player.GetY());
-    //aug_ball.Choosing();
+
+    // Gets aug_ball's choose
+    std::cout << "GetChoose: " << aug_ball.GetChoose() << '\n';
 }
 
 void Game::Draw() {
@@ -195,8 +197,12 @@ void Game::Draw() {
     }
 
     // Draw Augment Ball
-    if (AEInputCheckTriggered(AEVK_P)) {
+
+    // std::cout << tempdrawball;
+    if (tempdrawball == false && AEInputCheckTriggered(AEVK_P)) {
         tempdrawball = true;
+    } else if (tempdrawball == true && AEInputCheckTriggered(AEVK_P)) {
+        tempdrawball = false;
     }
 
     if (tempdrawball) {

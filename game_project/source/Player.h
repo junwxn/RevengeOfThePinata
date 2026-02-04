@@ -6,6 +6,8 @@
 #include "Combat.h"
 #include "Enemy.h"
 
+#include "Augments.h"
+
 //-----------------------//
 //---- Player States ----//
 //-----------------------//
@@ -24,7 +26,7 @@ class Player
 {
 public:
     void Init();
-    void Update(float dt, Combat::System& combat, std::vector<std::unique_ptr<Enemy>> const& wave, f32 camX, f32 camY);
+    void Update(float dt, Combat::System& combat, std::vector<std::unique_ptr<Enemy>> const& wave, f32 camX, f32 camY, bool preventing_movement);
     void Draw();
     void Free();
 
@@ -72,6 +74,12 @@ public:
     void SetAimVector(float x, float y ) { m_AimVector.x = x, m_AimVector.y = y; }
     void SetAimAngle(float angle) { m_AimAngle = angle; }
 
+
+    // Augments
+    bool PreventMovement(bool notpreventing) const {
+        return notpreventing;
+    }
+
 private:
     Combat::System combatSystem;
 
@@ -93,6 +101,7 @@ private:
     // -------------------------- //
     Combat::CombatStats m_CombatStats{ 200.0f, 10.0f, 5.0f };
     Combat::CombatFlags m_CombatFlags{ false, false, false, false };
+
 
     // Attack Logic
     // --------------------
@@ -136,4 +145,7 @@ private:
     AEVec2 m_VectorNormalizedMP;
     AEVec2 m_AimVector;
     float m_AimAngle;
+    
+    // Augments
+    bool preventing_movement;
 };
