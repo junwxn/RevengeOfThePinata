@@ -53,6 +53,8 @@ void Game::Init() {
 void Game::Update() {
     f32 dt = (f32)AEFrameRateControllerGetFrameTime();
 
+    //std::cout << "Delta Time: " << dt << '\n';
+
     // --- 1. Update Player ---
     m_Player.Update(dt, m_CombatSystem, m_Wave1, m_Camera.GetX(), m_Camera.GetY(), aug_ball.GetChoose());
 
@@ -139,7 +141,7 @@ void Game::Update() {
     aug_ball.Interact(m_Player.GetX(), m_Player.GetY());
 
     // Gets aug_ball's choose
-    std::cout << "GetChoose: " << aug_ball.GetChoose() << '\n';
+    //std::cout << "GetChoose: " << aug_ball.GetChoose() << '\n';
 }
 
 void Game::Draw() {

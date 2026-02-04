@@ -34,7 +34,11 @@ private:
 
     float hoverPosY, hoverTime, hoverPower, hoverSpeed;
 
+    float cards_y, cards_x1, cards_x2;
+
     bool choose = false;
+
+    bool startingAnimation = true;
 
     // Visual Assets
     AEGfxVertexList* augmentMesh = nullptr;
