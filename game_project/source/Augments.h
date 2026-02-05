@@ -6,7 +6,6 @@ class Augments
 public:
     void Init();
     void Interact(f32 playerX, f32 playerY);
-    //void Choosing();
     void Draw(f32 playerX, f32 playerY, f32 dt);
     void DrawShadow(f32 dt);
     void Free();
