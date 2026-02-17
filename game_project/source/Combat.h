@@ -61,8 +61,8 @@ namespace Combat {
             //f32 GetDotProduct() const { return s_DotProduct; }
 
         private:
-            bool m_InRange;
-            bool m_InCone;
+            bool m_InRange{};
+            bool m_InCone{};
             f32 stunDuration = 2.0f;
             CombatOutcome outcome{};
     };
