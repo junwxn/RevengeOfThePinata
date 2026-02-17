@@ -64,6 +64,6 @@ namespace Combat {
             bool m_InRange;
             bool m_InCone;
             f32 stunDuration = 2.0f;
-            CombatOutcome outcome;
+            CombatOutcome outcome{};
     };
 }

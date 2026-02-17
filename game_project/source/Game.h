@@ -59,5 +59,5 @@ private:
     AEGfxTexture* m_pTexBlock = nullptr;
 
     // Camera
-    Camera m_Camera;
+    Camera m_Camera{}; 
 };
