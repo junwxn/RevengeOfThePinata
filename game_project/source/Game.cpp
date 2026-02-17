@@ -1,5 +1,4 @@
-#include <iostream>
-#include <cmath>
+#include "pch.h"
 
 #include "Game.h"
 #include "Camera.h"

@@ -1,11 +1,11 @@
+#include "pch.h"
+
 #include "Player.h"
 #include "Enemy.h"
 #include "Combat.h"
 #include "Game.h"
 #include "Colors.h"
 #include "MathFunctions.h"
-#include <math.h> // For sqrt
-#include <iostream>
 
 void Player::Init()
 {
