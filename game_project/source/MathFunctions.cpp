@@ -1,5 +1,6 @@
+#include "pch.h"
+
 #include "MathFunctions.h"
-#include <AEEngine.h>
 
 namespace Vectors {
 	f32 magnitude(f32 vecX, f32 vecY) {
