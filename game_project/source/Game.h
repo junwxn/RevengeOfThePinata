@@ -18,10 +18,12 @@ struct RectData {
 
 class Game {
 public:
+    void Load();
     void Init();
     void Update();
     void Draw();
     void Free();
+    void Unload();
     bool IsRunning() const { return m_GameRunning; }
 
     void DealDamage(f32 damageAmount);

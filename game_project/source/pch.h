@@ -8,3 +8,4 @@
 #include <cmath>
 #include <math.h>
 #include "TMXLoader/TMXLoader.h"
+#include "GameStateList.h"

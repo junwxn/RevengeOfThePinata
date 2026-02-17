@@ -3,13 +3,15 @@
 #include "Game.h"
 #include "Camera.h"
 
+void Game::Load() {
+    m_pTexBlock2 = AEGfxTextureLoad("Assets/block2.png");
+    m_pTexBlock = AEGfxTextureLoad("Assets/block.png");
+}
+
 void Game::Init() {
     // Use Utils to create meshes
     m_pCircleMesh = CreateCircleMesh(1.0f, 32, 0xFFFFFFFF);
     m_pRectMesh = CreateRectMesh(0xFFFFFFFF);
-
-    m_pTexBlock2 = AEGfxTextureLoad("Assets/block2.png");
-    m_pTexBlock = AEGfxTextureLoad("Assets/block.png");
 
     // Initialize the Player Class
     m_Player.Init();
@@ -221,11 +223,14 @@ void Game::Draw() {
 void Game::Free() {
     AEGfxMeshFree(m_pCircleMesh);
     AEGfxMeshFree(m_pRectMesh);
-    AEGfxTextureUnload(m_pTexBlock);
-    AEGfxTextureUnload(m_pTexBlock2);
 
     // Free Player resources
     m_Player.Free();
+}
+
+void Game::Unload() {
+    AEGfxTextureUnload(m_pTexBlock);
+    AEGfxTextureUnload(m_pTexBlock2);
 }
 
 void Game::DealDamage(f32 damageAmount) {
