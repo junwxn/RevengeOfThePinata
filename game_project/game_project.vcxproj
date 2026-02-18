@@ -103,8 +103,10 @@ xcopy "$(SolutionDir)Extern\AlphaEngine\lib\fmod.dll" "$(OutDir)" /s /r /y /q</C
     <ClCompile Include="source\Camera.cpp" />
     <ClCompile Include="source\Combat.cpp" />
     <ClCompile Include="source\Enemy.cpp" />
-    <ClCompile Include="source\Game.cpp" />
+    <ClCompile Include="source\GameStateManager.cpp" />
+    <ClCompile Include="source\Level1.cpp" />
     <ClCompile Include="source\Main.cpp" />
+    <ClCompile Include="source\MainMenu.cpp" />
     <ClCompile Include="source\MathFunctions.cpp" />
     <ClCompile Include="source\pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
@@ -118,7 +120,10 @@ xcopy "$(SolutionDir)Extern\AlphaEngine\lib\fmod.dll" "$(OutDir)" /s /r /y /q</C
     <ClInclude Include="source\Colors.h" />
     <ClInclude Include="source\Combat.h" />
     <ClInclude Include="source\Enemy.h" />
-    <ClInclude Include="source\Game.h" />
+    <ClInclude Include="source\GameStateList.h" />
+    <ClInclude Include="source\GameStateManager.h" />
+    <ClInclude Include="source\Level1.h" />
+    <ClInclude Include="source\MainMenu.h" />
     <ClInclude Include="source\MathFunctions.h" />
     <ClInclude Include="source\pch.h" />
     <ClInclude Include="source\Player.h" />

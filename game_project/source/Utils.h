@@ -13,6 +13,16 @@ struct Vec2 {
     f32 x, y;
 };
 
+struct Circle {
+    f32 pos_x, pos_y;
+    f32 r;
+};
+
+struct RectData {
+    f32 pos_x, pos_y, w, h;
+    f32 max, min, current, var;
+};
+
 // --- Math Helpers ---
 // Converts Grid (Iso) coordinates to Screen (Cartesian) coordinates
 Vec2 GridToScreen(int gridX, int gridY);
