@@ -26,6 +26,7 @@ void GSM_Update() {
 		fpDraw = MainMenu_Draw;
 		fpFree = MainMenu_Free;
 		fpUnload = MainMenu_Unload;
+		break;
 	case GS_LEVEL1:
 		fpLoad = Level1_Load;
 		fpInitialize = Level1_Init;
