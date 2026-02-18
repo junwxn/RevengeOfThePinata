@@ -3,7 +3,6 @@
 #include "Player.h"
 #include "Enemy.h"
 #include "Combat.h"
-#include "Game.h"
 #include "Colors.h"
 #include "MathFunctions.h"
 
