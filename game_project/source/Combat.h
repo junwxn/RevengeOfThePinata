@@ -35,6 +35,24 @@ namespace Combat {
         bool blockResolved;
     };
 
+    struct CombatFrames {
+        struct AttackFrames 
+        {
+            int startUp;
+            int active;
+            int recovery;
+        };
+
+        struct BlockFrames 
+        {
+            int startUp;
+            //int active;
+            int recovery;
+        };
+    };
+
+
+
     f32 ComputeDamage(Player& attacker, Enemy& defender);
     f32 ComputeDamage(Enemy& attacker, Player& defender);
 
@@ -53,6 +71,7 @@ namespace Combat {
             void ApplyBlockReaction_Enemy(Player& player, Enemy& enemy);
             void ApplyDamage(Player& player, Enemy& enemy);
             void ColorIndicator(Enemy& enemy, f32 r, f32 g, f32 b, f32 a);
+            double const GetOneFPS() const { return ONE_FRAME; };
 
             // Getters
             //AEVec2 GetVectorBetweenPE() const { return s_VectorBetweenPE; }
@@ -61,9 +80,10 @@ namespace Combat {
             //f32 GetDotProduct() const { return s_DotProduct; }
 
         private:
-            bool m_InRange;
-            bool m_InCone;
-            f32 stunDuration = 2.0f;
+            bool m_InRange { false };
+            bool m_InCone{ false };
+            f32 stunDuration{ 2.0f };
             CombatOutcome outcome;
+            static double const ONE_FRAME;
     };
 }
