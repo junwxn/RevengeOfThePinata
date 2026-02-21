@@ -142,9 +142,9 @@ private:
     AEGfxVertexList* m_AttackRangeMesh = nullptr;
     AEGfxVertexList* m_BlockRangeMesh = nullptr;
 
-    AEMtx33 atkScale, atkRot, atkTrans, atkTransform;
-    AEMtx33 blockScale, blockRot, blockTrans, blockTransform;
-    AEMtx33 pointScale, pointRot, pointTrans, pointTransform;
+    AEMtx33 atkScale{}, atkRot{}, atkTrans{}, atkTransform{};
+    AEMtx33 blockScale{}, blockRot{}, blockTrans{}, blockTransform{};
+    AEMtx33 pointScale{}, pointRot{}, pointTrans{}, pointTransform{};
 
     // Mouse Aiming
     double m_DistMagMP{};

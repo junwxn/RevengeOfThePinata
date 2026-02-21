@@ -61,6 +61,8 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -82,6 +84,8 @@ xcopy "$(SolutionDir)Extern\AlphaEngine\lib\fmodL.dll" "$(OutDir)" /s /r /y /q</
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -99,9 +103,15 @@ xcopy "$(SolutionDir)Extern\AlphaEngine\lib\fmod.dll" "$(OutDir)" /s /r /y /q</C
     <ClCompile Include="source\Camera.cpp" />
     <ClCompile Include="source\Combat.cpp" />
     <ClCompile Include="source\Enemy.cpp" />
-    <ClCompile Include="source\Game.cpp" />
+    <ClCompile Include="source\GameStateManager.cpp" />
+    <ClCompile Include="source\Level1.cpp" />
     <ClCompile Include="source\Main.cpp" />
+    <ClCompile Include="source\MainMenu.cpp" />
     <ClCompile Include="source\MathFunctions.cpp" />
+    <ClCompile Include="source\pch.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="source\player.cpp" />
     <ClCompile Include="source\Utils.cpp" />
   </ItemGroup>
@@ -110,8 +120,12 @@ xcopy "$(SolutionDir)Extern\AlphaEngine\lib\fmod.dll" "$(OutDir)" /s /r /y /q</C
     <ClInclude Include="source\Colors.h" />
     <ClInclude Include="source\Combat.h" />
     <ClInclude Include="source\Enemy.h" />
-    <ClInclude Include="source\Game.h" />
+    <ClInclude Include="source\GameStateList.h" />
+    <ClInclude Include="source\GameStateManager.h" />
+    <ClInclude Include="source\Level1.h" />
+    <ClInclude Include="source\MainMenu.h" />
     <ClInclude Include="source\MathFunctions.h" />
+    <ClInclude Include="source\pch.h" />
     <ClInclude Include="source\Player.h" />
     <ClInclude Include="source\Utils.h" />
   </ItemGroup>

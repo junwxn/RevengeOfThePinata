@@ -1,10 +1,11 @@
+#include "pch.h"
+
 #include "Combat.h"
 #include "Player.h"
 #include "Enemy.h"
 #include "MathFunctions.h"
-#include <iostream>
 
-std::ostream& operator<<(std::ostream& os, CombatOutcome outcome) {
+static std::ostream& operator<<(std::ostream& os, CombatOutcome outcome) {
 	if (outcome == CombatOutcome::OUTCOME_HIT) return os << "OUTCOME_HIT";
 	else if (outcome == CombatOutcome::OUTCOME_BLOCKED) return os << "OUTCOME_BLOCKED";
 	else if (outcome == CombatOutcome::OUTCOME_PARRIED) return os << "OUTCOME_PARRIED";
