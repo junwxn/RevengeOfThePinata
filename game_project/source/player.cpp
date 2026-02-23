@@ -1,11 +1,10 @@
+#include "pch.h"
+
 #include "Player.h"
 #include "Enemy.h"
 #include "Combat.h"
-#include "Game.h"
 #include "Colors.h"
 #include "MathFunctions.h"
-#include <math.h> // For sqrt
-#include <iostream>
 
 void Player::Init()
 {
@@ -126,20 +125,41 @@ void Player::Update(float dt, Combat::System& combat, std::vector<std::unique_pt
     if (m_AttackActive)
     {
         m_CurrentState = PlayerState::STATE_ATTACK;
-        m_AttackTimer += dt;
+        m_AttackFrameAccumulator += dt;
+
+        while (m_AttackFrameAccumulator >= combatSystem.GetOneFPS() && m_AttackCurrentFrame != a_TotalFrames) {
+            ++m_AttackCurrentFrame;
+            m_AttackFrameAccumulator -= combatSystem.GetOneFPS();
+        }
 
         // For normalized value between 0.0 - 1.0 range
         // 0.0 = attack start
         // 0.5 = halfway through attack
         // 1.0 = attack complete
-        float attackProgress = m_AttackTimer / m_AttackDuration;
+        
+        float attackProgress{};
 
-        m_CurrentAngle = Vectors::lerp(m_StartAngle, m_EndAngle, attackProgress);
+        if (m_AttackCurrentFrame < a_StartUpFrames)
+        {
+            // Start-up Phase
+        }
+        else if (m_AttackCurrentFrame < a_StartUpFrames + a_ActiveFrames)
+        {
+            // Active Phase
+            int activeFrameIndex{ m_AttackCurrentFrame - a_StartUpFrames }; // Gives the current active frame
+            attackProgress = float(activeFrameIndex) / (a_ActiveFrames - 1);
+            m_CurrentAngle = Vectors::lerp(m_StartAngle, m_EndAngle, attackProgress);
+        }
+        else 
+        {
+            // Recovery Phase
+        };
+
+        //std::cout << "attackProgress: " << attackProgress << std::endl;
+        //std::cout << "m_AttackCurrentFrame: " << m_AttackCurrentFrame << std::endl;
 
         if (attackProgress >= 1.0f)
         {
-            /*m_AttackActive = false;
-            m_AllowAttack = true;*/
             --m_AttackCharges;
             ResetCombatVariables();
             attackProgress = 1.0f;
@@ -149,23 +169,46 @@ void Player::Update(float dt, Combat::System& combat, std::vector<std::unique_pt
 
     // Update block
     if (m_BlockActive) {
-        m_CurrentState = PlayerState::STATE_PARRY;
-        m_ParryActive = true;
-        m_CombatFlags.parryOn = true;
-        m_BlockTimer += dt;
+        //m_CurrentState = PlayerState::STATE_PARRY;
+        //m_ParryActive = true;
+        //m_CombatFlags.parryOn = true;
+        m_BlockFrameAccumulator += dt;
 
-        float blockProgress = m_BlockTimer / m_ParryDuration;
-        if (m_ParryActive) {
-            m_CurrentAngle = Vectors::lerp(m_StartAngle, m_EndAngle, blockProgress);
+        while (m_BlockFrameAccumulator >= combatSystem.GetOneFPS())
+        {
+            ++m_BlockCurrentFrame;
+            m_BlockFrameAccumulator -= combatSystem.GetOneFPS();
         }
 
+        float blockProgress{};
+        if (m_BlockCurrentFrame < b_TotalFrames) {
+            m_CurrentState = PlayerState::STATE_PARRY;
+            m_ParryActive = true;
+            m_CombatFlags.parryOn = true;
 
-        if (m_BlockTimer >= m_ParryDuration) {
+            blockProgress = float(m_BlockCurrentFrame - b_StartUpFrames) / (b_ParryFrames - 1);
+
+            m_CurrentAngle = Vectors::lerp(m_StartAngle, m_EndAngle, blockProgress);
+        }
+        else
+        {
             m_CurrentState = PlayerState::STATE_BLOCK;
             m_ParryActive = false;
             m_CombatFlags.parryOn = false;
             blockProgress = 1.0f;
         }
+
+        //if (m_ParryActive) {
+        //    m_CurrentAngle = Vectors::lerp(m_StartAngle, m_EndAngle, blockProgress);
+        //}
+
+
+        //if (m_BlockTimer >= m_ParryDuration) {
+        //    m_CurrentState = PlayerState::STATE_BLOCK;
+        //    m_ParryActive = false;
+        //    m_CombatFlags.parryOn = false;
+        //    blockProgress = 1.0f;
+        //}
 
         m_CombatFlags.blockOn = true;
         //std::cout << "Player.blocking: " << m_CombatFlags.blockOn << std::endl;
@@ -180,7 +223,7 @@ void Player::Update(float dt, Combat::System& combat, std::vector<std::unique_pt
 
     //std::cout << "Player.blocking: " << m_CombatFlags.blockOn << std::endl;
     //std::cout << "Player.parryOn: " << m_CombatFlags.parryOn << std::endl;
-    //std::cout << "m_BlockTimer: " << m_BlockTimer << std::endl;
+    //std::cout << "m_BlockCurrentFrame: " << m_BlockCurrentFrame << std::endl;
     //std::cout << "m_AttackActive: " << m_AttackActive << std::endl;
     //std::cout << "m_BlockActive: " << m_BlockActive << std::endl;
 
@@ -303,7 +346,10 @@ void Player::StartAttack()
 {
     m_AttackActive = true;
     m_AllowAttack = false;
-    m_AttackTimer = 0.0f;
+    m_AttackFrameAccumulator = 0.0f;
+    m_AttackCurrentFrame = 0;
+    
+    a_TotalFrames = a_StartUpFrames + a_ActiveFrames + a_RecoveryFrames;
 
     // 60-degree cone
     m_CurrentAngle = m_AimAngle;
@@ -315,7 +361,8 @@ void Player::StartBlock()
 {
     m_BlockActive = true;
     m_AllowBlock = false;
-    m_BlockTimer = 0.0f;
+    m_BlockFrameAccumulator = 0.0f;
+    m_BlockCurrentFrame = 0;
 
     // 60-degree cone
     m_CurrentAngle = m_AimAngle;

@@ -1,8 +1,9 @@
+#include "pch.h"
+
 #include "MathFunctions.h"
-#include <AEEngine.h>
 
 namespace Vectors {
-	f32 magnitude(f32 vecX, f32 vecY) {
+	double magnitude(f32 vecX, f32 vecY) {
 		return sqrt(vecX * vecX + vecY * vecY);
 	}
 

@@ -1,3 +1,5 @@
+#include "pch.h"
+
 #include "Utils.h"
 
 // Tile Basis Vectors
@@ -7,7 +9,7 @@ const float J_X = -1.0f;
 const float J_Y = 1.0f;
 
 Vec2 GridToScreen(int gridX, int gridY) {
-    Vec2 result;
+    Vec2 result{};
     float halfW = GRID_W * 0.5f;
     float halfH = GRID_H * 0.5f;
     result.x = (gridX * I_X * halfW) + (gridY * J_X * halfW);

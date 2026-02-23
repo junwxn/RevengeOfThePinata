@@ -1,5 +1,4 @@
-#include <iostream>
-#include <cmath>
+#include "pch.h"
 
 #include "Enemy.h"
 #include "Player.h"
@@ -52,7 +51,7 @@ void Enemy::BaseUpdate(f32 dt, Combat::System& combat, Player const& player) {
     }
 
     // Start attack -------------------
-    if (!m_AttackActive && m_AllowAttack && m_combatSystem.CanStartAttack_Enemy(player, *this))
+    if (!m_AttackActive && m_AllowAttack && m_CombatSystem.CanStartAttack_Enemy(player, *this))
     {
         StartAttack();
     }
@@ -62,17 +61,35 @@ void Enemy::BaseUpdate(f32 dt, Combat::System& combat, Player const& player) {
     if (m_AttackActive)
     {
         m_AttackCooldown = 2.0f;
-        m_AttackTimer += dt;
 
         // For normalized value between 0.0 - 1.0 range
         // 0.0 = attack start
         // 0.5 = halfway through attack
         // 1.0 = attack complete
-        m_attackProgress = m_AttackTimer / m_AttackDuration;
+        m_AttackFrameAccumulator += dt;
 
-        m_CurrentAngle = Vectors::lerp(m_StartAngle, m_EndAngle, m_attackProgress);
+        while (m_AttackFrameAccumulator >= m_CombatSystem.GetOneFPS() && m_AttackCurrentFrame != a_TotalFrames) {
+            ++m_AttackCurrentFrame;
+            m_AttackFrameAccumulator -= m_CombatSystem.GetOneFPS();
+        }
 
-        //std::cout << "m_attackProgress: " << m_attackProgress << std::endl;
+        float m_attackProgress{};
+
+        if (m_AttackCurrentFrame < a_StartUpFrames)
+        {
+            // Start-up Phase
+        }
+        else if (m_AttackCurrentFrame < a_StartUpFrames + a_ActiveFrames)
+        {
+            // Active Phase
+            int activeFrameIndex{ m_AttackCurrentFrame - a_StartUpFrames }; // Gives the current active frame
+            m_attackProgress = float(activeFrameIndex) / (a_ActiveFrames - 1);
+            m_CurrentAngle = Vectors::lerp(m_StartAngle, m_EndAngle, m_attackProgress);
+        }
+        else
+        {
+            // Recovery Phase
+        };
 
         if (m_attackProgress >= 1.0f)
         {
@@ -113,7 +130,8 @@ void Enemy::StartAttack() {
 
     m_AttackActive = true;
     m_AllowAttack = false;
-    m_AttackTimer = 0.0f;
+    m_AttackFrameAccumulator = 0.0f;
+    m_AttackCurrentFrame = 0;
 
     // 60-degree cone
     m_CurrentAngle = m_AimAngle;

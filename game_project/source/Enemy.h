@@ -85,10 +85,14 @@ protected:
     // Attack Logic -------------------
     bool  m_AttackActive{ false };
     bool  m_AllowAttack{ true };
+
     f32 m_AttackCooldown{};
     f32 m_AttackDuration{ 0.15f };
     f32 m_AttackTimer{};
     f32 m_AttackRange{ 125.0f };
+    float m_AttackFrameAccumulator{};
+    int m_AttackCurrentFrame{};
+
     f32 m_ConeHalfAngleDeg{ 30.0f };
     f32 m_ConeThreshold{};
     f32 m_StartAngle{};
@@ -96,9 +100,15 @@ protected:
     f32 m_CurrentAngle{};
     f32 m_attackProgress{};
 
-    Combat::System m_combatSystem;
+    Combat::System m_CombatSystem;
     Combat::CombatStats m_CombatStats{ 10.0f, 5.0f };
     Combat::CombatFlags m_CombatFlags{ false, false, false, false, false, false, false, false, false };
+    
+    int a_StartUpFrames{ 7 };
+    int a_ActiveFrames{ 15 };
+    int a_RecoveryFrames{ 15 };
+    int a_TotalFrames{ a_StartUpFrames + a_ActiveFrames + a_RecoveryFrames };
+    Combat::CombatFrames::AttackFrames m_AttackFrames{ a_StartUpFrames, a_ActiveFrames, a_RecoveryFrames };
 
     // Damage Logic -------------------
     

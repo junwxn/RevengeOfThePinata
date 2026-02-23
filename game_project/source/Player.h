@@ -35,7 +35,7 @@ public:
 
     void StartBlock();
     bool IsBlocking() const { return m_BlockActive; }
-    void GainAttackCharge() { 
+    void GainAttackCharge() {
         ++m_AttackCharges;
         if (m_AttackCharges > m_MaxAttackCharge) {
             m_AttackCharges = m_MaxAttackCharge;
@@ -53,9 +53,9 @@ public:
     // Getters for Combat related purposes
     // Combat Vectors
     AEVec2 GetNormalizedVector() const { return m_VectorNormalizedMP; }
-    f32 GetDistMag() const { return m_DistMagMP; }
+    double GetDistMag() const { return m_DistMagMP; }
     AEVec2 GetAimVector() const { return m_AimVector; }
-    float GetAimAngle() const{ return m_AimAngle; }
+    float GetAimAngle() const { return m_AimAngle; }
 
     f32 GetAttackRange() const { return m_AttackRange; }
     f32 GetConeThreshold() const { return m_ConeThreshold; }
@@ -71,7 +71,7 @@ public:
 
     // Setters if you need to teleport the player (e.g. respawning)
     void SetPosition(float x, float y) { m_PosX = x; m_PosY = y; }
-    void SetAimVector(float x, float y ) { m_AimVector.x = x, m_AimVector.y = y; }
+    void SetAimVector(float x, float y) { m_AimVector.x = x, m_AimVector.y = y; }
     void SetAimAngle(float angle) { m_AimAngle = angle; }
 
 
@@ -102,25 +102,37 @@ private:
     Combat::CombatStats m_CombatStats{ 200.0f, 10.0f, 5.0f };
     Combat::CombatFlags m_CombatFlags{ false, false, false, false };
 
+    int a_StartUpFrames{ 7 };
+    int a_ActiveFrames{ 15 };
+    int a_RecoveryFrames{ 15 };
+    int a_TotalFrames{ a_StartUpFrames + a_ActiveFrames + a_RecoveryFrames };
+    Combat::CombatFrames::AttackFrames m_AttackFrames{ a_StartUpFrames, a_ActiveFrames, a_RecoveryFrames };
+    
+    int b_StartUpFrames{ 2 };
+    int b_ParryFrames{ 7 };
+    //int b_ActiveFrames{ 15 };
+    int b_TotalFrames{ b_StartUpFrames + b_ParryFrames };
+    Combat::CombatFrames::BlockFrames b_BlockFrames{ b_StartUpFrames, b_ParryFrames };
 
     // Attack Logic
     // --------------------
     bool  m_AttackActive = false;
     bool  m_AllowAttack = true;
 
-    int m_AttackCharges = 3;
-	int m_MaxAttackCharge = 5;
+    int m_AttackCharges { 3 };
+    int m_MaxAttackCharge { 5 };
 
-    float m_AttackDuration = 0.15f;
-    float m_AttackTimer = 0.0f;
+    float m_AttackDuration{ 0.15f };
+    float m_AttackFrameAccumulator{};
+    int m_AttackCurrentFrame{};
 
-    float m_AttackRange = 200.0f;
-    float m_ConeHalfAngleDeg = 30.0f;
-    float m_ConeThreshold;
+    float m_AttackRange { 200.0f };
+    float m_ConeHalfAngleDeg { 30.0f };
+    float m_ConeThreshold{};
 
-    float m_StartAngle = 0.0f;
-    float m_EndAngle = 0.0f;
-    float m_CurrentAngle = 0.0f;
+    float m_StartAngle{};
+    float m_EndAngle{};
+    float m_CurrentAngle{};
 
     // Block Logic
     // ---------------------
@@ -128,24 +140,26 @@ private:
     bool m_AllowBlock = true;
     bool m_ParryActive = false;
 
-    float m_ParryDuration = 0.5f;
+    float m_ParryDuration{ 0.5f };
+    float m_BlockFrameAccumulator{};
+    int m_BlockCurrentFrame{};
 
-    float m_BlockTimer = 0.0f;
+    float m_BlockTimer{};
 
     // Attack Visual
     AEGfxVertexList* m_AttackRangeMesh = nullptr;
     AEGfxVertexList* m_BlockRangeMesh = nullptr;
 
-    AEMtx33 atkScale, atkRot, atkTrans, atkTransform;
-    AEMtx33 blockScale, blockRot, blockTrans, blockTransform;
-    AEMtx33 pointScale, pointRot, pointTrans, pointTransform;
+    AEMtx33 atkScale{}, atkRot{}, atkTrans{}, atkTransform{};
+    AEMtx33 blockScale{}, blockRot{}, blockTrans{}, blockTransform{};
+    AEMtx33 pointScale{}, pointRot{}, pointTrans{}, pointTransform{};
 
     // Mouse Aiming
-    f32 m_DistMagMP;
-    AEVec2 m_VectorNormalizedMP;
-    AEVec2 m_AimVector;
-    float m_AimAngle;
-    
+    double m_DistMagMP{};
+    AEVec2 m_VectorNormalizedMP{};
+    AEVec2 m_AimVector{};
+    f32 m_AimAngle{};
+
     // Augments
     bool preventing_movement;
 };

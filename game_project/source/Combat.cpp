@@ -1,10 +1,11 @@
+#include "pch.h"
+
 #include "Combat.h"
 #include "Player.h"
 #include "Enemy.h"
 #include "MathFunctions.h"
-#include <iostream>
 
-std::ostream& operator<<(std::ostream& os, CombatOutcome outcome) {
+static std::ostream& operator<<(std::ostream& os, CombatOutcome outcome) {
 	if (outcome == CombatOutcome::OUTCOME_HIT) return os << "OUTCOME_HIT";
 	else if (outcome == CombatOutcome::OUTCOME_BLOCKED) return os << "OUTCOME_BLOCKED";
 	else if (outcome == CombatOutcome::OUTCOME_PARRIED) return os << "OUTCOME_PARRIED";
@@ -12,6 +13,8 @@ std::ostream& operator<<(std::ostream& os, CombatOutcome outcome) {
 }
 
 namespace Combat {
+	double const System::ONE_FRAME{ 1.0f / 60.0f };
+
 	f32 ComputeDamage(Player& attacker, Enemy& defender) {
 		f32 damageDealt = attacker.GetCombatStats().attack - defender.GetCombatStats().defense;
 		return defender.GetCombatFlag().blockOn ? damageDealt / 2 : damageDealt;
@@ -70,7 +73,7 @@ namespace Combat {
 		// Direction vector / Forward vector
 		AEVec2 s_VectorToPlayer = { player.GetX() - enemy.GetX(), player.GetY() - enemy.GetY() };
 
-		f32 s_DistMagPE = Vectors::magnitude(s_VectorToPlayer.x, s_VectorToPlayer.y); // Dist between player and enemy
+		double s_DistMagPE = Vectors::magnitude(s_VectorToPlayer.x, s_VectorToPlayer.y); // Dist between player and enemy
 		// Normalize vectors (To get direction)
 		AEVec2 s_VectorNormalizedToPlayer = Vectors::normalize(s_DistMagPE, s_VectorToPlayer.x, s_VectorToPlayer.y); // Normalized vector between mouse and player
 
@@ -83,7 +86,7 @@ namespace Combat {
 		// Direction vector / Forward vector
 		AEVec2 s_VectorToEnemy = { enemy.GetX() - player.GetX(), enemy.GetY() - player.GetY() };
 
-		f32 s_DistMagPE = Vectors::magnitude(s_VectorToEnemy.x, s_VectorToEnemy.y); // Dist between mouse and player
+		double s_DistMagPE = Vectors::magnitude(s_VectorToEnemy.x, s_VectorToEnemy.y); // Dist between mouse and player
 		// Normalize vectors (To get direction)
 		AEVec2 s_VectorNormalizedToEnemy = Vectors::normalize(s_DistMagPE, s_VectorToEnemy.x, s_VectorToEnemy.y); // Normalized vector between mouse and player
 
