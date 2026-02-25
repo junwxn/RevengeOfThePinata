@@ -5,8 +5,8 @@ class Augments
 {
 public:
     void Init();
-    void Interact(f32 playerX, f32 playerY);
-    void Draw(f32 playerX, f32 playerY, f32 dt);
+    void Update(f32 playerX, f32 playerY, f32 dt);
+    void Draw(f32 playerX, f32 playerY);
     void DrawShadow(f32 dt);
     void Free();
 
@@ -30,6 +30,7 @@ private:
     float augSize;
     float interactRange;
     float playerX, playerY;
+    float deltaTime;
 
     float hoverPosY, hoverTime, hoverPower, hoverSpeed;
 

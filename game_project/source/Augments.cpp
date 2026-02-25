@@ -13,22 +13,24 @@ void Augments::Init() {
     hoverTime = 0.f;
     hoverPower = 10.f;
     hoverSpeed = 2.f;
+    deltaTime = 0;
 
     // initializing these card positions
     cards_y = 0;
     cards_x1 = 0;
     cards_x2 = 0;
 
-    choose = false;
+    choose = false; // is choosing cards?
 
     augmentMesh = CreateCircleMesh(1, 16, 0x000000);
     cardMesh = CreateRectMesh(0x000000);
 }
 
-void Augments::Interact(f32 playerX, f32 playerY) {
+void Augments::Update(f32 playerX, f32 playerY, f32 dt) {
 
     float dx = playerX;
     float dy = playerY;
+    deltaTime = dt;
 
     float playerballdist = sqrt(((dx - augPosX) * (dx - augPosX)) + ((dy - (augPosY - 65)) * (dy - (augPosY - 65))));
 
@@ -58,11 +60,11 @@ void Augments::Interact(f32 playerX, f32 playerY) {
 
 }
 
-void Augments::Draw(f32 playerX, f32 playerY, f32 dt) {
+void Augments::Draw(f32 playerX, f32 playerY) {
     // Ensure Color Mode is set
     AEGfxSetRenderMode(AE_GFX_RM_COLOR);
 
-    hoverTime += dt * hoverSpeed;
+    hoverTime += deltaTime * hoverSpeed;
 
     // Calculate isometric squashed height for drawing
     float isoHeight = augSize * (GRID_H / GRID_W);
@@ -87,19 +89,19 @@ void Augments::Draw(f32 playerX, f32 playerY, f32 dt) {
             //DrawMesh(cardMesh, 400, 600, playerX - 200, playerY - cards_y, 0.0f, 255, 0, 0, 255); // Test
 
             //                       v speed at which the card travels
-            cards_y += distanceY * 10.0f * dt;
+            cards_y += distanceY * 10.0f * deltaTime;
         }
         else {
             DrawMesh(cardMesh, 400, 600, playerX - 200, playerY - cards_y, 0.0f, 255, 0, 0, 255); // Test
 
             if (fabs(distanceX1) > 2.f) {
                 //DrawMesh(cardMesh, 400, 600, cards_x1, playerY - cards_y, 0.0f, 0, 255, 0, 255); // Test
-                cards_x1 += distanceX1 * 8.0f * dt;
+                cards_x1 += distanceX1 * 8.0f * deltaTime;
             }
 
             if (fabs(distanceX2) > 2.f) {
                 //DrawMesh(cardMesh, 400, 600, cards_x2, playerY - cards_y, 0.0f, 0, 0, 255, 255); // Test
-                cards_x2 += distanceX2 * 8.0f * dt;
+                cards_x2 += distanceX2 * 8.0f * deltaTime;
             }
         }
 
