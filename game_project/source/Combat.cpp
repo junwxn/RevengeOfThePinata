@@ -27,12 +27,18 @@ namespace Combat {
 	void System::Update(Player& player, Enemy& enemy, float dt) {
 			
 		if (enemy.IsStunned()) {
-			stunDuration -= dt;
-			//std::cout << stunDuration << std::endl;
+			
+			stunFrameAccumulator += dt;
+			
+			while (stunFrameAccumulator >= ONE_FRAME)
+			{
+				++stunCurrentFrame;
+				stunFrameAccumulator -= ONE_FRAME;
+			}
 
-			if (stunDuration <= 0) {
+			if (stunCurrentFrame >= stunRecoveryFrames) {
 				enemy.ResetStunFlag();
-				stunDuration = 2.0f;
+				stunCurrentFrame = 0;
 			}
 			return;
 		}
