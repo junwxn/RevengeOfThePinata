@@ -29,24 +29,62 @@ namespace Combat {
         bool blocked;
         bool parried;
         bool stunned;
+        //bool recovered;
 
         bool attackResolved;
         bool parryResolved;
         bool blockResolved;
+
+        bool attackQueued;
     };
 
-    struct CombatFrames {
-        struct AttackFrames 
+    struct CombatData {
+        struct AttackData 
         {
+            // Variables
+            float startAngle;
+            float endAngle;
+            //bool recovered;
+
+            // Frames
             int startUp;
             int active;
             int recovery;
+            int total{ startUp + active + recovery };
+
+            // Data Numbers
+            int damage;
+        };
+        struct AttackState
+        {
+            bool recovered;
         };
 
-        struct BlockFrames 
+        struct BlockData 
         {
+            // Variables
+            float startAngle;
+            float endAngle;
+            //bool held;
+            //bool recovered;
+
+            // Frames
             int startUp;
-            //int active;
+            int parry;
+            int recovery;
+            int total{ startUp + parry + recovery };
+
+            // Data Numbers
+            int block;
+        };
+        struct BlockState
+        {
+            bool held;
+            bool recovered;
+        };
+
+        struct StunData
+        {
             int recovery;
         };
     };
@@ -82,6 +120,12 @@ namespace Combat {
         private:
             bool m_InRange { false };
             bool m_InCone{ false };
+
+            float stunFrameAccumulator{};
+            int stunCurrentFrame{};
+            int stunRecoveryFrames{ 120 };
+            Combat::CombatData::StunData stunFrames{ stunRecoveryFrames };
+            
             f32 stunDuration{ 2.0f };
             CombatOutcome outcome;
             static double const ONE_FRAME;
