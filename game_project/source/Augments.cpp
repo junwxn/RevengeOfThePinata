@@ -1,3 +1,4 @@
+#include "pch.h" // Has to be first file to include in .cpp
 #include "Augments.h"
 #include "Player.h"
 #include <math.h> // For sqrt

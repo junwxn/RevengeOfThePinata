@@ -56,7 +56,7 @@ void Level1_Init() {
 	camera.Init(player.GetX(), player.GetY());
 }
 void Level1_Update(float dt) {
-	player.Update(dt, CombatSystem, Wave1, camera.GetX(), camera.GetY());
+	player.Update(dt, CombatSystem, Wave1, camera.GetX(), camera.GetY(), false);
 
 	if (AEInputCheckTriggered(AEVK_1)) {
 		if (wave1Active) {
@@ -139,7 +139,7 @@ void Level1_Update(float dt) {
 	}
 
 	// camera
-	camera.Update(dt, player.GetX(), player.GetY());
+	camera.Update(dt, player.GetX(), player.GetY(), false);
 
 	if (AreCirclesIntersecting(HealCircle.pos_x, HealCircle.pos_y, HealCircle.r, player.GetX(), player.GetY(), player.GetSize())) {
 		Healthbar.var += 15 * dt;
