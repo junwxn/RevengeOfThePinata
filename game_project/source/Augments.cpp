@@ -32,6 +32,12 @@ void Augments::Update(f32 playerX, f32 playerY, f32 dt) {
     float dy = playerY;
     deltaTime = dt;
 
+    s32 mouseX, mouseY;
+    AEInputGetCursorPosition(&mouseX, &mouseY);
+
+    float mouseWX = mouseX - AEGfxGetWindowWidth() * 0.5f;
+    float mouseWY = AEGfxGetWindowHeight() * 0.5f - mouseY;
+
     float playerballdist = sqrt(((dx - augPosX) * (dx - augPosX)) + ((dy - (augPosY - 65)) * (dy - (augPosY - 65))));
 
     //printf("Player x: %f\n", dx);
@@ -52,10 +58,28 @@ void Augments::Update(f32 playerX, f32 playerY, f32 dt) {
         }
     }
     else if (choose) {
-        printf("Choosing...\n");
+        //printf("Choosing...\n");
         // tie rand seed to THE CURRENT TIME (so that each choice is unique)
         // choices of cards, pick and display
         // clickbox for the cards, once picked set choose = false
+
+        //std::cout << "mouseWX: " << mouseWX << std::endl;
+        std::cout << "mouseWY: " << mouseWY << std::endl;
+
+        //std::cout << "cards_x1: " << cards_x1 << std::endl;
+
+        // card 1
+        if (mouseWX > cards_x1 && mouseWX < (cards_x1 + 400) && mouseWY < (playerY - cards_y + 300) && mouseWY > (playerY - cards_y - 300)) {
+            std::cout << "Red picked" << std::endl;
+        } else if (mouseWX > cards_x2 && mouseWX < (cards_x2 + 400) && mouseWY < (playerY - cards_y + 300) && mouseWY >(playerY - cards_y - 300)) {
+            std::cout << "Blue picked" << std::endl;
+        } else if (mouseWX > (playerX - 200) && mouseWX < ((playerX - 200) + 400) && mouseWY < (playerY - cards_y + 300) && mouseWY >(playerY - cards_y - 300)) {
+            std::cout << "Green picked" << std::endl;
+        }
+        //DrawMesh(cardMesh, 400, 600, cards_x1, playerY - cards_y, 0.0f, 255, 0, 0, 255); // Red Card (Left)
+        //DrawMesh(cardMesh, 400, 600, cards_x2, playerY - cards_y, 0.0f, 0, 0, 255, 255); // Blue Card (Right)
+        //DrawMesh(cardMesh, 400, 600, playerX - 200, playerY - cards_y, 0.0f, 0, 255, 0, 255); // Green Card (Middle)
+
     }
 
 }
@@ -92,7 +116,7 @@ void Augments::Draw(f32 playerX, f32 playerY) {
             cards_y += distanceY * 10.0f * deltaTime;
         }
         else {
-            DrawMesh(cardMesh, 400, 600, playerX - 200, playerY - cards_y, 0.0f, 255, 0, 0, 255); // Test
+            //DrawMesh(cardMesh, 400, 600, playerX - 200, playerY - cards_y, 0.0f, 255, 0, 0, 255); // Test
 
             if (fabs(distanceX1) > 2.f) {
                 //DrawMesh(cardMesh, 400, 600, cards_x1, playerY - cards_y, 0.0f, 0, 255, 0, 255); // Test
