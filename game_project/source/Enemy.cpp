@@ -53,7 +53,7 @@ void Enemy::BaseUpdate(f32 dt, Combat::System& combat, Player const& player) {
     // Start attack -------------------
     if (!m_AttackActive && m_AllowAttack && m_CombatSystem.CanStartAttack_Enemy(player, *this))
     {
-        StartAttack();
+        StartAttack(this->m_AttackData);
     }
     //std::cout << "m_AttackActive: " << m_AttackActive << std::endl;
 
@@ -68,22 +68,22 @@ void Enemy::BaseUpdate(f32 dt, Combat::System& combat, Player const& player) {
         // 1.0 = attack complete
         m_AttackFrameAccumulator += dt;
 
-        while (m_AttackFrameAccumulator >= m_CombatSystem.GetOneFPS() && m_AttackCurrentFrame != a_TotalFrames) {
+        while (m_AttackFrameAccumulator >= m_CombatSystem.GetOneFPS() && m_AttackCurrentFrame != m_AttackTotalFrames) {
             ++m_AttackCurrentFrame;
             m_AttackFrameAccumulator -= m_CombatSystem.GetOneFPS();
         }
 
         float m_attackProgress{};
 
-        if (m_AttackCurrentFrame < a_StartUpFrames)
+        if (m_AttackCurrentFrame < m_AttackStartUpFrames)
         {
             // Start-up Phase
         }
-        else if (m_AttackCurrentFrame < a_StartUpFrames + a_ActiveFrames)
+        else if (m_AttackCurrentFrame < m_AttackStartUpFrames + m_AttackActiveFrames)
         {
             // Active Phase
-            int activeFrameIndex{ m_AttackCurrentFrame - a_StartUpFrames }; // Gives the current active frame
-            m_attackProgress = float(activeFrameIndex) / (a_ActiveFrames - 1);
+            int activeFrameIndex{ m_AttackCurrentFrame - m_AttackStartUpFrames }; // Gives the current active frame
+            m_attackProgress = float(activeFrameIndex) / (m_AttackActiveFrames - 1);
             m_CurrentAngle = Vectors::lerp(m_StartAngle, m_EndAngle, m_attackProgress);
         }
         else
@@ -123,7 +123,7 @@ void Enemy::Draw() {
         44, 255, 255, 255);
 }
 
-void Enemy::StartAttack() {
+void Enemy::StartAttack(Combat::CombatData::AttackData attackData) {
     m_CombatFlags.attackResolved = false;
     m_CombatFlags.blockResolved = false;
     m_CombatFlags.parryResolved = false;
@@ -135,8 +135,8 @@ void Enemy::StartAttack() {
 
     // 60-degree cone
     m_CurrentAngle = m_AimAngle;
-    m_StartAngle = m_AimAngle - AEDegToRad(30.0f);
-    m_EndAngle = m_AimAngle + AEDegToRad(30.0f);
+    m_StartAngle = m_AimAngle - AEDegToRad(attackData.startAngle);
+    m_EndAngle = m_AimAngle + AEDegToRad(attackData.endAngle);
 }
 
 void Enemy::DamageInfo() {

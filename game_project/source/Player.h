@@ -30,11 +30,12 @@ public:
     void Draw();
     void Free();
 
-    void StartAttack();
     bool IsAttacking() const { return m_AttackActive; }
+    void StartAttack(Combat::CombatData::AttackData&);
 
-    void StartBlock();
     bool IsBlocking() const { return m_BlockActive; }
+    void StartBlock(Combat::CombatData::BlockData&);
+
     void GainAttackCharge() {
         ++m_AttackCharges;
         if (m_AttackCharges > m_MaxAttackCharge) {
@@ -100,19 +101,19 @@ private:
     //      COMBAT VARIABLES      //
     // -------------------------- //
     Combat::CombatStats m_CombatStats{ 200.0f, 10.0f, 5.0f };
-    Combat::CombatFlags m_CombatFlags{ false, false, false, false };
-
-    int a_StartUpFrames{ 7 };
-    int a_ActiveFrames{ 15 };
-    int a_RecoveryFrames{ 15 };
-    int a_TotalFrames{ a_StartUpFrames + a_ActiveFrames + a_RecoveryFrames };
-    Combat::CombatFrames::AttackFrames m_AttackFrames{ a_StartUpFrames, a_ActiveFrames, a_RecoveryFrames };
-    
-    int b_StartUpFrames{ 2 };
-    int b_ParryFrames{ 7 };
-    //int b_ActiveFrames{ 15 };
-    int b_TotalFrames{ b_StartUpFrames + b_ParryFrames };
-    Combat::CombatFrames::BlockFrames b_BlockFrames{ b_StartUpFrames, b_ParryFrames };
+    Combat::CombatFlags m_CombatFlags
+    { false, // attackHit
+      false, // blockOn
+      false, // parryOn
+      false, // blocked
+      false, // parried
+      false, // stunned
+      //true,  // recovered
+      true,  // attackResolved
+      true,  // parryResolved
+      true,  // blockedResolved
+      false  // attackQueued
+    };
 
     // Attack Logic
     // --------------------
@@ -125,6 +126,7 @@ private:
     float m_AttackDuration{ 0.15f };
     float m_AttackFrameAccumulator{};
     int m_AttackCurrentFrame{};
+    float m_AttackProgress{};
 
     float m_AttackRange { 200.0f };
     float m_ConeHalfAngleDeg { 30.0f };
@@ -133,6 +135,29 @@ private:
     float m_StartAngle{};
     float m_EndAngle{};
     float m_CurrentAngle{};
+
+    f32 a_StartDegree{ 30.0f };
+    f32 a_EndDegree{ 30.0f };
+    bool a_Recovered{ true };
+    int a_StartUpFrames{ 7 };
+    int a_ActiveFrames{ 15 };
+    int a_RecoveryFrames{ 15 };
+    int a_TotalFrames{ a_StartUpFrames + a_ActiveFrames + a_RecoveryFrames };
+    int a_Damage{ 20 };
+    Combat::CombatData::AttackData m_AttackData
+    {
+        a_StartDegree,      // startAngle
+        a_EndDegree,        // endAngle
+        a_StartUpFrames,    // startUp
+        a_ActiveFrames,     // active
+        a_RecoveryFrames,   // recovery
+        a_TotalFrames,      // total
+        a_Damage            // damage
+    };
+    Combat::CombatData::AttackState m_AttackState
+    {
+        a_Recovered,        // recovered
+    };
 
     // Block Logic
     // ---------------------
@@ -145,6 +170,32 @@ private:
     int m_BlockCurrentFrame{};
 
     float m_BlockTimer{};
+
+    f32 b_StartDegree{ 30.0f };
+    f32 b_EndDegree{ 30.0f };
+    bool b_Recovered{ true };
+    bool b_Held{ false };
+    int b_StartUpFrames{ 2 };
+    int b_ParryFrames{ 7 };
+    int b_RecoveryFrames{ 15 };
+    //int b_ActiveFrames{ 15 };
+    int b_TotalFrames{ b_StartUpFrames + b_ParryFrames + b_RecoveryFrames };
+    int b_Block{ 10 };
+    Combat::CombatData::BlockData m_BlockData
+    {
+        b_StartDegree,      // startAngle
+        b_EndDegree,        // endAngle
+        b_StartUpFrames,    // startUp
+        b_ParryFrames,      // parry
+        b_RecoveryFrames,   // recovery
+        b_TotalFrames,      // total
+        b_Block             // block 
+    };
+    Combat::CombatData::BlockState m_BlockState
+    {
+        b_Held,             // held
+        b_Recovered         // recovered
+    };
 
     // Attack Visual
     AEGfxVertexList* m_AttackRangeMesh = nullptr;

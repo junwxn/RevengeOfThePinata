@@ -29,7 +29,7 @@ public:
     }
     void Draw();
 
-    void StartAttack();
+    void StartAttack(Combat::CombatData::AttackData);
     void DamageInfo();
 
     // Getters ------------------------
@@ -90,8 +90,6 @@ protected:
     f32 m_AttackDuration{ 0.15f };
     f32 m_AttackTimer{};
     f32 m_AttackRange{ 125.0f };
-    float m_AttackFrameAccumulator{};
-    int m_AttackCurrentFrame{};
 
     f32 m_ConeHalfAngleDeg{ 30.0f };
     f32 m_ConeThreshold{};
@@ -104,11 +102,27 @@ protected:
     Combat::CombatStats m_CombatStats{ 10.0f, 5.0f };
     Combat::CombatFlags m_CombatFlags{ false, false, false, false, false, false, false, false, false };
     
-    int a_StartUpFrames{ 7 };
-    int a_ActiveFrames{ 15 };
-    int a_RecoveryFrames{ 15 };
-    int a_TotalFrames{ a_StartUpFrames + a_ActiveFrames + a_RecoveryFrames };
-    Combat::CombatFrames::AttackFrames m_AttackFrames{ a_StartUpFrames, a_ActiveFrames, a_RecoveryFrames };
+    float m_AttackFrameAccumulator{};
+    int m_AttackCurrentFrame{};
+    
+    float m_StartDegree{ 30.0f };
+    float m_EndDegree{ 30.0f };
+    bool m_Recovered{ true };
+    int m_AttackStartUpFrames{ 7 };
+    int m_AttackActiveFrames{ 15 };
+    int m_AttackRecoveryFrames{ 15 };
+    int m_AttackTotalFrames{ m_AttackStartUpFrames + m_AttackActiveFrames + m_AttackRecoveryFrames };
+    int m_Damage{ 20 };
+    Combat::CombatData::AttackData m_AttackData
+    {   
+        m_StartDegree,
+        m_EndDegree,
+        m_Recovered,
+        m_AttackStartUpFrames, 
+        m_AttackActiveFrames, 
+        m_AttackRecoveryFrames,
+        m_Damage
+    };
 
     // Damage Logic -------------------
     
