@@ -27,7 +27,7 @@
 #include <memory>
 #include <iostream>
 
-#include "rapidxml.hpp"
+#include "RapidXML/rapidxml.hpp"
 
 #include "TMXMap.h"
 #include "TMXTileLayer.h"
