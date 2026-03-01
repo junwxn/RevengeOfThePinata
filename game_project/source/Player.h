@@ -130,8 +130,12 @@ private:
     int m_MaxAttackCharge { 5 };
 
     float m_AttackDuration{ 0.15f };
+
     float m_AttackFrameAccumulator{};
     int m_AttackCurrentFrame{};
+
+    int m_AttackChainIterator{};
+
     float m_AttackProgress{};
 
     float m_AttackRange { 200.0f };
@@ -150,7 +154,7 @@ private:
     int a_RecoveryFrames{ 15 };
     int a_TotalFrames{ a_StartUpFrames + a_ActiveFrames + a_RecoveryFrames };
     int a_Damage{ 20 };
-    Combat::CombatData::AttackData m_AttackData
+    Combat::CombatData::AttackData m_AttackBasic
     {
         a_StartDegree,      // startAngle
         a_EndDegree,        // endAngle
@@ -163,6 +167,13 @@ private:
     Combat::CombatData::AttackState m_AttackState
     {
         a_Recovered,        // recovered
+    };
+
+    std::vector<Combat::CombatData::AttackData> m_AttackChain
+    {
+        {45.0f, 45.0f, 7, 15, 15, 37, 20},
+        {30.0f, 30.0f, 5, 10, 15, 30, 20},
+        {0.0f, 350.0f, 5, 10, 15, 12, 20}
     };
 
     // Block Logic

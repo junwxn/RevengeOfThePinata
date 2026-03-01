@@ -99,8 +99,10 @@ void Player::Update(float dt, Combat::System& combat, std::vector<std::unique_pt
 
     // Convert mouse to world space if needed (camera offset later)
 
-    std::cout << m_CurrentState << std::endl;
+    //std::cout << m_CurrentState << std::endl;
 
+
+    if (AEInputCheckTriggered(AEVK_R)) GainAttackCharge();
     // Toggle player attack on / off
     if (AEInputCheckTriggered(AEVK_TAB)) {
         m_AllowAttack = !m_AllowAttack;
@@ -111,11 +113,13 @@ void Player::Update(float dt, Combat::System& combat, std::vector<std::unique_pt
     else m_AllowAttack = true;
 
     // Start attack
-    if (AEInputCheckTriggered(AEVK_LBUTTON) && m_AllowAttack && !m_BlockActive)
+    if ((AEInputCheckTriggered(AEVK_LBUTTON) && m_AllowAttack && !m_BlockActive) || m_CombatFlags.attackQueued)
     {
         std::cout << "ATTACK" << std::endl;
         m_AllowBlock = false;
-        StartAttack(m_AttackData);
+        if(m_CombatFlags.attackQueued) StartAttack(m_AttackChain[m_AttackChainIterator]);
+        else StartAttack(m_AttackBasic);
+        
         for (auto& enemy : wave) {
             if (combatSystem.IsEnemyInRange(*this, *enemy)) {
                 std::cout << "ENEMY HIT!" << std::endl;
@@ -145,7 +149,7 @@ void Player::Update(float dt, Combat::System& combat, std::vector<std::unique_pt
         std::cout << "RESETTING" << std::endl;
         ResetCombatVariables();
     }
-    std::cout << "m_BlockData.held: " << m_BlockState.held << std::endl;
+    //std::cout << "m_BlockData.held: " << m_BlockState.held << std::endl;
     //std::cout << "m_BlockData.recovered: " << m_BlockState.recovered << std::endl;
 
     //// Update attack
@@ -206,10 +210,12 @@ void Player::Update(float dt, Combat::System& combat, std::vector<std::unique_pt
     // CHAIN ATTACK TEST
     if (m_AttackActive)
     {
+        std::cout << "m_AttackChainIterator: " << m_AttackChainIterator << std::endl;
+
         m_CurrentState = PlayerState::STATE_ATTACK;
         m_AttackFrameAccumulator += dt;
 
-        while (m_AttackFrameAccumulator >= combatSystem.GetOneFPS() && m_AttackCurrentFrame <= m_AttackData.total) {
+        while (m_AttackFrameAccumulator >= combatSystem.GetOneFPS() && m_AttackCurrentFrame <= m_AttackBasic.total) {
             ++m_AttackCurrentFrame;
             m_AttackFrameAccumulator -= combatSystem.GetOneFPS();
         }
@@ -220,24 +226,29 @@ void Player::Update(float dt, Combat::System& combat, std::vector<std::unique_pt
         // 1.0 = attack complete
 
         /*float attackProgress{};*/
-        std::cout << "m_AttackProgress: " << m_AttackProgress << std::endl;
+        //std::cout << "m_AttackProgress: " << m_AttackProgress << std::endl;
 
-        if (m_AttackCurrentFrame < m_AttackData.startUp)
+        if (m_AttackCurrentFrame < m_AttackBasic.startUp)
         {
             // Start-up Phase
-            std::cout << "START UP" << std::endl;
+            //std::cout << "START UP" << std::endl;
         }
-        else if (m_AttackCurrentFrame < m_AttackData.startUp + m_AttackData.active)
+        else if (m_AttackCurrentFrame < m_AttackBasic.startUp + m_AttackBasic.active)
         {
             // Active Phase
-            int activeFrameIndex{ m_AttackCurrentFrame - m_AttackData.startUp }; // Gives the current active frame
-            m_AttackProgress = float(activeFrameIndex) / (m_AttackData.active - 1);
+            int activeFrameIndex{ m_AttackCurrentFrame - m_AttackBasic.startUp }; // Gives the current active frame
+            m_AttackProgress = float(activeFrameIndex) / (m_AttackBasic.active - 1);
             m_CurrentAngle = Vectors::lerp(m_StartAngle, m_EndAngle, m_AttackProgress);
         }
-        else if (m_AttackCurrentFrame < m_AttackData.total)
+        else if (m_AttackCurrentFrame < m_AttackBasic.total)
         {
             // Recovery Phase
-            std::cout << "RECOVERING" << std::endl;
+            //std::cout << "RECOVERING" << std::endl;
+            if (AEInputCheckTriggered(AEVK_LBUTTON))
+            {
+                m_CombatFlags.attackQueued = true;
+                m_AttackChainIterator++;
+            }
         }
         else m_AttackState.recovered = true;
 
@@ -246,15 +257,19 @@ void Player::Update(float dt, Combat::System& combat, std::vector<std::unique_pt
         //std::cout << m_CombatFlags.recovered << std::endl;
 
         //std::cout << "m_AttackCurrentFrame: " << m_AttackCurrentFrame << std::endl;
-        if (m_AttackCurrentFrame >= m_AttackData.total)
+        if (m_AttackCurrentFrame >= m_AttackBasic.total)
         {
             m_AttackProgress = 1.0f;
             if (m_AttackState.recovered)
             {
                 --m_AttackCharges;
                 ResetCombatVariables();
+                //if (m_CombatFlags.attackQueued) StartAttack(m_AttackChain[m_AttackChainIterator]);
             }
         }
+
+        std::cout << "attackQueued: " << m_CombatFlags.attackQueued << std::endl;
+
     }
 
     // Update block
@@ -459,6 +474,7 @@ void Player::Free()
 
 void Player::StartAttack(Combat::CombatData::AttackData& attackData)
 {
+    std::cout << "NEW ATTACK STARTING" << std::endl;
     m_AttackActive = true;
     m_AllowAttack = false;
     m_AttackState.recovered = false;
@@ -480,7 +496,8 @@ void Player::StartAttack(Combat::CombatData::AttackData& attackData)
         m_StartAngle = m_AimAngle + AEDegToRad(attackData.startAngle);
         m_EndAngle = m_AimAngle - AEDegToRad(attackData.endAngle);
     }
-    
+
+    m_CombatFlags.attackQueued = false;
 }
 
 void Player::StartBlock(Combat::CombatData::BlockData& blockData)
@@ -510,4 +527,13 @@ void Player::ResetCombatVariables()
 
     m_BlockActive = false;
     m_AllowBlock = true;
+
+    if (m_CombatFlags.attackQueued)
+    {
+
+    }
+    else if(!m_CombatFlags.attackQueued || m_AttackChainIterator >= m_AttackChain.size())
+    {
+        m_AttackChainIterator = 0;
+    }
 }
