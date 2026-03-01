@@ -98,7 +98,7 @@ namespace Combat {
     {
         public:
             void Update(Player& player, Enemy& enemy, float dt);
-            void Resolve(Player& player, Enemy& enemy, CombatOutcome outcome);
+            //void Resolve(Player& player, Enemy& enemy, CombatOutcome outcome);
             bool CanStartAttack_Enemy(const Player& player, const Enemy& enemy) const;
             bool IsEnemyInRange(const Player& player, const Enemy& enemy) const;
             bool isPlayerParrying(const Player& player, const Enemy& enemy) const;

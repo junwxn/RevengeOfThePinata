@@ -30,11 +30,17 @@ Enemy::~Enemy() {
         AEGfxMeshFree(m_AttackRangeMesh);
         m_AttackRangeMesh = nullptr;
     }
+
+    if (m_enemyHealthBarMesh) {
+        AEGfxMeshFree(m_enemyHealthBarMesh);
+        m_enemyHealthBarMesh = nullptr;
+    }
 }
 
 void Enemy::Init() {
     m_AttackRangeMesh = CreateAttackRangeMesh(m_AttackRange, 0xFF0000);
     m_enemyMesh = CreateCircleMesh(1.0f, 32, 0x50A655);
+    m_enemyHealthBarMesh = CreateRectMesh(0xAEF359);
 }
 
 void Enemy::BaseUpdate(f32 dt, Combat::System& combat, Player const& player) {
@@ -109,7 +115,10 @@ void Enemy::Draw() {
     AEGfxSetRenderMode(AE_GFX_RM_COLOR);
 
     // Calculate isometric squashed height for drawing
-    f32 isoHeight = m_size * (GRID_H / GRID_W);
+        //f32 isoHeight = m_size * (GRID_H / GRID_W); // Squashed
+        f32 isoHeight = m_size; // Normal
+
+
 
     // Draw Meshes --------------------
     // Enemy
@@ -121,6 +130,10 @@ void Enemy::Draw() {
     f32 swordAngle = m_AttackActive ? m_CurrentAngle : m_AimAngle;
     DrawMesh(m_AttackRangeMesh, 1.0f , 5.0f, m_pos.x, m_pos.y, swordAngle,
         44, 255, 255, 255);
+
+    // Enemy health bar
+    f32 barX = m_pos.x - m_size / 2.0 + 4.0;
+    DrawMesh(m_enemyHealthBarMesh, m_size, m_size / 5.0, m_pos.x - m_size / 2.0, m_pos.y - m_size / 2.0 + 4.0, 0.0f, 147, 243, 89, 255);
 }
 
 void Enemy::StartAttack(Combat::CombatData::AttackData attackData) {

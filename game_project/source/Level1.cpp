@@ -84,7 +84,7 @@ void Level1_Update(float dt) {
 			CombatSystem.Update(player, *enemy, dt);
 		}
 
-		for (auto& enemy : Wave2) {
+		for (auto& enemy : Wave1) {
 			if (enemy->GetCombatFlag().attackHit) {
 				if (!player.GetCombatFlag().parryOn) {
 					if (player.GetCombatFlag().blockOn) Healthbar.var -= (player.GetCombatStats().attack) / 2;

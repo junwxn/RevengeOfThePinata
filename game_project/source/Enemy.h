@@ -81,6 +81,7 @@ protected:
     // Meshes -------------------------
     AEGfxVertexList* m_enemyMesh{ nullptr };
     AEGfxVertexList* m_AttackRangeMesh{ nullptr };
+    AEGfxVertexList* m_enemyHealthBarMesh{ nullptr };
 
     // Attack Logic -------------------
     bool  m_AttackActive{ false };

@@ -138,25 +138,25 @@ namespace Combat {
 	}
 
 
-	void System::Resolve(Player& player, Enemy& enemy, CombatOutcome outcome) {
-		switch (outcome) 
-		{
-			case CombatOutcome::OUTCOME_PARRIED:
-				ApplyParryReaction_Enemy(enemy);
-				player.GainAttackCharge();
-				enemy.ResetParryFlag();
-				enemy.MarkAttackResolved();
-				break;
+	//void System::Resolve(Player& player, Enemy& enemy, CombatOutcome outcome) {
+	//	switch (outcome) 
+	//	{
+	//		case CombatOutcome::OUTCOME_PARRIED:
+	//			ApplyParryReaction_Enemy(enemy);
+	//			player.GainAttackCharge();
+	//			enemy.ResetParryFlag();
+	//			enemy.MarkAttackResolved();
+	//			break;
 
-			case CombatOutcome::OUTCOME_BLOCKED:
-				ApplyBlockReaction_Enemy(player, enemy);
-				enemy.MarkAttackResolved();
-				break;
+	//		case CombatOutcome::OUTCOME_BLOCKED:
+	//			ApplyBlockReaction_Enemy(player, enemy);
+	//			enemy.MarkAttackResolved();
+	//			break;
 
-			case CombatOutcome::OUTCOME_HIT:
-				ApplyDamage(player, enemy);
-				enemy.MarkAttackResolved();
-				break;
-		}
-	}
+	//		case CombatOutcome::OUTCOME_HIT:
+	//			ApplyDamage(player, enemy);
+	//			enemy.MarkAttackResolved();
+	//			break;
+	//	}
+	//}
 }
