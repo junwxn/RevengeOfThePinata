@@ -20,6 +20,7 @@ namespace Combat {
         f32 critChance;
         f32 critMultiplier;
         f32 attackMultiplier;
+        f32 maxHealth;
     };
 
     struct CombatFlags {
@@ -108,6 +109,7 @@ namespace Combat {
             void ApplyParryReaction_Enemy(Enemy& enemy);
             void ApplyBlockReaction_Enemy(Player& player, Enemy& enemy);
             void ApplyDamage(Player& player, Enemy& enemy);
+            void ApplyDamage(Enemy& enemy, Player& player);
             void ColorIndicator(Enemy& enemy, f32 r, f32 g, f32 b, f32 a);
             double const GetOneFPS() const { return ONE_FRAME; };
 

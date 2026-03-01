@@ -37,6 +37,7 @@ void Player::Init()
     // Create a local mesh for the player
     // (Assuming CreateCircleMesh is defined in Utils.h/cpp)
     m_pMesh = CreateCircleMesh(1.0f, 32, 0x50A655);
+    m_playerHealthBarMesh = CreateRectMesh(0xFF0000);
 }
 
 void Player::Update(float dt, Combat::System& combat, std::vector<std::unique_ptr<Enemy>> const& wave, f32 camX, f32 camY)
@@ -119,6 +120,7 @@ void Player::Update(float dt, Combat::System& combat, std::vector<std::unique_pt
             if (combatSystem.IsEnemyInRange(*this, *enemy)) {
                 std::cout << "ENEMY HIT!" << std::endl;
                 m_CombatFlags.attackHit = true;
+                combatSystem.ApplyDamage(*enemy, *this);
             }
         }
 		std::cout << "Attack Charges Left: " << m_AttackCharges - 1 << std::endl;
@@ -400,6 +402,8 @@ void Player::Update(float dt, Combat::System& combat, std::vector<std::unique_pt
 
 void Player::Draw()
 {
+    f32 dt = (f32)AEFrameRateControllerGetFrameTime();
+
     // Ensure Color Mode is set
     AEGfxSetRenderMode(AE_GFX_RM_COLOR);
 
@@ -425,6 +429,18 @@ void Player::Draw()
     {
         if (m_ParryActive) DrawMesh(m_BlockRangeMesh, 1.0f, 5.0f, m_PosX, m_PosY, m_CurrentAngle, 255, 0, 0, 255);   
     }
+
+    // Player health bar
+    f32 barWidth = m_Size * 2.0f * m_CombatStats.health / m_CombatStats.maxHealth;
+    f32 barHeight = m_Size / 3.0f;
+    f32 dbarWidth = m_Size * 2.0f * (m_CombatStats.health / m_CombatStats.maxHealth + m_healthDepletionPercentage / 100.0f);
+    f32 dRate = 100.0f * dt;
+    if (m_healthDepletionPercentage >= 0.0f) { m_healthDepletionPercentage -= dRate; };
+
+    if (m_CombatStats.health >= 0) {
+        DrawMesh(m_playerHealthBarMesh, dbarWidth, barHeight, m_PosX - m_Size, m_PosY + m_Size + barHeight / 2.0f + 5.0f, 0.0f, 255, 0, 0, 255); // Depleting bar
+        DrawMesh(m_playerHealthBarMesh, barWidth, barHeight, m_PosX - m_Size, m_PosY + m_Size + barHeight / 2.0f + 5.0f, 0.0f, 80, 200, 120, 255); // Instant bar
+    }
 }
 
 void Player::Free()
@@ -435,6 +451,10 @@ void Player::Free()
         AEGfxMeshFree(m_AttackRangeMesh);
     if (m_BlockRangeMesh)
         AEGfxMeshFree(m_BlockRangeMesh);
+    if (m_playerHealthBarMesh) {
+        AEGfxMeshFree(m_playerHealthBarMesh);
+        m_playerHealthBarMesh = nullptr;
+    }
 }
 
 void Player::StartAttack(Combat::CombatData::AttackData& attackData)

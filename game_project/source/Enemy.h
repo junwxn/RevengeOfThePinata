@@ -48,6 +48,7 @@ public:
     f32 GetAttackRange() const { return m_AttackRange; }
     f32 GetConeThreshold() const { return m_ConeThreshold; }
     f32 GetAttackProgress() const { return m_attackProgress; }
+    f32 GetHDP() const { return m_healthDepletionPercentage; }
 
     AEGfxVertexList* GetEnemyMesh() const { return m_enemyMesh; }
 
@@ -58,6 +59,7 @@ public:
     void SetPosition(f32 x, f32 y) { m_pos.x = x; m_pos.y = y; }
     void SetAimVector(f32 x, f32 y) { m_AimVector.x = x, m_AimVector.y = y; }
     void SetAimAngle(f32 angle) { m_AimAngle = angle; }
+    void SetHDP(f32 dmg) { m_healthDepletionPercentage += dmg; }
 
     // Flag Setters
     void SetParried(bool set) { m_CombatFlags.parried = set; }
@@ -71,13 +73,16 @@ public:
         m_CombatFlags.blockResolved = true;
     }
 
+    // Combat -------------------------
+    void DeductHealth(f32 damage) { m_CombatStats.health -= damage; }
+
 protected:
     // Enemy stats --------------------
     AEVec2 m_pos{};
-    f32 m_hp{ 100.0f };
+    f32 m_hp{ 100.0f }; // to be removed?
     f32 m_speed{ 300.0f };
     f32 m_size{ 40.0f };
-
+    f32 m_healthDepletionPercentage{};
     // Meshes -------------------------
     AEGfxVertexList* m_enemyMesh{ nullptr };
     AEGfxVertexList* m_AttackRangeMesh{ nullptr };
@@ -100,7 +105,15 @@ protected:
     f32 m_attackProgress{};
 
     Combat::System m_CombatSystem;
-    Combat::CombatStats m_CombatStats{ 10.0f, 5.0f };
+    Combat::CombatStats m_CombatStats{
+    100.0f, // health
+    30.0f, // attack
+    5.0f, // defense
+    0.0f, // crit chance
+    0.0f, // crit multiplier
+    0.0f, // attack multiplier
+    100.0f // max health
+    };
     Combat::CombatFlags m_CombatFlags{ false, false, false, false, false, false, false, false, false };
     
     float m_AttackFrameAccumulator{};

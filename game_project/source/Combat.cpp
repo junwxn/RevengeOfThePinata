@@ -128,8 +128,13 @@ namespace Combat {
 
 	void System::ApplyDamage(Player& player, Enemy& enemy) {
 		player.DeductHealth(ComputeDamage(enemy, player));
+		player.SetHDP(ComputeDamage(enemy, player));
 	}
 
+	void System::ApplyDamage(Enemy& enemy, Player& player) {
+		enemy.DeductHealth(ComputeDamage(player, enemy));
+		enemy.SetHDP(ComputeDamage(player, enemy));
+	}
 	void System::ColorIndicator(Enemy& enemy, f32 r, f32 g, f32 b, f32 a) {
 		f32 isoHeight = enemy.GetSize() * (GRID_H / GRID_W);
 
