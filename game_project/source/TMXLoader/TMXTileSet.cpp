@@ -19,25 +19,36 @@
 #include <iostream>
 #include "TMXTileSet.h"
 
+unsigned long ParseSafeInt(const std::unordered_map<std::string, std::string>& data, const std::string& key) {
+	auto it = data.find(key);
+	if (it != data.end()) {
+		return std::stoul(it->second.c_str());
+	}
+	return 0; // Safe default
+}
+
 TMXTileSet::TMXTileSet(
 	std::unordered_map<std::string, std::string> const&tileSetData,
 	std::unordered_map<std::string, std::string> const &propertiesMap,
 	std::vector<TMXTile> const &tileVector)
 	: m_propertiesMap{propertiesMap}, m_tileVector{tileVector},
-	  m_name{tileSetData.at("name")}, m_source{tileSetData.at("source")},
+	m_name{ tileSetData.count("name") ? tileSetData.at("name") : "" },
+	m_source{ tileSetData.count("source") ? tileSetData.at("source") : "" },
 	  m_firstGID{std::stoul(tileSetData.at("firstgid").c_str())},
-	  m_imageWidth{std::stoul(tileSetData.at("width").c_str())},
-	  m_imageHeight{std::stoul(tileSetData.at("height").c_str())},
+	  m_imageWidth{std::stoul(tileSetData.at("tilewidth").c_str())},
+	  m_imageHeight{std::stoul(tileSetData.at("tileheight").c_str())},
 	  m_tileWidth{std::stoul(tileSetData.at("tilewidth").c_str())},
 	  m_tileHeight{std::stoul(tileSetData.at("tileheight").c_str())},
-	  m_offsetX{std::stoul(tileSetData.at("tileoffsetX").c_str())},
-	  m_offsetY{std::stoul(tileSetData.at("tileoffsetY").c_str())},
-	  m_spacing{std::stoul(tileSetData.at("spacing").c_str())},
-	  m_margin{std::stoul(tileSetData.at("margin").c_str())},
+	  m_offsetX{ tileSetData.count("tileoffsetX") ? std::stoul(tileSetData.at("tileoffsetX").c_str()) : 0 },
+	  m_offsetY{ tileSetData.count("tileoffsetY") ? std::stoul(tileSetData.at("tileoffsetY").c_str()) : 0 },
+	  m_spacing{ tileSetData.count("spacing") ? std::stoul(tileSetData.at("spacing").c_str()) : 0 },
+	  m_margin{ tileSetData.count("margin") ? std::stoul(tileSetData.at("margin").c_str()) : 0 },
 	  m_tileCount{std::stoul(tileSetData.at("tilecount").c_str())},
-	  m_transparentColour{std::stoul(tileSetData.at("red").c_str()),
-						  std::stoul(tileSetData.at("green").c_str()),
-						  std::stoul(tileSetData.at("blue").c_str())} {}
+	m_transparentColour{
+  tileSetData.count("red") ? std::stoul(tileSetData.at("red").c_str()) : 0,
+  tileSetData.count("green") ? std::stoul(tileSetData.at("green").c_str()) : 0,
+  tileSetData.count("blue") ? std::stoul(tileSetData.at("blue").c_str()) : 0
+	  } {}
 
 
 
