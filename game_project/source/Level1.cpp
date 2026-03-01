@@ -6,10 +6,10 @@
 #include "GameStateManager.h"
 
 // load variables
-AEGfxTexture* TexBlock2;
-AEGfxTexture* TexBlock;
-AEGfxVertexList* CircleMesh;
-AEGfxVertexList* RectMesh;
+static AEGfxTexture* TexBlock2;
+static AEGfxTexture* TexBlock;
+static AEGfxVertexList* CircleMesh;
+static AEGfxVertexList* RectMesh;
 
 // init variables
 Player player{};
