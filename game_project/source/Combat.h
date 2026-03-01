@@ -127,7 +127,7 @@ namespace Combat {
             Combat::CombatData::StunData stunFrames{ stunRecoveryFrames };
             
             f32 stunDuration{ 2.0f };
-            CombatOutcome outcome;
+            CombatOutcome outcome{ CombatOutcome::OUTCOME_NONE };
             static double const ONE_FRAME;
     };
 }
