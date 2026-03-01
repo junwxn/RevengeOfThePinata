@@ -4,7 +4,6 @@
 #include "Level1.h"
 #include "camera.h"
 #include "GameStateManager.h"
-#include "Map.h"
 
 // load variables
 static AEGfxTexture* TexBlock2;
@@ -18,7 +17,6 @@ Circle HealCircle{};
 Circle DMGCircle{};
 RectData Healthbar{};
 Camera camera{};
-Map gameMap;
 
 // update variables
 Combat::System CombatSystem;
@@ -36,8 +34,6 @@ void Level1_Load() {
 	TexBlock	= AEGfxTextureLoad("Assets/block.png");
 	CircleMesh	= CreateCircleMesh(1.0f, 32, 0xFFFFFFFF);
 	RectMesh	= CreateRectMesh(0xFFFFFFFF);
-
-	gameMap.LoadMap("Level1Map", "Assets/testmap.tmx");
 }
 void Level1_Init() {
 	
@@ -223,36 +219,15 @@ void Level1_Draw() {
 	AEGfxSetTransparency(1.0f);
 
 	AEGfxTextureSet(TexBlock2, 0, 0);
-
-	// Fetch the map data
-	TMXMap* mapData = gameMap.GetMapData();
-
-	if (mapData != nullptr) {
-		TMXTileLayer* layer = mapData->getLayer("Tile Layer 1");
-
-		if (layer != nullptr) {
-			std::vector<std::vector<unsigned>> tiles = layer->getTiles();
-
-			for (unsigned int y = 0; y < mapData->getHeight(); ++y) {
-				for (unsigned int x = 0; x < mapData->getWidth(); ++x) {
-
-					unsigned tileID = tiles[y][x];
-
-					// If tileID > 0, there is a block to draw
-					if (tileID > 0) {
-						// Note: Casting to int to prevent unsigned underflow when calculating grid offset
-						Vec2 pos = GridToScreen((int)x - (int)(mapData->getWidth() / 2), (int)y - (int)(mapData->getHeight() / 2));
-
-						AEMtx33 scale, trans, transform;
-						AEMtx33Scale(&scale, SPRITE_W, SPRITE_H);
-						AEMtx33Trans(&trans, pos.x, pos.y);
-						AEMtx33Concat(&transform, &trans, &scale);
-						AEGfxSetTransform(transform.m);
-
-						AEGfxMeshDraw(RectMesh, AE_GFX_MDM_TRIANGLES);
-					}
-				}
-			}
+	for (int x = 15; x > 0; --x) {
+		for (int y = 15; y > 0; --y) {
+			Vec2 pos = GridToScreen(x - 10, y - 10);
+			AEMtx33 scale, trans, transform;
+			AEMtx33Scale(&scale, SPRITE_W, SPRITE_H);
+			AEMtx33Trans(&trans, pos.x, pos.y);
+			AEMtx33Concat(&transform, &trans, &scale);
+			AEGfxSetTransform(transform.m);
+			AEGfxMeshDraw(RectMesh, AE_GFX_MDM_TRIANGLES);
 		}
 	}
 
