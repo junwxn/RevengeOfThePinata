@@ -5,21 +5,21 @@
 #include <string>
 #include <unordered_map>
 
-enum class DepthMode {
-    ALL,
-    BEHIND,
-    IN_FRONT
+struct RenderNode {
+    float y;
+    std::function<void()> drawCall;
 };
 
 class MapSystem {
 public:
-    // Initialize the map, load the texture, and generate UV meshes
     void Init(std::string const& tmxPath, std::string const& tilesetName, std::string const& texturePath);
 
-    // Draw a specific layer
-    void Draw(std::string const& layerName, DepthMode depthMode = DepthMode::ALL, float splitY = 0.0f);
+    // Standard fast draw for flat background layers (like the floor)
+    void Draw(std::string const& layerName);
 
-    // Unload textures and free all generated tile meshes
+    // NEW: Pushes individual tiles into a global queue for depth sorting
+    void QueueLayer(std::string const& layerName, std::vector<RenderNode>& renderQueue);
+
     void Unload();
 
     unsigned GetMapWidth() const;

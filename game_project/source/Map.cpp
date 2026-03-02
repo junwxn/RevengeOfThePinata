@@ -1,6 +1,59 @@
 #include "pch.h"
 #include "Map.h"
 
+void MapSystem::QueueLayer(std::string const& layerName, std::vector<RenderNode>& renderQueue) {
+    if (!m_currentMap || !m_tilesetTex) return;
+
+    TMXTileLayer* layer = m_currentMap->getLayer(layerName);
+    if (!layer) return;
+
+    auto tiles = layer->getTiles();
+    unsigned mapW = layer->getWidth();
+    unsigned mapH = layer->getHeight();
+
+    for (int y = 0; y < (int)mapH; ++y) {
+        for (int x = 0; x < (int)mapW; ++x) {
+            unsigned gid = tiles[y][x];
+            if (gid == 0) continue;
+
+            int renderX = (mapW - 1) - x;
+            int renderY = (mapH - 1) - y;
+            Vec2 pos = GridToScreen(renderX - 10, renderY - 10);
+
+            if (m_tileMeshes.find(gid) != m_tileMeshes.end()) {
+
+                // Extract variables to safely pass into the lambda
+                AEGfxVertexList* mesh = m_tileMeshes[gid];
+                AEGfxTexture* tex = m_tilesetTex;
+                float posX = pos.x;
+                float posY = pos.y;
+
+                // Push a custom draw command into the global list
+                renderQueue.push_back({
+                    posY, // Sorting variable
+                    [mesh, tex, posX, posY]() { // The actual draw logic
+                        // Re-apply texture states in case a player/enemy changed them
+                        AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
+                        AEGfxSetColorToMultiply(1.0f, 1.0f, 1.0f, 1.0f);
+                        AEGfxSetColorToAdd(0.0f, 0.0f, 0.0f, 0.0f);
+                        AEGfxSetBlendMode(AE_GFX_BM_BLEND);
+                        AEGfxSetTransparency(1.0f);
+                        AEGfxTextureSet(tex, 0.0f, 0.0f);
+
+                        AEMtx33 scale, trans, transform;
+                        AEMtx33Scale(&scale, SPRITE_W, SPRITE_H);
+                        AEMtx33Trans(&trans, posX, posY);
+                        AEMtx33Concat(&transform, &trans, &scale);
+
+                        AEGfxSetTransform(transform.m);
+                        AEGfxMeshDraw(mesh, AE_GFX_MDM_TRIANGLES);
+                    }
+                    });
+            }
+        }
+    }
+}
+
 void MapSystem::Init(std::string const& tmxPath, std::string const& tilesetName, std::string const& texturePath) {
     // 1. Load the map and texture
     m_loader.loadMap("Level1Map", tmxPath);
@@ -41,7 +94,7 @@ void MapSystem::Init(std::string const& tmxPath, std::string const& tilesetName,
     }
 }
 
-void MapSystem::Draw(std::string const& layerName, DepthMode depthMode, float splitY) {
+void MapSystem::Draw(std::string const& layerName) {
     if (!m_currentMap || !m_tilesetTex) return;
 
     TMXTileLayer* layer = m_currentMap->getLayer(layerName);
@@ -62,20 +115,14 @@ void MapSystem::Draw(std::string const& layerName, DepthMode depthMode, float sp
     for (int y = 0; y < (int)mapH; ++y) {
         for (int x = 0; x < (int)mapW; ++x) {
             unsigned gid = tiles[y][x];
-            if (gid == 0) continue;
+            if (gid == 0) continue; // 0 represents an empty tile
 
+            // --- The CORRECT 180-Degree Coordinate Flip ---
             int renderX = (mapW - 1) - x;
             int renderY = (mapH - 1) - y;
             Vec2 pos = GridToScreen(renderX - 10, renderY - 10);
 
-            // If we only want blocks BEHIND the player, skip tiles that have a lower Y
-            if (depthMode == DepthMode::BEHIND && pos.y <= splitY) continue;
-
-            // If we only want blocks IN FRONT, skip tiles that have a higher Y
-            if (depthMode == DepthMode::IN_FRONT && pos.y > splitY) continue;
-
             if (m_tileMeshes.find(gid) != m_tileMeshes.end()) {
-
                 AEMtx33 scale, trans, transform;
                 AEMtx33Scale(&scale, SPRITE_W, SPRITE_H);
                 AEMtx33Trans(&trans, pos.x, pos.y);

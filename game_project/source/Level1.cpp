@@ -228,23 +228,44 @@ void Level1_Draw() {
 	AEGfxSetBlendMode(AE_GFX_BM_BLEND);
 	AEGfxSetTransparency(1.0f);
 
+	// 1. Draw the floor/background layer FIRST
 	gameMap.Draw("Tile Layer 1");
-	gameMap.Draw("Tile Layer 2", DepthMode::BEHIND, player.GetY());
 
-	player.Draw();
+	// 2. Draw Layer 2 blocks that are BEHIND the player
+	std::vector<RenderNode> renderQueue;
 
+	// Add the Player
+	renderQueue.push_back({ player.GetY(), [&]() { player.Draw(); } });
+
+	// Add Wave 1 Enemies
 	if (wave1Active) {
 		for (auto& enemy : Wave1) {
-			enemy->Draw();
+			Enemy* ePtr = enemy.get();
+			renderQueue.push_back({ ePtr->GetY(), [ePtr]() { ePtr->Draw(); } });
 		}
 	}
 
+	// Add Wave 2 Enemies
 	if (wave2Active) {
 		for (auto& enemy : Wave2) {
-			enemy->Draw();
+			Enemy* ePtr = enemy.get();
+			renderQueue.push_back({ ePtr->GetY(), [ePtr]() { ePtr->Draw(); } });
 		}
 	}
-	gameMap.Draw("Tile Layer 2", DepthMode::IN_FRONT, player.GetY());
+
+	// Ask the Map to push every block in Layer 2 into the queue!
+	gameMap.QueueLayer("Tile Layer 2", renderQueue);
+
+	// --- 3. SORT THE ENTIRE WORLD ---
+	// Sorts from Highest Y (Furthest Back) to Lowest Y (Closest to Front)
+	std::sort(renderQueue.begin(), renderQueue.end(), [](const RenderNode& a, const RenderNode& b) {
+		return a.y > b.y;
+		});
+
+	// --- 4. EXECUTE ALL DRAW CALLS ---
+	for (auto& node : renderQueue) {
+		node.drawCall();
+	}
 	AESysFrameEnd();
 }
 void Level1_Free() {
