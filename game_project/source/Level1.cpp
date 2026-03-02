@@ -4,6 +4,7 @@
 #include "Level1.h"
 #include "camera.h"
 #include "GameStateManager.h"
+#include "Map.h"
 
 // load variables
 static AEGfxTexture* TexBlock2;
@@ -17,6 +18,7 @@ Circle HealCircle{};
 Circle DMGCircle{};
 RectData Healthbar{};
 Camera camera{};
+MapSystem gameMap;
 
 // update variables
 Combat::System CombatSystem;
@@ -34,6 +36,7 @@ void Level1_Load() {
 	TexBlock	= AEGfxTextureLoad("Assets/block.png");
 	CircleMesh	= CreateCircleMesh(1.0f, 32, 0xFFFFFFFF);
 	RectMesh	= CreateRectMesh(0xFFFFFFFF);
+	gameMap.Init("Assets/untitled.tmx", "tilesheet_complete", "Assets/tilesheet_complete.png");
 }
 void Level1_Init() {
 	
@@ -142,11 +145,18 @@ void Level1_Update(float dt) {
 	float gridX = 0.5f * (invX + invY);
 	float gridY = 0.5f * (invY - invX);
 
-	// Map Limits (Matches your previous loop logic)
-	const float MAP_MAX_X = 6.0f;
-	const float MAP_MIN_X = -8.0f;
-	const float MAP_MAX_Y = 5.0f;
-	const float MAP_MIN_Y = -9.0f;
+	// --- Map Limits ---
+		// We apply the same -10 offset here that is used in MapSystem::Draw
+	const float GRID_OFFSET = -10.0f;
+
+	// Min limits are the starting grid index (0) plus the offset
+	float MAP_MIN_X = 1.0f + GRID_OFFSET;
+	float MAP_MIN_Y = 0.0f + GRID_OFFSET;
+
+	// Max limits are the map width/height minus 1 (to stay on the tile), plus the offset
+	// We use max(1, width) to prevent crashes if the map fails to load
+	float MAP_MAX_X = (float)(std::max)(1u, gameMap.GetMapWidth()) + GRID_OFFSET;
+	float MAP_MAX_Y = (float)(std::max)(1u, gameMap.GetMapHeight()) - 1.0f + GRID_OFFSET;
 
 	bool clamped = false;
 	if (gridX < MAP_MIN_X) { gridX = MAP_MIN_X; clamped = true; }
@@ -218,18 +228,7 @@ void Level1_Draw() {
 	AEGfxSetBlendMode(AE_GFX_BM_BLEND);
 	AEGfxSetTransparency(1.0f);
 
-	AEGfxTextureSet(TexBlock2, 0, 0);
-	for (int x = 15; x > 0; --x) {
-		for (int y = 15; y > 0; --y) {
-			Vec2 pos = GridToScreen(x - 10, y - 10);
-			AEMtx33 scale, trans, transform;
-			AEMtx33Scale(&scale, SPRITE_W, SPRITE_H);
-			AEMtx33Trans(&trans, pos.x, pos.y);
-			AEMtx33Concat(&transform, &trans, &scale);
-			AEGfxSetTransform(transform.m);
-			AEGfxMeshDraw(RectMesh, AE_GFX_MDM_TRIANGLES);
-		}
-	}
+	gameMap.Draw("Tile Layer 1");
 
 	player.Draw();
 
@@ -257,6 +256,7 @@ void Level1_Unload() {
 	AEGfxTextureUnload(TexBlock2);
 	AEGfxMeshFree(CircleMesh);
 	AEGfxMeshFree(RectMesh);
+	gameMap.Unload();
 
 }
 

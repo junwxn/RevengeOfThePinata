@@ -9,3 +9,4 @@
 #include <math.h>
 #include "TMXLoader/TMXLoader.h"
 #include "GameStateList.h"
+#include <algorithm>
