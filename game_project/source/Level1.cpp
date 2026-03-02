@@ -229,6 +229,7 @@ void Level1_Draw() {
 	AEGfxSetTransparency(1.0f);
 
 	gameMap.Draw("Tile Layer 1");
+	gameMap.Draw("Tile Layer 2");
 
 	player.Draw();
 
