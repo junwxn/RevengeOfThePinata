@@ -100,32 +100,40 @@ void TMXLoader::printMapData(std::string mapName)
 }
 
 
-void TMXLoader::loadMapSettings(std::unique_ptr<TMXMap> const &map, rapidxml::xml_node<> *parentNode)
+void TMXLoader::loadMapSettings(std::unique_ptr<TMXMap> const& map, rapidxml::xml_node<>* parentNode)
 {
-	// Vector to hold map settings (version, orientation, width, height etc.)
-    std::vector<std::string> mapData;
+    // Safely extract all attributes into a temporary dictionary
+    std::unordered_map<std::string, std::string> attrMap;
+    for (rapidxml::xml_attribute<char>* attr = parentNode->first_attribute(); attr; attr = attr->next_attribute()) {
+        attrMap[attr->name()] = attr->value();
+    }
 
-    // Push found settings onto back of vector, which are attributes of first xml node "map"
-	for (rapidxml::xml_attribute<char> *attr = parentNode->first_attribute(); attr; attr = attr->next_attribute())
-	{
-		mapData.push_back(attr->value());
-	}
+    // Build mapData strictly in the index order TMXMap.cpp expects
+    std::vector<std::string> mapData(10, "0");
+    mapData[0] = attrMap.count("version") ? attrMap["version"] : "1.0";
+    mapData[1] = attrMap.count("orientation") ? attrMap["orientation"] : "orthogonal";
+    mapData[2] = attrMap.count("renderorder") ? attrMap["renderorder"] : "right-down";
+    mapData[3] = attrMap.count("width") ? attrMap["width"] : "0";
+    mapData[4] = attrMap.count("height") ? attrMap["height"] : "0";
+    mapData[5] = attrMap.count("tilewidth") ? attrMap["tilewidth"] : "0";
+    mapData[6] = attrMap.count("tileheight") ? attrMap["tileheight"] : "0";
 
-    // Background colour is stored in hexadecimal, next few lines coverts to RGB and pushes onto vector
-	std::string colourString = mapData[6];
-	std::string colourSubstring = colourString.substr(1, colourString.length());
+    // Parse background color safely into Red, Green, Blue
+    unsigned int colour = 0; // Default black
+    if (attrMap.count("backgroundcolor")) {
+        std::string hex = attrMap["backgroundcolor"];
+        if (hex.length() > 1 && hex[0] == '#') {
+            try { colour = std::stoi(hex.substr(1), 0, 16); }
+            catch (...) {}
+        }
+    }
+    mapData[7] = std::to_string((colour >> 16) & 0xFF); // R
+    mapData[8] = std::to_string((colour >> 8) & 0xFF);  // G
+    mapData[9] = std::to_string(colour & 0xFF);         // B
 
-	unsigned int colour = stoi(colourSubstring, 0, 16);
+    std::unordered_map<std::string, std::string> propertiesMap;
+    loadProperties(propertiesMap, parentNode);
 
-	mapData.push_back(std::to_string(colour / 0x10000));
-	mapData.push_back(std::to_string((colour / 0x100) % 0x100));
-	mapData.push_back(std::to_string(colour / 0x10000));
-
-	std::unordered_map<std::string, std::string> propertiesMap;
-
-    // Load any user-defined properties
-	loadProperties(propertiesMap, parentNode);
-    
     map->setMapSettings(mapData, propertiesMap);
 }
 
@@ -233,80 +241,70 @@ void TMXLoader::loadTileSets(std::unique_ptr<TMXMap> const &map, rapidxml::xml_n
 }
 
 
-void TMXLoader::loadLayers(std::unique_ptr<TMXMap> const &map, rapidxml::xml_node<> *parentNode)
+void TMXLoader::loadLayers(std::unique_ptr<TMXMap> const& map, rapidxml::xml_node<>* parentNode)
 {
-	// Create a new node based on the parent node
-	rapidxml::xml_node<> *currentNode = parentNode;
+    rapidxml::xml_node<>* currentNode = parentNode->first_node("layer");
 
-	// Move to first layer node
-	currentNode = currentNode->first_node("layer");
-    
-    std::vector<char*> layerVector;
+    while (currentNode != nullptr)
+    {
+        std::unordered_map<std::string, std::string> layerProperties;
+        std::unordered_map<std::string, std::string> attrMap;
 
-	char* layerName = nullptr;
-	unsigned int layerWidth = 0;
-	unsigned int layerHeight = 0;
-	std::unordered_map<std::string, std::string> layerProperties;
+        // Safely extract attributes by name
+        for (rapidxml::xml_attribute<char>* attr = currentNode->first_attribute(); attr; attr = attr->next_attribute()) {
+            attrMap[attr->name()] = attr->value();
+        }
 
-	while (currentNode != nullptr)
-	{
-        // Clear these both to hold data for the next layer
-		layerProperties.clear();
-        layerVector.clear();
-        
-		// Read data into the current layer vector
-		for (rapidxml::xml_attribute<char> *attr = currentNode->first_attribute(); attr; attr = attr->next_attribute())
-		{
-            layerVector.push_back(attr->value());
-		}
-        
-        layerName = layerVector[0];
-        layerWidth = atoi(layerVector[1]);
-        layerHeight = atoi(layerVector[2]);
+        std::string layerName = attrMap.count("name") ? attrMap["name"] : "Layer";
+        unsigned int layerWidth = attrMap.count("width") ? std::stoul(attrMap["width"]) : 0;
+        unsigned int layerHeight = attrMap.count("height") ? std::stoul(attrMap["height"]) : 0;
 
-		// Load any properties for the layer
-		loadProperties(layerProperties, currentNode);
+        loadProperties(layerProperties, currentNode);
 
-		currentNode = currentNode->first_node("data");
-		// Move to the tile nodes for the current layer
-		currentNode = currentNode->first_node("tile");
+        // Access the <data> and first <tile> node safely
+        rapidxml::xml_node<>* dataNode = currentNode->first_node("data");
+        rapidxml::xml_node<>* tileNode = dataNode ? dataNode->first_node("tile") : nullptr;
 
-        // Create 2D vector to hold tile data
-        std::vector<std::vector<unsigned int>> tileVector(layerHeight, std::vector<unsigned int>(layerWidth));
+        std::vector<std::vector<unsigned int>> tileVector(layerHeight, std::vector<unsigned int>(layerWidth, 0));
 
-		unsigned int currentTile = 0;
+        unsigned int currentTile = 0;
         int currentRow = 0;
-        
-        // Loop whilst there are still tiles to be read and add them to the vector
-        while (currentNode != nullptr)
+
+        // Loop whilst there are still tiles to be read
+        while (tileNode != nullptr)
         {
-            if (currentTile < layerWidth)
+            if (currentTile < layerWidth && currentRow < layerHeight)
             {
-                // Add tile to vector, must be cast from char* to unsigned int
-                tileVector[currentRow][currentTile] = (unsigned int)std::stoul(currentNode->first_attribute()->value());
-                
+                // FIX: Look specifically for the "gid" attribute. If the tag is just <tile/>, it will safely be 0.
+                rapidxml::xml_attribute<char>* gidAttr = tileNode->first_attribute("gid");
+                if (gidAttr != nullptr) {
+                    try {
+                        tileVector[currentRow][currentTile] = (unsigned int)std::stoul(gidAttr->value());
+                    }
+                    catch (...) {
+                        tileVector[currentRow][currentTile] = 0; // Fallback for invalid numbers
+                    }
+                }
+                else {
+                    tileVector[currentRow][currentTile] = 0; // Empty tile
+                }
+
                 currentTile++;
-                
-                // Determine if there is another tile to be read or not
-                if (currentNode->next_sibling("tile") == nullptr)
-                    break;
-                else
-                    currentNode = currentNode->next_sibling("tile");
             }
-            else
-            {
+
+            // Grid wrap-around logic
+            if (currentTile >= layerWidth) {
                 currentTile = 0;
                 currentRow++;
             }
-                             
+
+            tileNode = tileNode->next_sibling("tile");
         }
 
-		// Add the newly read layer to the map
-		map->addLayer(TMXTileLayer(layerName, layerWidth, layerHeight, layerProperties, tileVector));
-		
-		// Move to the next layer
-		currentNode = currentNode->parent()->parent()->next_sibling("layer");
-	}
+        map->addLayer(TMXTileLayer(layerName, layerWidth, layerHeight, layerProperties, tileVector));
+
+        currentNode = currentNode->next_sibling("layer");
+    }
 }
 
 

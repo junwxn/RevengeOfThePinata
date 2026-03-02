@@ -4,6 +4,7 @@
 #include "Level1.h"
 #include "camera.h"
 #include "GameStateManager.h"
+#include "Map.h"
 
 // load variables
 static AEGfxTexture* TexBlock2;
@@ -17,6 +18,7 @@ Circle HealCircle{};
 Circle DMGCircle{};
 RectData Healthbar{};
 Camera camera{};
+MapSystem gameMap;
 
 // update variables
 Combat::System CombatSystem;
@@ -34,6 +36,7 @@ void Level1_Load() {
 	TexBlock	= AEGfxTextureLoad("Assets/block.png");
 	CircleMesh	= CreateCircleMesh(1.0f, 32, 0xFFFFFFFF);
 	RectMesh	= CreateRectMesh(0xFFFFFFFF);
+	gameMap.Init("Assets/untitled.tmx", "tilesheet_complete", "Assets/tilesheet_complete.png");
 }
 void Level1_Init() {
 	
@@ -218,18 +221,7 @@ void Level1_Draw() {
 	AEGfxSetBlendMode(AE_GFX_BM_BLEND);
 	AEGfxSetTransparency(1.0f);
 
-	AEGfxTextureSet(TexBlock2, 0, 0);
-	for (int x = 15; x > 0; --x) {
-		for (int y = 15; y > 0; --y) {
-			Vec2 pos = GridToScreen(x - 10, y - 10);
-			AEMtx33 scale, trans, transform;
-			AEMtx33Scale(&scale, SPRITE_W, SPRITE_H);
-			AEMtx33Trans(&trans, pos.x, pos.y);
-			AEMtx33Concat(&transform, &trans, &scale);
-			AEGfxSetTransform(transform.m);
-			AEGfxMeshDraw(RectMesh, AE_GFX_MDM_TRIANGLES);
-		}
-	}
+	gameMap.Draw("Tile Layer 1");
 
 	player.Draw();
 
@@ -257,6 +249,7 @@ void Level1_Unload() {
 	AEGfxTextureUnload(TexBlock2);
 	AEGfxMeshFree(CircleMesh);
 	AEGfxMeshFree(RectMesh);
+	gameMap.Unload();
 
 }
 
