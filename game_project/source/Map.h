@@ -16,6 +16,9 @@ public:
     // Unload textures and free all generated tile meshes
     void Unload();
 
+    unsigned GetMapWidth() const;
+    unsigned GetMapHeight() const;
+
 private:
     TMXLoader m_loader;
     TMXMap* m_currentMap = nullptr;

@@ -145,11 +145,18 @@ void Level1_Update(float dt) {
 	float gridX = 0.5f * (invX + invY);
 	float gridY = 0.5f * (invY - invX);
 
-	// Map Limits (Matches your previous loop logic)
-	const float MAP_MAX_X = 6.0f;
-	const float MAP_MIN_X = -8.0f;
-	const float MAP_MAX_Y = 5.0f;
-	const float MAP_MIN_Y = -9.0f;
+	// --- Map Limits ---
+		// We apply the same -10 offset here that is used in MapSystem::Draw
+	const float GRID_OFFSET = -10.0f;
+
+	// Min limits are the starting grid index (0) plus the offset
+	float MAP_MIN_X = 0.0f + GRID_OFFSET;
+	float MAP_MIN_Y = 0.0f + GRID_OFFSET;
+
+	// Max limits are the map width/height minus 1 (to stay on the tile), plus the offset
+	// We use max(1, width) to prevent crashes if the map fails to load
+	float MAP_MAX_X = (float)(std::max)(1u, gameMap.GetMapWidth()) - 1.0f + GRID_OFFSET;
+	float MAP_MAX_Y = (float)(std::max)(1u, gameMap.GetMapHeight()) - 1.0f + GRID_OFFSET;
 
 	bool clamped = false;
 	if (gridX < MAP_MIN_X) { gridX = MAP_MIN_X; clamped = true; }

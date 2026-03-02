@@ -59,15 +59,19 @@ void MapSystem::Draw(std::string const& layerName) {
     AEGfxSetTransparency(1.0f);
     AEGfxTextureSet(m_tilesetTex, 0.0f, 0.0f);
 
-    // Cast to int to prevent an infinite unsigned loop!
-    for (int y = (int)mapH - 1; y >= 0; --y) {
-        for (int x = (int)mapW - 1; x >= 0; --x) {
+    for (int y = 0; y < (int)mapH; ++y) {
+        for (int x = 0; x < (int)mapW; ++x) {
             unsigned gid = tiles[y][x];
             if (gid == 0) continue; // 0 represents an empty tile
 
-            // If a mesh exists for this tile ID, draw it
+            // --- The Coordinate Flip ---
+            // Rotate Tiled's array indexing to match Alpha Engine's Isometric Math
+            int renderX = (mapW - 1) - y;
+            int renderY = (mapH - 1) - x;
+
             if (m_tileMeshes.find(gid) != m_tileMeshes.end()) {
-                Vec2 pos = GridToScreen(x - 10, y - 10); // Isometric grid offset
+                // Pass the rotated coordinates into your GridToScreen function
+                Vec2 pos = GridToScreen(renderX - 10, renderY - 10);
 
                 AEMtx33 scale, trans, transform;
                 AEMtx33Scale(&scale, SPRITE_W, SPRITE_H);
@@ -113,4 +117,18 @@ AEGfxVertexList* MapSystem::CreateTileMesh(float u, float v, float u_width, floa
         1.0f, 0.5f, color, u + u_width, v
     );
     return AEGfxMeshEnd();
+}
+
+unsigned MapSystem::GetMapWidth() const {
+    if (m_currentMap) {
+        return m_currentMap->getWidth();
+    }
+    return 0;
+}
+
+unsigned MapSystem::GetMapHeight() const {
+    if (m_currentMap) {
+        return m_currentMap->getHeight();
+    }
+    return 0;
 }
