@@ -277,7 +277,7 @@ void Level1_Draw() {
 
 	// If end of wave spawn augment ball
 	if (endofwave) {
-		augments.Draw(player.GetX(), player.GetY());
+		augments.Draw();
 	}
 
 	AESysFrameEnd();

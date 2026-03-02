@@ -147,7 +147,7 @@ void Augments::Update(f32 playerX, f32 playerY, f32 dt, f32 cameraX, f32 cameraY
 
 }
 
-void Augments::Draw(f32 playerX, f32 playerY) {
+void Augments::Draw() {
     // Ensure Color Mode is set
     AEGfxSetRenderMode(AE_GFX_RM_COLOR);
 
@@ -169,14 +169,6 @@ void Augments::Draw(f32 playerX, f32 playerY) {
       
 
     }
-}
-
-void Augments::DrawShadow(f32 dt) {
-    // Ensure Color Mode is set
-    /*AEGfxSetRenderMode(AE_GFX_RM_COLOR);
-
-    hoverTime += dt * hoverSpeed;*/
-
 }
 
 void Augments::Free() {
