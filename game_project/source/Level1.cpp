@@ -150,12 +150,12 @@ void Level1_Update(float dt) {
 	const float GRID_OFFSET = -10.0f;
 
 	// Min limits are the starting grid index (0) plus the offset
-	float MAP_MIN_X = 0.0f + GRID_OFFSET;
+	float MAP_MIN_X = 1.0f + GRID_OFFSET;
 	float MAP_MIN_Y = 0.0f + GRID_OFFSET;
 
 	// Max limits are the map width/height minus 1 (to stay on the tile), plus the offset
 	// We use max(1, width) to prevent crashes if the map fails to load
-	float MAP_MAX_X = (float)(std::max)(1u, gameMap.GetMapWidth()) - 1.0f + GRID_OFFSET;
+	float MAP_MAX_X = (float)(std::max)(1u, gameMap.GetMapWidth()) + GRID_OFFSET;
 	float MAP_MAX_Y = (float)(std::max)(1u, gameMap.GetMapHeight()) - 1.0f + GRID_OFFSET;
 
 	bool clamped = false;
