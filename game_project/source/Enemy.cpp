@@ -30,11 +30,17 @@ Enemy::~Enemy() {
         AEGfxMeshFree(m_AttackRangeMesh);
         m_AttackRangeMesh = nullptr;
     }
+
+    if (m_enemyHealthBarMesh) {
+        AEGfxMeshFree(m_enemyHealthBarMesh);
+        m_enemyHealthBarMesh = nullptr;
+    }
 }
 
 void Enemy::Init() {
     m_AttackRangeMesh = CreateAttackRangeMesh(m_AttackRange, 0xFF0000);
     m_enemyMesh = CreateCircleMesh(1.0f, 32, 0x50A655);
+    m_enemyHealthBarMesh = CreateRectMesh(0xAEF359);
 }
 
 void Enemy::BaseUpdate(f32 dt, Combat::System& combat, Player const& player) {
@@ -105,11 +111,13 @@ void Enemy::BaseUpdate(f32 dt, Combat::System& combat, Player const& player) {
 }
 
 void Enemy::Draw() {
+    f32 dt = (f32)AEFrameRateControllerGetFrameTime();
     // Ensure Color Mode is set
     AEGfxSetRenderMode(AE_GFX_RM_COLOR);
 
     // Calculate isometric squashed height for drawing
-    f32 isoHeight = m_size * (GRID_H / GRID_W);
+        //f32 isoHeight = m_size * (GRID_H / GRID_W); // Squashed
+        f32 isoHeight = m_size; // Normal
 
     // Draw Meshes --------------------
     // Enemy
@@ -121,6 +129,16 @@ void Enemy::Draw() {
     f32 swordAngle = m_AttackActive ? m_CurrentAngle : m_AimAngle;
     DrawMesh(m_AttackRangeMesh, 1.0f , 5.0f, m_pos.x, m_pos.y, swordAngle,
         44, 255, 255, 255);
+
+    // Enemy health bar
+    f32 barWidth = m_size * 2.0f * m_CombatStats.health / m_CombatStats.maxHealth;
+    f32 barHeight = m_size / 3.0f;
+    f32 dbarWidth = m_size * 2.0f * (m_CombatStats.health / m_CombatStats.maxHealth + m_healthDepletionPercentage/ 100.0f);
+    f32 dRate = 100.0f * dt;
+    if (m_healthDepletionPercentage >= 0.0f) { m_healthDepletionPercentage -= dRate; };
+
+    DrawMesh(m_enemyHealthBarMesh, dbarWidth, barHeight, m_pos.x - m_size, m_pos.y + m_size + barHeight / 2.0f + 5.0f, 0.0f, 255, 175, 65, 255); // Depleting bar
+    DrawMesh(m_enemyHealthBarMesh, barWidth, barHeight, m_pos.x - m_size, m_pos.y + m_size + barHeight / 2.0f + 5.0f, 0.0f, 210, 70, 75, 255); // Instant bar
 }
 
 void Enemy::StartAttack(Combat::CombatData::AttackData attackData) {

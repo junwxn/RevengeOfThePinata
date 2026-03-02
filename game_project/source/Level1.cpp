@@ -22,6 +22,7 @@ Augments augments{};
 
 // update variables
 Combat::System CombatSystem;
+std::vector<std::vector<std::unique_ptr<Enemy>>> Waves;
 std::vector<std::unique_ptr<Enemy>> Wave1{};
 std::vector<std::unique_ptr<Enemy>> Wave2{};
 bool wave1Active{};
@@ -88,12 +89,22 @@ void Level1_Update(float dt) {
 
 	//update enemy
 	if (wave1Active) {
+		if (Wave1.empty()) { wave1Active = false; };
+		Wave1.erase(
+			std::remove_if(Wave1.begin(), Wave1.end(),
+				[](const std::unique_ptr<Enemy>& e)
+				{
+					return e->GetCombatStats().health  <= 0.0f;
+				}),
+			Wave1.end()
+		);
+
 		for (auto& enemy : Wave1) {
 			enemy->Update(dt, CombatSystem, player);
 			CombatSystem.Update(player, *enemy, dt);
 		}
 
-		for (auto& enemy : Wave2) {
+		for (auto& enemy : Wave1) {
 			if (enemy->GetCombatFlag().attackHit) {
 				if (!player.GetCombatFlag().parryOn) {
 					if (player.GetCombatFlag().blockOn) Healthbar.var -= (player.GetCombatStats().attack) / 2;
@@ -104,6 +115,17 @@ void Level1_Update(float dt) {
 	}
 
 	if (wave2Active) {
+		if (Wave2.empty()) { wave2Active = false; };
+
+		Wave2.erase(
+			std::remove_if(Wave2.begin(), Wave2.end(),
+				[](const std::unique_ptr<Enemy>& e)
+				{
+					return e->GetCombatStats().health <= 0.0f;
+				}),
+			Wave2.end()
+		);
+
 		for (auto& enemy : Wave2) {
 			enemy->Update(dt, CombatSystem, player);
 			CombatSystem.Update(player, *enemy, dt);

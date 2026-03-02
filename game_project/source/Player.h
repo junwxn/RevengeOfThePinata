@@ -74,6 +74,7 @@ public:
     void SetPosition(float x, float y) { m_PosX = x; m_PosY = y; }
     void SetAimVector(float x, float y) { m_AimVector.x = x, m_AimVector.y = y; }
     void SetAimAngle(float angle) { m_AimAngle = angle; }
+    void SetHDP(f32 dmg) { m_healthDepletionPercentage += dmg; }
 
 
     // Augments
@@ -84,10 +85,12 @@ public:
 private:
     Combat::System combatSystem;
 
+
     // Position & Stats
     float m_PosX, m_PosY;
     float m_Speed;
     float m_Size;
+    f32 m_healthDepletionPercentage;
     PlayerState m_CurrentState;
 
     // Dash Logic
@@ -96,11 +99,22 @@ private:
 
     // Visual Assets
     AEGfxVertexList* m_pMesh = nullptr;
+    AEGfxVertexList* m_playerHealthBarMesh{ nullptr };
+
 
     // -------------------------- //
     //      COMBAT VARIABLES      //
     // -------------------------- //
-    Combat::CombatStats m_CombatStats{ 200.0f, 10.0f, 5.0f };
+    Combat::CombatStats m_CombatStats{
+        200.0f, // health
+        40.0f, // attack
+        5.0f, // defense
+        0.0f, // crit chance
+        0.0f, // crit multiplier
+        0.0f, // attack multiplier
+        200.0f // max health
+    };
+
     Combat::CombatFlags m_CombatFlags
     { false, // attackHit
       false, // blockOn
@@ -124,8 +138,12 @@ private:
     int m_MaxAttackCharge { 5 };
 
     float m_AttackDuration{ 0.15f };
+
     float m_AttackFrameAccumulator{};
     int m_AttackCurrentFrame{};
+
+    int m_AttackChainIterator{};
+
     float m_AttackProgress{};
 
     float m_AttackRange { 200.0f };
@@ -144,7 +162,7 @@ private:
     int a_RecoveryFrames{ 15 };
     int a_TotalFrames{ a_StartUpFrames + a_ActiveFrames + a_RecoveryFrames };
     int a_Damage{ 20 };
-    Combat::CombatData::AttackData m_AttackData
+    Combat::CombatData::AttackData m_AttackBasic
     {
         a_StartDegree,      // startAngle
         a_EndDegree,        // endAngle
@@ -157,6 +175,13 @@ private:
     Combat::CombatData::AttackState m_AttackState
     {
         a_Recovered,        // recovered
+    };
+
+    std::vector<Combat::CombatData::AttackData> m_AttackChain
+    {
+        {45.0f, 45.0f, 7, 15, 15, 37, 20},
+        {30.0f, 30.0f, 5, 10, 15, 30, 20},
+        {0.0f, 350.0f, 5, 10, 15, 12, 20}
     };
 
     // Block Logic

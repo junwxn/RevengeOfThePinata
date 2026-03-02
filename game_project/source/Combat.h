@@ -20,6 +20,7 @@ namespace Combat {
         f32 critChance;
         f32 critMultiplier;
         f32 attackMultiplier;
+        f32 maxHealth;
     };
 
     struct CombatFlags {
@@ -98,7 +99,7 @@ namespace Combat {
     {
         public:
             void Update(Player& player, Enemy& enemy, float dt);
-            void Resolve(Player& player, Enemy& enemy, CombatOutcome outcome);
+            //void Resolve(Player& player, Enemy& enemy, CombatOutcome outcome);
             bool CanStartAttack_Enemy(const Player& player, const Enemy& enemy) const;
             bool IsEnemyInRange(const Player& player, const Enemy& enemy) const;
             bool isPlayerParrying(const Player& player, const Enemy& enemy) const;
@@ -108,6 +109,7 @@ namespace Combat {
             void ApplyParryReaction_Enemy(Enemy& enemy);
             void ApplyBlockReaction_Enemy(Player& player, Enemy& enemy);
             void ApplyDamage(Player& player, Enemy& enemy);
+            void ApplyDamage(Enemy& enemy, Player& player);
             void ColorIndicator(Enemy& enemy, f32 r, f32 g, f32 b, f32 a);
             double const GetOneFPS() const { return ONE_FRAME; };
 
@@ -127,7 +129,7 @@ namespace Combat {
             Combat::CombatData::StunData stunFrames{ stunRecoveryFrames };
             
             f32 stunDuration{ 2.0f };
-            CombatOutcome outcome;
+            CombatOutcome outcome{ CombatOutcome::OUTCOME_NONE };
             static double const ONE_FRAME;
     };
 }
