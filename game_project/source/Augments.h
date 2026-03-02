@@ -5,7 +5,7 @@ class Augments
 {
 public:
     void Init();
-    void Update(f32 playerX, f32 playerY, f32 dt);
+    void Update(f32 playerX, f32 playerY, f32 dt, f32 cameraX, f32 cameraY);
     void Draw(f32 playerX, f32 playerY);
     void DrawShadow(f32 dt);
     void Free();
@@ -32,9 +32,11 @@ private:
     float playerX, playerY;
     float deltaTime;
 
-    float hoverPosY, hoverTime, hoverPower, hoverSpeed;
+    float isoHeight, hoverPosY, hoverTime, hoverPower, hoverSpeed;
 
-    float cards_y, cards_x1, cards_x2;
+    float windowTintX, windowTintY;
+    float cardWidth, cardHeight;
+    float cards_y, cards_x1, cards_x2, cards_x3, distanceY;
 
     bool choose = false;
 

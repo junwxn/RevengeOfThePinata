@@ -30,6 +30,13 @@ Vec2 GridToScreen(int gridX, int gridY);
 // Collision check
 bool AreCirclesIntersecting(float c1_x, float c1_y, float r1, float c2_x, float c2_y, float r2);
 
+// Collision check for cursor (AABB)
+bool IsMouseInside(float mousepos_x, float mousepos_y, float center_x, float center_y, float width, float height);
+// mousepos_x, mousepos_y -> cursor position
+// center_x, center_y -> center of rectangle
+// width, height -> width and height of rectangle
+// returns true only if mouse is inside
+
 // --- Graphics Helpers ---
 // Creates a mesh and RETURNS the pointer (instead of setting a global)
 AEGfxVertexList* CreateCircleMesh(f32 radius, u8 parts, u32 color);

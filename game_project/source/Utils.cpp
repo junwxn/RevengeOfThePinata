@@ -21,6 +21,14 @@ bool AreCirclesIntersecting(float c1_x, float c1_y, float r1, float c2_x, float 
     return (sqrt(pow((c1_x - c2_x), 2) + pow((c1_y - c2_y), 2)) < (r1 + r2));
 }
 
+bool IsMouseInside(float mousepos_x, float mousepos_y, float center_x, float center_y, float width, float height)
+{ // same as /2, but *0.5 is faster
+    return (mousepos_x > center_x - (width * 0.5f) && // left
+        mousepos_x < center_x + (width * 0.5f) && // right
+        mousepos_y > center_y - (height * 0.5f) && // top
+        mousepos_y < center_y + (height * 0.5f)); // bottom
+}
+
 AEGfxVertexList* CreateCircleMesh(f32 radius, u8 parts, u32 color) {
     AEGfxMeshStart();
     f32 angleStep = (2.0f * PI) / parts;

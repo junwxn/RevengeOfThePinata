@@ -197,7 +197,7 @@ void Level1_Update(float dt) {
 	}
 
 	if (endofwave) {
-		augments.Update(player.GetX(), player.GetY(), dt);
+		augments.Update(player.GetX(), player.GetY(), dt, camera.GetX(), camera.GetY());
 		if (augments.GetChoose()) {
 			preventingmovement = true;
 			//std::cout << "THIS WORKS NOW" << std::endl;
