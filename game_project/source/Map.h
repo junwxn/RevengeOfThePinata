@@ -5,13 +5,19 @@
 #include <string>
 #include <unordered_map>
 
+enum class DepthMode {
+    ALL,
+    BEHIND,
+    IN_FRONT
+};
+
 class MapSystem {
 public:
     // Initialize the map, load the texture, and generate UV meshes
     void Init(std::string const& tmxPath, std::string const& tilesetName, std::string const& texturePath);
 
     // Draw a specific layer
-    void Draw(std::string const& layerName);
+    void Draw(std::string const& layerName, DepthMode depthMode = DepthMode::ALL, float splitY = 0.0f);
 
     // Unload textures and free all generated tile meshes
     void Unload();

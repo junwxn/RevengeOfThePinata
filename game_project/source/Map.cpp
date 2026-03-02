@@ -41,7 +41,7 @@ void MapSystem::Init(std::string const& tmxPath, std::string const& tilesetName,
     }
 }
 
-void MapSystem::Draw(std::string const& layerName) {
+void MapSystem::Draw(std::string const& layerName, DepthMode depthMode, float splitY) {
     if (!m_currentMap || !m_tilesetTex) return;
 
     TMXTileLayer* layer = m_currentMap->getLayer(layerName);
@@ -62,16 +62,19 @@ void MapSystem::Draw(std::string const& layerName) {
     for (int y = 0; y < (int)mapH; ++y) {
         for (int x = 0; x < (int)mapW; ++x) {
             unsigned gid = tiles[y][x];
-            if (gid == 0) continue; // 0 represents an empty tile
+            if (gid == 0) continue;
 
-            // --- The Coordinate Flip ---
-            // Rotate Tiled's array indexing to match Alpha Engine's Isometric Math
-            int renderX = (mapW - 1) - y;
-            int renderY = (mapH - 1) - x;
+            int renderX = (mapW - 1) - x;
+            int renderY = (mapH - 1) - y;
+            Vec2 pos = GridToScreen(renderX - 10, renderY - 10);
+
+            // If we only want blocks BEHIND the player, skip tiles that have a lower Y
+            if (depthMode == DepthMode::BEHIND && pos.y <= splitY) continue;
+
+            // If we only want blocks IN FRONT, skip tiles that have a higher Y
+            if (depthMode == DepthMode::IN_FRONT && pos.y > splitY) continue;
 
             if (m_tileMeshes.find(gid) != m_tileMeshes.end()) {
-                // Pass the rotated coordinates into your GridToScreen function
-                Vec2 pos = GridToScreen(renderX - 10, renderY - 10);
 
                 AEMtx33 scale, trans, transform;
                 AEMtx33Scale(&scale, SPRITE_W, SPRITE_H);

@@ -229,7 +229,7 @@ void Level1_Draw() {
 	AEGfxSetTransparency(1.0f);
 
 	gameMap.Draw("Tile Layer 1");
-	gameMap.Draw("Tile Layer 2");
+	gameMap.Draw("Tile Layer 2", DepthMode::BEHIND, player.GetY());
 
 	player.Draw();
 
@@ -244,7 +244,7 @@ void Level1_Draw() {
 			enemy->Draw();
 		}
 	}
-
+	gameMap.Draw("Tile Layer 2", DepthMode::IN_FRONT, player.GetY());
 	AESysFrameEnd();
 }
 void Level1_Free() {
