@@ -119,7 +119,7 @@ protected:
     f32 m_attackProgress{};
 
     Combat::System m_CombatSystem;
-    Combat::CombatStats m_CombatStats{ 10.0f, 5.0f };
+    //Combat::CombatStats m_CombatStats{ 10.0f, 5.0f };
     Combat::CombatFlags m_CombatFlags
     { 
         false, 
