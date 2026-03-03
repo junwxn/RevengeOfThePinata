@@ -112,6 +112,7 @@ xcopy "$(SolutionDir)Extern\AlphaEngine\lib\fmod.dll" "$(OutDir)" /s /r /y /q</C
     <ClCompile Include="source\MainMenu.cpp" />
     <ClCompile Include="source\Map.cpp" />
     <ClCompile Include="source\MathFunctions.cpp" />
+    <ClCompile Include="source\Pause.cpp" />
     <ClCompile Include="source\pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
@@ -150,6 +151,7 @@ xcopy "$(SolutionDir)Extern\AlphaEngine\lib\fmod.dll" "$(OutDir)" /s /r /y /q</C
     <ClInclude Include="source\MainMenu.h" />
     <ClInclude Include="source\Map.h" />
     <ClInclude Include="source\MathFunctions.h" />
+    <ClInclude Include="source\Pause.h" />
     <ClInclude Include="source\pch.h" />
     <ClInclude Include="source\Player.h" />
     <ClInclude Include="source\TMXLoader\TMXLoader.h" />

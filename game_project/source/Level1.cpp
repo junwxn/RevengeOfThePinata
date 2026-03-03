@@ -5,6 +5,7 @@
 #include "camera.h"
 #include "GameStateManager.h"
 #include "Map.h"
+#include "Pause.h"
 
 // load variables
 static AEGfxTexture* TexBlock2;
@@ -31,6 +32,7 @@ f32 Barcount{ 0 };
 f32 MinibarWidth = 100;
 u8 CurrentBars{ 0 };
 
+
 void Level1_Load() {
 	TexBlock2	= AEGfxTextureLoad("Assets/block2.png");
 	TexBlock	= AEGfxTextureLoad("Assets/block.png");
@@ -41,6 +43,8 @@ void Level1_Load() {
 	// Build the binary collision grid from the wall layer.
 	// Change "Tile Layer 2" to whatever your collision/wall layer is named in Tiled.
 	gameMap.BuildCollisionGrid("Tile Layer 2");
+
+	Pause_Load();
 }
 void Level1_Init() {
 
@@ -63,8 +67,18 @@ void Level1_Init() {
 	
 	// camera init
 	camera.Init(player.GetX(), player.GetY());
+
+	Pause_Init();
 }
 void Level1_Update(float dt) {
+	if (!AESysDoesWindowExist()) {
+		next = GS_QUIT;
+		return;
+	}
+
+	// Pause handles ESC toggle + menu input; returns true if paused
+	if (Pause_Update()) return;
+
 	player.Update(dt, CombatSystem, Wave1, camera.GetX(), camera.GetY());
 
 	if (AEInputCheckTriggered(AEVK_1)) {
@@ -196,9 +210,6 @@ void Level1_Update(float dt) {
 	Barcount = Healthbar.current / (Healthbar.w / 10);
 	CurrentBars = (Barcount >= 1) ? 1 : 0;
 
-	if (AEInputCheckTriggered(AEVK_ESCAPE) || 0 == AESysDoesWindowExist()) {
-		next = GS_QUIT;
-	}
 }
 void Level1_Draw() {
 	AESysFrameStart();
@@ -271,6 +282,9 @@ void Level1_Draw() {
 	for (auto& node : renderQueue) {
 		node.drawCall();
 	}
+
+	Pause_Draw();
+
 	AESysFrameEnd();
 }
 void Level1_Free() {
@@ -284,6 +298,7 @@ void Level1_Unload() {
 	AEGfxMeshFree(CircleMesh);
 	AEGfxMeshFree(RectMesh);
 	gameMap.Unload();
+	Pause_Unload();
 }
 
 void SpawnWave1() {
