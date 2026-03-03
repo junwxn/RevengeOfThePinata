@@ -281,6 +281,12 @@ static bool IsBoxSolid(float cx, float cy, float probeX, float probeY,
     return false;
 }
 
+bool MapSystem::IsPositionBlocked(float worldX, float worldY, float radius) const {
+    const float probeX = radius * 0.9f;
+    const float probeY = radius * (GRID_H / GRID_W) * 0.9f;
+    return IsBoxSolid(worldX, worldY, probeX, probeY, *this);
+}
+
 void ResolveCollision(float& posX, float& posY,
                       float velX, float velY,
                       float radius,

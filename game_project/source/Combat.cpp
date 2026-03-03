@@ -68,9 +68,8 @@ namespace Combat {
 
 		if (enemy.IsParried())
 		{
-			camera.SetScreenShakeTimer(1.0f);
+			camera.SetScreenShakeTimer(0.6f);
 			parryFrameAccumulator += dt;
-			std::cout << parryFrameAccumulator << std::endl;
 			while (parryFrameAccumulator >= ONE_FRAME)
 			{
 				++parryCurrentFrame;
@@ -82,6 +81,8 @@ namespace Combat {
 				ApplyKnockbackReaction_Enemy(player, enemy, 2500.0);
 				enemy.ResetParryFlag();
 				parryCurrentFrame = 0;
+				// Reward successful parry: skip remaining block recovery
+				player.ResetCombatVariables();
 			}
 		}
 

@@ -35,6 +35,11 @@ public:
     // flip and the -10 render offset applied in Draw() / QueueLayer().
     bool isSolid(float worldX, float worldY) const;
 
+    // Returns true if a bounding box centred at (worldX, worldY) with the
+    // given screen-space radius overlaps any solid tile.  Used by knockback
+    // bounce logic where wall-sliding (ResolveCollision) is not wanted.
+    bool IsPositionBlocked(float worldX, float worldY, float radius) const;
+
     unsigned GetMapWidth() const;
     unsigned GetMapHeight() const;
 
