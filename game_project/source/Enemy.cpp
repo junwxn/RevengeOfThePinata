@@ -13,6 +13,10 @@
 //    return os << static_cast<int>(outcome);
 //}
 
+std::ostream& operator<<(std::ostream& os, AEVec2 vector) {
+    return os << vector.x << " " << vector.y << std::endl;
+}
+
 // ---------------------
 // | Base Class: Enemy |
 // ---------------------
@@ -45,6 +49,13 @@ void Enemy::Init() {
 }
 
 void Enemy::BaseUpdate(f32 dt, Combat::System& combat, Player const& player) {
+
+    //std::cout << "BASE RUNNING" << std::endl;
+
+    AEVec2 frameMove;
+    AEVec2Scale(&frameMove, &m_KnockbackVelocity, dt);
+    AEVec2Add(&m_pos, &m_pos, &frameMove);
+    AEVec2Scale(&m_KnockbackVelocity, &m_KnockbackVelocity, 0.85f);
 
     // Only use for single enemy
     if (AEInputCheckTriggered(AEVK_R)) {
@@ -109,6 +120,7 @@ void Enemy::BaseUpdate(f32 dt, Combat::System& combat, Player const& player) {
         m_AllowAttack = false;
     }
 
+    //std::cout << "BASE ENDED" << std::endl;
 }
 
 void Enemy::Draw() {
@@ -122,7 +134,7 @@ void Enemy::Draw() {
 
     // Draw Meshes --------------------
     // Enemy
-    if (!m_CombatFlags.stunned && m_AttackCooldown >= 0.5f) DrawMesh(m_enemyMesh, m_size, isoHeight, m_pos.x, m_pos.y, 0.0f, 44, 255, 255, 255);
+    if (!m_CombatFlags.parried && m_AttackCooldown >= 0.5f) DrawMesh(m_enemyMesh, m_size, isoHeight, m_pos.x, m_pos.y, 0.0f, 44, 255, 255, 255);
     else if(m_AttackCooldown < 0.5f) DrawMesh(m_enemyMesh, m_size, isoHeight, m_pos.x, m_pos.y, 0.0f, 255, 255, 0, 255);
     else DrawMesh(m_enemyMesh, m_size, isoHeight, m_pos.x, m_pos.y, 0.0f, 255, 0, 0, 255);
 
@@ -167,19 +179,18 @@ void Enemy::DamageInfo() {
  //-----------------------
 void Walker::ChildUpdate(f32 dt, Combat::System& combat, Player const& player) {
     AEVec2 playerPos{ player.GetX(), player.GetY() };
-    AEVec2 enemyToPlayer;
-    AEVec2Sub(&enemyToPlayer, &playerPos, &m_pos);
-    AEVec2Normalize(&enemyToPlayer, &enemyToPlayer);
+    //AEVec2 enemyToPlayer;
+    AEVec2Sub(&m_enemyToPlayerDir, &playerPos, &m_pos);
+    AEVec2Normalize(&m_enemyToPlayerDir, &m_enemyToPlayerDir);
 
     // Point sword towards player
-    m_AimAngle = atan2(-enemyToPlayer.y, -enemyToPlayer.x);
+    m_AimAngle = atan2(-m_enemyToPlayerDir.y, -m_enemyToPlayerDir.x);
 
     // Seek player
     if (!AreCirclesIntersecting(player.GetX(), player.GetY(), player.GetSize(),
                                 m_pos.x, m_pos.y, m_size)) {
-        if (!m_CombatFlags.stunned) {
-            float velX = enemyToPlayer.x * m_speed * dt;
-            float velY = enemyToPlayer.y * m_speed * dt;
+        AEVec2Scale(&enemyToPlayer, &enemyToPlayer, m_speed);
+        AEVec2Scale(&enemyToPlayer, &enemyToPlayer, dt);
 
             if (m_pMap) {
                 // Resolve against the isometric collision grid with wall-sliding.
@@ -200,10 +211,10 @@ Dasher::Dasher(AEVec2 pos, f32 size, f32 hp, f32 speed, f32 dashCD)
 
 void Dasher::ChildUpdate(f32 dt, Combat::System& combat, Player const& player) {
     AEVec2 playerPos{ player.GetX(), player.GetY() };
-    AEVec2 enemyToPlayer;
-    AEVec2Sub(&enemyToPlayer, &playerPos, &m_pos);
-    AEVec2Normalize(&enemyToPlayer, &enemyToPlayer);
+    //AEVec2 enemyToPlayer;
+    AEVec2Sub(&m_enemyToPlayerDir, &playerPos, &m_pos);
+    AEVec2Normalize(&m_enemyToPlayerDir, &m_enemyToPlayerDir);
 
     // Point sword towards player
-    m_AimAngle = atan2(-enemyToPlayer.y, -enemyToPlayer.x);
+    m_AimAngle = atan2(-m_enemyToPlayerDir.y, -m_enemyToPlayerDir.x);
 }
