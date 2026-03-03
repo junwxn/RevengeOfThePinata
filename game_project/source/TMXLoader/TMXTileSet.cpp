@@ -20,24 +20,34 @@
 #include "TMXTileSet.h"
 
 TMXTileSet::TMXTileSet(
-	std::unordered_map<std::string, std::string> const&tileSetData,
-	std::unordered_map<std::string, std::string> const &propertiesMap,
-	std::vector<TMXTile> const &tileVector)
-	: m_propertiesMap{propertiesMap}, m_tileVector{tileVector},
-	  m_name{tileSetData.at("name")}, m_source{tileSetData.at("source")},
-	  m_firstGID{std::stoul(tileSetData.at("firstgid").c_str())},
-	  m_imageWidth{std::stoul(tileSetData.at("width").c_str())},
-	  m_imageHeight{std::stoul(tileSetData.at("height").c_str())},
-	  m_tileWidth{std::stoul(tileSetData.at("tilewidth").c_str())},
-	  m_tileHeight{std::stoul(tileSetData.at("tileheight").c_str())},
-	  m_offsetX{std::stoul(tileSetData.at("tileoffsetX").c_str())},
-	  m_offsetY{std::stoul(tileSetData.at("tileoffsetY").c_str())},
-	  m_spacing{std::stoul(tileSetData.at("spacing").c_str())},
-	  m_margin{std::stoul(tileSetData.at("margin").c_str())},
-	  m_tileCount{std::stoul(tileSetData.at("tilecount").c_str())},
-	  m_transparentColour{std::stoul(tileSetData.at("red").c_str()),
-						  std::stoul(tileSetData.at("green").c_str()),
-						  std::stoul(tileSetData.at("blue").c_str())} {}
+	std::unordered_map<std::string, std::string> const& tileSetData,
+	std::unordered_map<std::string, std::string> const& propertiesMap,
+	std::vector<TMXTile> const& tileVector)
+	: m_propertiesMap{ propertiesMap }, m_tileVector{ tileVector }
+{
+	// Safely extract string values with empty string fallbacks
+	m_name = tileSetData.count("name") ? tileSetData.at("name") : "";
+	m_source = tileSetData.count("source") ? tileSetData.at("source") : "";
+
+	// Safely extract unsigned integer values with 0/1 fallbacks
+	m_firstGID = tileSetData.count("firstgid") ? std::stoul(tileSetData.at("firstgid")) : 1;
+	m_imageWidth = tileSetData.count("width") ? std::stoul(tileSetData.at("width")) : 0;
+	m_imageHeight = tileSetData.count("height") ? std::stoul(tileSetData.at("height")) : 0;
+	m_tileWidth = tileSetData.count("tilewidth") ? std::stoul(tileSetData.at("tilewidth")) : 0;
+	m_tileHeight = tileSetData.count("tileheight") ? std::stoul(tileSetData.at("tileheight")) : 0;
+
+	// Values that might be completely omitted by Tiled
+	m_offsetX = tileSetData.count("tileoffsetX") ? std::stoul(tileSetData.at("tileoffsetX")) : 0;
+	m_offsetY = tileSetData.count("tileoffsetY") ? std::stoul(tileSetData.at("tileoffsetY")) : 0;
+	m_spacing = tileSetData.count("spacing") ? std::stoul(tileSetData.at("spacing")) : 0;
+	m_margin = tileSetData.count("margin") ? std::stoul(tileSetData.at("margin")) : 0;
+	m_tileCount = tileSetData.count("tilecount") ? std::stoul(tileSetData.at("tilecount")) : 0;
+
+	// Transparent Colors (Default to 0/black if none provided)
+	m_transparentColour[0] = tileSetData.count("red") ? std::stoul(tileSetData.at("red")) : 0;
+	m_transparentColour[1] = tileSetData.count("green") ? std::stoul(tileSetData.at("green")) : 0;
+	m_transparentColour[2] = tileSetData.count("blue") ? std::stoul(tileSetData.at("blue")) : 0;
+}
 
 
 

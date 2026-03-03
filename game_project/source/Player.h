@@ -75,14 +75,17 @@ public:
     void SetPosition(float x, float y) { m_PosX = x; m_PosY = y; }
     void SetAimVector(float x, float y) { m_AimVector.x = x, m_AimVector.y = y; }
     void SetAimAngle(float angle) { m_AimAngle = angle; }
+    void SetHDP(f32 dmg) { m_healthDepletionPercentage += dmg; }
 
 private:
     Combat::System combatSystem;
+
 
     // Position & Stats
     float m_PosX{}, m_PosY{};
     float m_Speed{};
     float m_Size{};
+    f32 m_healthDepletionPercentage;
     PlayerState m_CurrentState;
 
     // Dash Logic
@@ -91,11 +94,22 @@ private:
 
     // Visual Assets
     AEGfxVertexList* m_pMesh = nullptr;
+    AEGfxVertexList* m_playerHealthBarMesh{ nullptr };
+
 
     // -------------------------- //
     //      COMBAT VARIABLES      //
     // -------------------------- //
-    Combat::CombatStats m_CombatStats{ 200.0f, 10.0f, 5.0f };
+    Combat::CombatStats m_CombatStats{
+        200.0f, // health
+        40.0f, // attack
+        5.0f, // defense
+        0.0f, // crit chance
+        0.0f, // crit multiplier
+        0.0f, // attack multiplier
+        200.0f // max health
+    };
+
     Combat::CombatFlags m_CombatFlags
     { false, // attackHit
       false, // blockOn

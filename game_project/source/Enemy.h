@@ -54,6 +54,7 @@ public:
     f32 GetAttackProgress() const { return m_attackProgress; }
     int GetLastAttackID() const { return m_LastAttackID; }
 
+    f32 GetHDP() const { return m_healthDepletionPercentage; }
 
     AEGfxVertexList* GetEnemyMesh() const { return m_enemyMesh; }
 
@@ -67,6 +68,7 @@ public:
     void SetKnockback(AEVec2 knockbackVec) { AEVec2Add(&m_pos, &m_pos, &knockbackVec); }
     void SetKnockbackVelocity(AEVec2 setVelocity) { m_KnockbackVelocity = setVelocity; }
     void SetLastAttackID(int newID) { m_LastAttackID = newID; }
+    void SetHDP(f32 dmg) { m_healthDepletionPercentage += dmg; }
 
     // Flag Setters
     void SetParried(bool set) { m_CombatFlags.parried = set; }
@@ -82,16 +84,20 @@ public:
         m_CombatFlags.blockResolved = true;
     }
 
+    // Combat -------------------------
+    void DeductHealth(f32 damage) { m_CombatStats.health -= damage; }
+
 protected:
     // Enemy stats --------------------
     AEVec2 m_pos{};
-    f32 m_hp{ 100.0f };
+    f32 m_hp{ 100.0f }; // to be removed?
     f32 m_speed{ 300.0f };
     f32 m_size{ 40.0f };
-
+    f32 m_healthDepletionPercentage{};
     // Meshes -------------------------
     AEGfxVertexList* m_enemyMesh{ nullptr };
     AEGfxVertexList* m_AttackRangeMesh{ nullptr };
+    AEGfxVertexList* m_enemyHealthBarMesh{ nullptr };
 
     // Attack Logic -------------------
     int m_LastAttackID{ -1 };
@@ -130,6 +136,16 @@ protected:
 
     int m_AttackStopFrames{};
     int m_DefendStopFrames{};
+    Combat::CombatStats m_CombatStats{
+    100.0f, // health
+    30.0f, // attack
+    5.0f, // defense
+    0.0f, // crit chance
+    0.0f, // crit multiplier
+    0.0f, // attack multiplier
+    100.0f // max health
+    };
+    // Combat::CombatFlags m_CombatFlags{ false, false, false, false, false, false, false, false, false };
     
     float m_AttackFrameAccumulator{};
     int m_AttackCurrentFrame{};
