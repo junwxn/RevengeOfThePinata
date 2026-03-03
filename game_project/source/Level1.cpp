@@ -37,10 +37,15 @@ void Level1_Load() {
 	CircleMesh	= CreateCircleMesh(1.0f, 32, 0xFFFFFFFF);
 	RectMesh	= CreateRectMesh(0xFFFFFFFF);
 	gameMap.Init("Assets/untitled.tmx", "tilesheet_complete", "Assets/tilesheet_complete.png");
+
+	// Build the binary collision grid from the wall layer.
+	// Change "Tile Layer 2" to whatever your collision/wall layer is named in Tiled.
+	gameMap.BuildCollisionGrid("Tile Layer 2");
 }
 void Level1_Init() {
-	
+
 	player.Init();
+	player.SetMap(&gameMap); // Enable player↔map collision
 
 	// logic objects
 	HealCircle = { -400.0f, 0.0f, 150.0f };
@@ -274,12 +279,11 @@ void Level1_Free() {
 	player.Free();
 }
 void Level1_Unload() {
-	AEGfxTextureUnload(TexBlock);
-	AEGfxTextureUnload(TexBlock2);
+	if (TexBlock)  { AEGfxTextureUnload(TexBlock);  TexBlock  = nullptr; }
+	if (TexBlock2) { AEGfxTextureUnload(TexBlock2); TexBlock2 = nullptr; }
 	AEGfxMeshFree(CircleMesh);
 	AEGfxMeshFree(RectMesh);
 	gameMap.Unload();
-
 }
 
 void SpawnWave1() {
@@ -293,6 +297,7 @@ void SpawnWave1() {
 
 	for (auto& enemy : Wave1) {
 		enemy->Init();
+		enemy->SetMap(&gameMap); // Enable enemy↔map collision
 	}
 
 };
@@ -317,6 +322,7 @@ void SpawnWave2() {
 
 	for (auto& enemy : Wave2) {
 		enemy->Init();
+		enemy->SetMap(&gameMap); // Enable enemy↔map collision
 	}
 
 };

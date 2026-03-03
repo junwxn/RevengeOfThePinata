@@ -5,6 +5,7 @@
 #include "Combat.h"
 #include "Colors.h"
 #include "MathFunctions.h"
+#include "Map.h"
 
 std::ostream& operator<<(std::ostream& os, PlayerState const& ps)
 {
@@ -402,16 +403,39 @@ void Player::Update(float dt, Combat::System& combat, std::vector<std::unique_pt
                 blinkDist = (moveX != 0) ? GRID_W : GRID_H;
             }
 
-            // Apply Dash Position
-            m_PosX += dirX * blinkDist;
-            m_PosY += dirY * blinkDist;
+            // Dash uses the same collision resolution as walking, stepped in
+            // small increments along the path so the player can't tunnel
+            // through thin walls.  If a step is blocked the player stops at
+            // the last clear position (wall-sliding still applies per step).
+            float dashVelX = dirX * blinkDist;
+            float dashVelY = dirY * blinkDist;
+            if (m_pMap) {
+                const int steps = (int)(blinkDist / 16.0f) + 1;
+                float stepVelX = dashVelX / steps;
+                float stepVelY = dashVelY / steps;
+                for (int i = 0; i < steps; ++i) {
+                    float prevX = m_PosX, prevY = m_PosY;
+                    ResolveCollision(m_PosX, m_PosY, stepVelX, stepVelY, m_Size, *m_pMap);
+                    // If this step made no progress, stop early.
+                    if (m_PosX == prevX && m_PosY == prevY) break;
+                }
+            } else {
+                m_PosX += dashVelX;
+                m_PosY += dashVelY;
+            }
 
             m_DashCooldown = m_DashCooldown_Default;
         }
 
-        // --- 5. Apply Velocity ---
-        m_PosX += dirX * m_Speed * dt;
-        m_PosY += dirY * m_Speed * dt;
+        // --- 5. Apply Velocity with isometric wall-sliding collision ---
+        float velX = dirX * m_Speed * dt;
+        float velY = dirY * m_Speed * dt;
+        if (m_pMap) {
+            ResolveCollision(m_PosX, m_PosY, velX, velY, m_Size, *m_pMap);
+        } else {
+            m_PosX += velX;
+            m_PosY += velY;
+        }
     }
 }
 

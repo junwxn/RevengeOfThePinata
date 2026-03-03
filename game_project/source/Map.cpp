@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "Map.h"
+#include <cmath>
 
 void MapSystem::QueueLayer(std::string const& layerName, std::vector<RenderNode>& renderQueue) {
     if (!m_currentMap || !m_tilesetTex) return;
@@ -181,4 +182,162 @@ unsigned MapSystem::GetMapHeight() const {
         return m_currentMap->getHeight();
     }
     return 0;
+}
+
+void MapSystem::BuildCollisionGrid(std::string const& collisionLayerName) {
+    if (!m_currentMap) return;
+
+    TMXTileLayer* layer = m_currentMap->getLayer(collisionLayerName);
+    if (!layer) return;
+
+    m_gridWidth  = layer->getWidth();
+    m_gridHeight = layer->getHeight();
+
+    auto tiles = layer->getTiles(); // tiles[row][col], row 0 = top of map
+
+    m_collisionGrid.assign(m_gridHeight, std::vector<uint8_t>(m_gridWidth, 0));
+
+    for (unsigned row = 0; row < m_gridHeight; ++row)
+        for (unsigned col = 0; col < m_gridWidth; ++col)
+            m_collisionGrid[row][col] = (tiles[row][col] != 0) ? 1u : 0u;
+}
+
+bool MapSystem::isSolid(float worldX, float worldY) const {
+    if (m_collisionGrid.empty()) return false;
+
+    // --- Isometric inverse transform ---
+    //
+    // Rendering pipeline (Map.cpp Draw / QueueLayer):
+    //   For TMX cell (col, row):
+    //     renderX = (mapW - 1) - col
+    //     renderY = (mapH - 1) - row
+    //   Screen pos = GridToScreen(renderX - RENDER_OFFSET, renderY - RENDER_OFFSET)
+    //   GridToScreen(gx, gy):
+    //     sx = halfW * (gx - gy)
+    //     sy = halfH * (gx + gy)
+    //
+    // Inverse (sx, sy → gx, gy):
+    //   gx = (sx/halfW + sy/halfH) / 2
+    //   gy = (-sx/halfW + sy/halfH) / 2
+    //
+    // Left-anchor correction:
+    //   The tile mesh origin is the diamond's LEFT vertex, not its centre.
+    //   The visual centre of tile (col,row) maps to iso (n+0.5, m-0.5).
+    //   Therefore floor(gy) + 1 gives the correct TMX row after inversion.
+    //
+    // RENDER_OFFSET (10) must match the constant in Draw() and QueueLayer().
+
+    constexpr int   RENDER_OFFSET = 10;
+    const float halfW = GRID_W * 0.5f; // 55.5f
+    const float halfH = GRID_H * 0.5f; // 32.0f
+
+    const float isoX = (worldX / halfW + worldY / halfH) * 0.5f;
+    const float isoY = (-worldX / halfW + worldY / halfH) * 0.5f;
+
+    // floor + left-anchor +1 correction on the Y axis
+    const int tileX = static_cast<int>(std::floorf(isoX));
+    const int tileY = static_cast<int>(std::floorf(isoY)) + 1;
+
+    // Undo the render offset and the 180-degree flip to get TMX indices
+    const int renderX = tileX + RENDER_OFFSET;
+    const int renderY = tileY + RENDER_OFFSET;
+
+    const int tmxCol = static_cast<int>(m_gridWidth)  - 1 - renderX;
+    const int tmxRow = static_cast<int>(m_gridHeight) - 1 - renderY;
+
+    // Out-of-bounds treated as solid (entity cannot leave the map)
+    if (tmxCol < 0 || tmxRow < 0 ||
+        tmxCol >= static_cast<int>(m_gridWidth) ||
+        tmxRow >= static_cast<int>(m_gridHeight))
+        return true;
+
+    return m_collisionGrid[tmxRow][tmxCol] != 0;
+}
+
+// ---------------------------------------------------------------------------
+// ResolveCollision implementation
+// ---------------------------------------------------------------------------
+
+// Tests whether an axis-aligned bounding box centred at (cx, cy) with
+// half-extents (probeX, probeY) overlaps any solid tile.
+// Checks 9 sample points: centre, 4 cardinal edges, and 4 diagonal corners.
+// The cardinal probes are critical in isometric space because the diamond-shaped
+// tiles can slip between the four diagonal corners when approached head-on.
+static bool IsBoxSolid(float cx, float cy, float probeX, float probeY,
+                        const MapSystem& map)
+{
+    // Centre
+    if (map.isSolid(cx, cy)) return true;
+    // 4 cardinal edge midpoints
+    if (map.isSolid(cx + probeX, cy)) return true;
+    if (map.isSolid(cx - probeX, cy)) return true;
+    if (map.isSolid(cx, cy + probeY)) return true;
+    if (map.isSolid(cx, cy - probeY)) return true;
+    // 4 diagonal corners
+    if (map.isSolid(cx + probeX, cy + probeY)) return true;
+    if (map.isSolid(cx - probeX, cy + probeY)) return true;
+    if (map.isSolid(cx + probeX, cy - probeY)) return true;
+    if (map.isSolid(cx - probeX, cy - probeY)) return true;
+    return false;
+}
+
+void ResolveCollision(float& posX, float& posY,
+                      float velX, float velY,
+                      float radius,
+                      const MapSystem& map)
+{
+    // Probe half-extents sized to match the isometric entity ellipse.
+    // X: full radius covers the wide horizontal extent of the iso sprite.
+    // Y: squashed by the iso perspective ratio (GRID_H / GRID_W ≈ 0.58).
+    const float probeX = radius * 0.9f;
+    const float probeY = radius * (GRID_H / GRID_W) * 0.9f;
+
+    const float newX = posX + velX;
+    const float newY = posY + velY;
+
+    // Fast-path: full move is clear — apply it and return.
+    if (!IsBoxSolid(newX, newY, probeX, probeY, map)) {
+        posX = newX;
+        posY = newY;
+        return;
+    }
+
+    // Full move is blocked.  Test each screen axis independently against the
+    // ORIGINAL position so both checks are order-independent.
+    //   Screen-X slide → entity glides along the iso NE/SW wall face.
+    //   Screen-Y slide → entity glides along the iso NW/SE wall face.
+    const bool xClear = !IsBoxSolid(newX, posY, probeX, probeY, map);
+    const bool yClear = !IsBoxSolid(posX, newY, probeX, probeY, map);
+
+    if (xClear || yClear) {
+        if (xClear) posX = newX;
+        if (yClear) posY = newY;
+        return;
+    }
+
+    // Both screen-axis slides blocked.  Decompose velocity along the two
+    // isometric grid axes (NE and NW in screen space) and slide along
+    // whichever axis is clear.  This lets the player glide along iso walls
+    // even when moving in a pure cardinal screen direction.
+    const float halfW = GRID_W * 0.5f;
+    const float halfH = GRID_H * 0.5f;
+    const float isoLen = sqrtf(halfW * halfW + halfH * halfH);
+    const float neX = halfW / isoLen, neY = halfH / isoLen;   // NE axis unit
+    const float nwX = -halfW / isoLen, nwY = halfH / isoLen;  // NW axis unit
+
+    // Project velocity onto each iso axis
+    const float dotNE = velX * neX + velY * neY;
+    const float dotNW = velX * nwX + velY * nwY;
+
+    const float slideNE_posX = posX + dotNE * neX;
+    const float slideNE_posY = posY + dotNE * neY;
+    const float slideNW_posX = posX + dotNW * nwX;
+    const float slideNW_posY = posY + dotNW * nwY;
+
+    const bool neClear = !IsBoxSolid(slideNE_posX, slideNE_posY, probeX, probeY, map);
+    const bool nwClear = !IsBoxSolid(slideNW_posX, slideNW_posY, probeX, probeY, map);
+
+    if (neClear) { posX = slideNE_posX; posY = slideNE_posY; }
+    else if (nwClear) { posX = slideNW_posX; posY = slideNW_posY; }
+    // else: fully stuck against a corner, don't move
 }

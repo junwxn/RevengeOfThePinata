@@ -4,6 +4,7 @@
 #include "Player.h"
 #include "MathFunctions.h"
 #include "Utils.h"
+#include "Map.h"
 
 //std::ostream& operator<<(std::ostream& os, CombatOutcome outcome) {
 //    if (outcome == CombatOutcome::OUTCOME_HIT) return os << "OUTCOME_HIT";
@@ -176,11 +177,18 @@ void Walker::ChildUpdate(f32 dt, Combat::System& combat, Player const& player) {
     // Seek player
     if (!AreCirclesIntersecting(player.GetX(), player.GetY(), player.GetSize(),
                                 m_pos.x, m_pos.y, m_size)) {
-        AEVec2Scale(&enemyToPlayer, &enemyToPlayer, m_speed);
-        AEVec2Scale(&enemyToPlayer, &enemyToPlayer, dt);
+        if (!m_CombatFlags.stunned) {
+            float velX = enemyToPlayer.x * m_speed * dt;
+            float velY = enemyToPlayer.y * m_speed * dt;
 
-        // Move enemy towards player
-        if(!m_CombatFlags.stunned) AEVec2Add(&m_pos, &m_pos, &enemyToPlayer);
+            if (m_pMap) {
+                // Resolve against the isometric collision grid with wall-sliding.
+                ResolveCollision(m_pos.x, m_pos.y, velX, velY, m_size, *m_pMap);
+            } else {
+                m_pos.x += velX;
+                m_pos.y += velY;
+            }
+        }
     }
 }
 

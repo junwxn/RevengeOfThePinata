@@ -6,6 +6,8 @@
 #include "Combat.h"
 #include "Enemy.h"
 
+class MapSystem; // Forward-declare to avoid a circular header chain
+
 //-----------------------//
 //---- Player States ----//
 //-----------------------//
@@ -74,20 +76,23 @@ public:
     void SetAimAngle(float angle) { m_AimAngle = angle; }
     void SetHDP(f32 dmg) { m_healthDepletionPercentage += dmg; }
 
+    // Call once after the map is loaded so the player can self-resolve wall collisions.
+    void SetMap(const MapSystem* map) { m_pMap = map; }
+
 private:
     Combat::System combatSystem;
 
 
     // Position & Stats
-    float m_PosX, m_PosY;
-    float m_Speed;
-    float m_Size;
-    f32 m_healthDepletionPercentage;
-    PlayerState m_CurrentState;
+    float m_PosX{}, m_PosY{};
+    float m_Speed{};
+    float m_Size{};
+    f32 m_healthDepletionPercentage{};
+    PlayerState m_CurrentState{};
 
     // Dash Logic
-    float m_DashCooldown;
-    float m_DashCooldown_Default;
+    float m_DashCooldown{};
+    float m_DashCooldown_Default{};
 
     // Visual Assets
     AEGfxVertexList* m_pMesh = nullptr;
@@ -227,4 +232,7 @@ private:
     AEVec2 m_VectorNormalizedMP{};
     AEVec2 m_AimVector{};
     f32 m_AimAngle{};
+
+    // Non-owning pointer to the active map; set via SetMap().
+    const MapSystem* m_pMap = nullptr;
 };

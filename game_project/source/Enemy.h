@@ -3,6 +3,8 @@
 #include "Combat.h"
 #include "Player.h"
 
+class MapSystem; // Forward-declare to avoid a circular header chain
+
 // ----------------
 // | Enemy States |
 // ----------------
@@ -76,6 +78,9 @@ public:
     // Combat -------------------------
     void DeductHealth(f32 damage) { m_CombatStats.health -= damage; }
 
+    // Call once after the map is loaded so enemies can self-resolve wall collisions.
+    void SetMap(const MapSystem* map) { m_pMap = map; }
+
 protected:
     // Enemy stats --------------------
     AEVec2 m_pos{};
@@ -145,6 +150,9 @@ protected:
     AEVec2 m_VectorNormalizedPE{};
     AEVec2 m_AimVector{};
     f32 m_AimAngle{};
+
+    // Non-owning pointer to the active map; set via SetMap().
+    const MapSystem* m_pMap = nullptr;
 
     void BaseUpdate(f32 dt, Combat::System& combat, Player const& player);
     virtual void ChildUpdate(f32 dt, Combat::System& combat, Player const& player) = 0;
