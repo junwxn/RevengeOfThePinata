@@ -164,17 +164,20 @@ protected:
     int m_AttackTotalFrames{ m_AttackStartUpFrames + m_AttackActiveFrames + m_AttackRecoveryFrames };
     int m_Damage{ 20 };
     Combat::CombatData::AttackData m_AttackData
-    {   
-        m_StartDegree,
-        m_EndDegree,
-        m_Recovered,
-        m_AttackStartUpFrames, 
-        m_AttackActiveFrames, 
-        m_AttackRecoveryFrames,
-        m_Damage
+    {
+        m_StartDegree,           // startAngle
+        m_EndDegree,             // endAngle
+        m_AttackStartUpFrames,   // startUp
+        m_AttackActiveFrames,    // active
+        m_AttackRecoveryFrames,  // recovery
+        m_AttackTotalFrames,     // total
+        m_Damage                 // damage
     };
 
     // Damage Logic -------------------
+
+    // Direction towards player -------
+    AEVec2 m_enemyToPlayerDir{};
 
     // Mouse Aiming -------------------
     f32 m_DistMagPE{};

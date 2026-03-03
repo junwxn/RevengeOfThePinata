@@ -179,7 +179,6 @@ void Enemy::DamageInfo() {
  //-----------------------
 void Walker::ChildUpdate(f32 dt, Combat::System& combat, Player const& player) {
     AEVec2 playerPos{ player.GetX(), player.GetY() };
-    //AEVec2 enemyToPlayer;
     AEVec2Sub(&m_enemyToPlayerDir, &playerPos, &m_pos);
     AEVec2Normalize(&m_enemyToPlayerDir, &m_enemyToPlayerDir);
 
@@ -189,16 +188,14 @@ void Walker::ChildUpdate(f32 dt, Combat::System& combat, Player const& player) {
     // Seek player
     if (!AreCirclesIntersecting(player.GetX(), player.GetY(), player.GetSize(),
                                 m_pos.x, m_pos.y, m_size)) {
-        AEVec2Scale(&enemyToPlayer, &enemyToPlayer, m_speed);
-        AEVec2Scale(&enemyToPlayer, &enemyToPlayer, dt);
+        float velX = m_enemyToPlayerDir.x * m_speed * dt;
+        float velY = m_enemyToPlayerDir.y * m_speed * dt;
 
-            if (m_pMap) {
-                // Resolve against the isometric collision grid with wall-sliding.
-                ResolveCollision(m_pos.x, m_pos.y, velX, velY, m_size, *m_pMap);
-            } else {
-                m_pos.x += velX;
-                m_pos.y += velY;
-            }
+        if (m_pMap) {
+            ResolveCollision(m_pos.x, m_pos.y, velX, velY, m_size, *m_pMap);
+        } else {
+            m_pos.x += velX;
+            m_pos.y += velY;
         }
     }
 }
