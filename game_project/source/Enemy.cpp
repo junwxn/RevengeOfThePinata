@@ -89,7 +89,7 @@ void Enemy::BaseUpdate(f32 dt, Combat::System& combat, Player const& player) {
             if (knockbackSpeed > WALL_DAMAGE_SPEED_THRESHOLD) {
                 float wallDamage = m_CombatStats.maxHealth * 0.1f;
                 m_CombatStats.health -= wallDamage;
-                m_healthDepletionPercentage += wallDamage;
+                m_healthDepletionPercentage += wallDamage * 3.0f;
             }
 
             // Use ResolveCollision to find a safe final position (prevents clipping)
