@@ -52,9 +52,51 @@ void Enemy::BaseUpdate(f32 dt, Combat::System& combat, Player const& player) {
 
     //std::cout << "BASE RUNNING" << std::endl;
 
+    // --- Knockback with wall-bounce ---
     AEVec2 frameMove;
     AEVec2Scale(&frameMove, &m_KnockbackVelocity, dt);
-    AEVec2Add(&m_pos, &m_pos, &frameMove);
+
+    float knockbackSpeed = AEVec2Length(&m_KnockbackVelocity);
+
+    if (!m_pMap || knockbackSpeed < 1.0f) {
+        // No map or negligible knockback — just apply raw move
+        AEVec2Add(&m_pos, &m_pos, &frameMove);
+    }
+    else {
+        float newX = m_pos.x + frameMove.x;
+        float newY = m_pos.y + frameMove.y;
+
+        if (!m_pMap->IsPositionBlocked(newX, newY, m_size)) {
+            // Full move is clear
+            m_pos.x = newX;
+            m_pos.y = newY;
+        }
+        else {
+            // Wall hit — check which axes are blocked and reflect them
+            bool xBlocked = m_pMap->IsPositionBlocked(m_pos.x + frameMove.x, m_pos.y, m_size);
+            bool yBlocked = m_pMap->IsPositionBlocked(m_pos.x, m_pos.y + frameMove.y, m_size);
+
+            if (xBlocked) m_KnockbackVelocity.x *= -0.5f;
+            if (yBlocked) m_KnockbackVelocity.y *= -0.5f;
+            if (!xBlocked && !yBlocked) {
+                // Corner case: both axes clear individually but diagonal blocked
+                m_KnockbackVelocity.x *= -0.5f;
+                m_KnockbackVelocity.y *= -0.5f;
+            }
+
+            // Wall-impact damage: only on a real slam (speed > 500)
+            constexpr float WALL_DAMAGE_SPEED_THRESHOLD = 500.0f;
+            if (knockbackSpeed > WALL_DAMAGE_SPEED_THRESHOLD) {
+                float wallDamage = m_CombatStats.maxHealth * 0.1f;
+                m_CombatStats.health -= wallDamage;
+                m_healthDepletionPercentage += wallDamage * 3.0f;
+            }
+
+            // Use ResolveCollision to find a safe final position (prevents clipping)
+            ResolveCollision(m_pos.x, m_pos.y, frameMove.x, frameMove.y, m_size, *m_pMap);
+        }
+    }
+
     AEVec2Scale(&m_KnockbackVelocity, &m_KnockbackVelocity, 0.85f);
 
     // Only use for single enemy
