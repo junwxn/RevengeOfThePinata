@@ -3,6 +3,7 @@
 #include "Combat.h"
 #include "Player.h"
 #include "Enemy.h"
+#include "Camera.h"
 #include "MathFunctions.h"
 
 static std::ostream& operator<<(std::ostream& os, CombatOutcome outcome) {
@@ -10,6 +11,10 @@ static std::ostream& operator<<(std::ostream& os, CombatOutcome outcome) {
 	else if (outcome == CombatOutcome::OUTCOME_BLOCKED) return os << "OUTCOME_BLOCKED";
 	else if (outcome == CombatOutcome::OUTCOME_PARRIED) return os << "OUTCOME_PARRIED";
 	return os << static_cast<int>(outcome);
+}
+
+static std::ostream& operator<<(std::ostream& os, AEVec2 vector) {
+	return os << vector.x << " " << vector.y << std::endl;
 }
 
 namespace Combat {
@@ -24,23 +29,60 @@ namespace Combat {
 		return defender.GetCombatFlag().blockOn ? damageDealt / 2 : damageDealt;
 	}
 
-	void System::Update(Player& player, Enemy& enemy, float dt) {
+	void System::Update(Player& player, Enemy& enemy, Camera& camera, float dt) {
 			
-		if (enemy.IsStunned()) {
-			
-			stunFrameAccumulator += dt;
-			
-			while (stunFrameAccumulator >= ONE_FRAME)
+		//if (enemy.IsStunned()) {
+		//	
+		//	stunFrameAccumulator += dt;
+		//	
+		//	while (stunFrameAccumulator >= ONE_FRAME)
+		//	{
+		//		++stunCurrentFrame;
+		//		stunFrameAccumulator -= ONE_FRAME;
+		//	}
+
+		//	if (stunCurrentFrame >= stunRecoveryFrames) {
+		//		enemy.ResetStunFlag();
+		//		stunCurrentFrame = 0;
+		//	}
+		//	return;
+		//}
+
+		if (enemy.IsGotHit()) 
+		{
+			camera.SetScreenShakeTimer(0.5f);
+			defenderFrameAccumulator += dt;
+			while (defenderFrameAccumulator >= ONE_FRAME)
 			{
-				++stunCurrentFrame;
-				stunFrameAccumulator -= ONE_FRAME;
+				++defenderCurrentFrame;
+				defenderFrameAccumulator -= ONE_FRAME;
 			}
 
-			if (stunCurrentFrame >= stunRecoveryFrames) {
-				enemy.ResetStunFlag();
-				stunCurrentFrame = 0;
+			if (defenderCurrentFrame >= defenderStopFrames)
+			{
+				ApplyKnockbackReaction_Enemy(player, enemy, 2000.0);
+				enemy.ResetGotHitFlag();
+				defenderCurrentFrame = 0;
 			}
-			return;
+		}
+
+		if (enemy.IsParried())
+		{
+			camera.SetScreenShakeTimer(1.0f);
+			parryFrameAccumulator += dt;
+			std::cout << parryFrameAccumulator << std::endl;
+			while (parryFrameAccumulator >= ONE_FRAME)
+			{
+				++parryCurrentFrame;
+				parryFrameAccumulator -= ONE_FRAME;
+			}
+
+			if (parryCurrentFrame >= parryStopFrames)
+			{
+				ApplyKnockbackReaction_Enemy(player, enemy, 2500.0);
+				enemy.ResetParryFlag();
+				parryCurrentFrame = 0;
+			}
 		}
 
 		if (enemy.IsAttacking() && !enemy.GetCombatFlag().attackResolved) {
@@ -51,12 +93,12 @@ namespace Combat {
 			switch (outcome)
 			{
 			case CombatOutcome::OUTCOME_PARRIED:
+				std::cout << "IN PARRY" << std::endl;
 				player.GainAttackCharge();
-				ApplyParryReaction_Enemy(enemy);
+				//ApplyKnockbackReaction_Enemy(player, enemy, 4000.0);
 				enemy.SetParried(true);
-				enemy.SetStunned(true);
-				std::cout << "Attack Charges: " << player.GetAttackCharges() << std::endl;
-
+				enemy.MarkAttackResolved();
+				//std::cout << "Attack Charges: " << player.GetAttackCharges() << std::endl;
 				break;
 
 			case CombatOutcome::OUTCOME_BLOCKED:
@@ -89,18 +131,54 @@ namespace Combat {
 	}
 
 	bool System::IsEnemyInRange(const Player& player, const Enemy& enemy) const {
-		// Direction vector / Forward vector
-		AEVec2 s_VectorToEnemy = { enemy.GetX() - player.GetX(), enemy.GetY() - player.GetY() };
+		//// Direction vector / Forward vector
+		//AEVec2 s_VectorToEnemy = { enemy.GetX() - player.GetX(), enemy.GetY() - player.GetY() };
 
-		double s_DistMagPE = Vectors::magnitude(s_VectorToEnemy.x, s_VectorToEnemy.y); // Dist between mouse and player
-		// Normalize vectors (To get direction)
-		AEVec2 s_VectorNormalizedToEnemy = Vectors::normalize(s_DistMagPE, s_VectorToEnemy.x, s_VectorToEnemy.y); // Normalized vector between mouse and player
+		//double s_DistMagPE = Vectors::magnitude(s_VectorToEnemy.x, s_VectorToEnemy.y); // Dist between mouse and player
+		//// Normalize vectors (To get direction)
+		//AEVec2 s_VectorNormalizedToEnemy = Vectors::normalize(s_DistMagPE, s_VectorToEnemy.x, s_VectorToEnemy.y); // Normalized vector between mouse and player
 
-		f32 dotProduct = (player.GetNormalizedVector().x * s_VectorNormalizedToEnemy.x 
-			+ player.GetNormalizedVector().y * s_VectorNormalizedToEnemy.y);
+		//f32 dotProduct = (player.GetNormalizedVector().x * s_VectorNormalizedToEnemy.x 
+		//	+ player.GetNormalizedVector().y * s_VectorNormalizedToEnemy.y);
 
-		return s_DistMagPE <= player.GetAttackRange() &&
-			dotProduct >= player.GetConeThreshold();
+		//return s_DistMagPE <= player.GetAttackRange() &&
+		//	dotProduct >= player.GetConeThreshold();
+
+		double dx = enemy.GetX() - player.GetX();
+		double dy = enemy.GetY() - player.GetY();
+
+		double dist = Vectors::magnitude(dx, dy);
+
+		// Outside attack radius
+		if (dist > player.GetAttackRange())
+			return false;
+
+		// Angle to enemy
+		float enemyAngle = atan2f(dy, dx);
+
+		float start = player.GetStartAngle();
+		float current = player.GetCurrentAngle();
+
+		auto Normalize = [](float a)
+			{
+				while (a > PI)  a -= 2.0f * PI;
+				while (a < -PI) a += 2.0f * PI;
+				return a;
+			};
+
+		enemyAngle = Normalize(enemyAngle);
+		start = Normalize(start);
+		current = Normalize(current);
+
+		// Handle sweep direction
+		if (start < current)
+		{
+			return enemyAngle >= start && enemyAngle <= current;
+		}
+		else
+		{
+			return enemyAngle <= start && enemyAngle >= current;
+		}
 	}
 
 	bool System::isPlayerParrying(const Player& player, const Enemy& enemy) const {
@@ -116,14 +194,35 @@ namespace Combat {
 		return CombatOutcome::OUTCOME_HIT;
 	}
 
-	void System::ApplyParryReaction_Enemy(Enemy& enemy) {
-		ColorIndicator(enemy, 255, 255, 0, 1);
-		enemy.SetPosition(enemy.GetX() + 50.0f, enemy.GetY()); // Knock enemy back
-	}
+	//void System::ApplyParryReaction_Enemy(Player& player, Enemy& enemy) {
+	//	ColorIndicator(enemy, 255, 255, 0, 1);
+	//	AEVec2 knockbackDir{ enemy.GetX() - player.GetX(), enemy.GetY() - player.GetY() };
+	//	AEVec2Normalize(&knockbackDir, &knockbackDir);
+	//	AEVec2Scale(&knockbackDir, &knockbackDir, 500.0);
+	//	enemy.SetKnockbackVelocity(knockbackDir);
+	//}
 
 	void System::ApplyBlockReaction_Enemy(Player& player, Enemy& enemy) {
 		player.SetPosition(player.GetX() - 5.0f, player.GetY()); // Knock defender back
 		player.DeductHealth(ComputeDamage(enemy, player));
+	}
+
+	//void System::ApplyGotHitReaction_Enemy(Player& player, Enemy& enemy)
+	//{
+	//	AEVec2 knockbackDir{ enemy.GetX() - player.GetX(), enemy.GetY() - player.GetY() };
+	//	AEVec2Normalize(&knockbackDir, &knockbackDir);
+	//	AEVec2Scale(&knockbackDir, &knockbackDir, 500.0);
+	//	enemy.SetKnockbackVelocity(knockbackDir);
+	//	//std::cout << enemy.GetEnemyDirectionVector();
+	//}
+
+	void System::ApplyKnockbackReaction_Enemy(Player& player, Enemy& enemy, double multiplier)
+	{
+		AEVec2 knockbackDir{ enemy.GetX() - player.GetX(), enemy.GetY() - player.GetY() };
+		AEVec2Normalize(&knockbackDir, &knockbackDir);
+		AEVec2Scale(&knockbackDir, &knockbackDir, multiplier);
+		enemy.SetKnockbackVelocity(knockbackDir);
+		std::cout << "KNOCKBACK!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl;
 	}
 
 	void System::ApplyDamage(Player& player, Enemy& enemy) {
@@ -138,25 +237,25 @@ namespace Combat {
 	}
 
 
-	void System::Resolve(Player& player, Enemy& enemy, CombatOutcome outcome) {
-		switch (outcome) 
-		{
-			case CombatOutcome::OUTCOME_PARRIED:
-				ApplyParryReaction_Enemy(enemy);
-				player.GainAttackCharge();
-				enemy.ResetParryFlag();
-				enemy.MarkAttackResolved();
-				break;
+	//void System::Resolve(Player& player, Enemy& enemy, CombatOutcome outcome) {
+	//	switch (outcome) 
+	//	{
+	//		case CombatOutcome::OUTCOME_PARRIED:
+	//			ApplyKnockbackReaction_Enemy(player, enemy);
+	//			player.GainAttackCharge();
+	//			enemy.ResetParryFlag();
+	//			enemy.MarkAttackResolved();
+	//			break;
 
-			case CombatOutcome::OUTCOME_BLOCKED:
-				ApplyBlockReaction_Enemy(player, enemy);
-				enemy.MarkAttackResolved();
-				break;
+	//		case CombatOutcome::OUTCOME_BLOCKED:
+	//			ApplyBlockReaction_Enemy(player, enemy);
+	//			enemy.MarkAttackResolved();
+	//			break;
 
-			case CombatOutcome::OUTCOME_HIT:
-				ApplyDamage(player, enemy);
-				enemy.MarkAttackResolved();
-				break;
-		}
-	}
+	//		case CombatOutcome::OUTCOME_HIT:
+	//			ApplyDamage(player, enemy);
+	//			enemy.MarkAttackResolved();
+	//			break;
+	//	}
+	//}
 }

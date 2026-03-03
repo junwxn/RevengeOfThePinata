@@ -36,18 +36,24 @@ public:
     f32 GetX() const { return m_pos.x; }
     f32 GetY() const { return m_pos.y; }
     f32 GetSize() const { return m_size; }
+    AEVec2 GetEnemyPosition() const { return m_pos; }
 
     AEVec2 GetNormalizedVector() const { return m_VectorNormalizedPE; }
     f32 GetDistMag() const { return m_DistMagPE; }
     AEVec2 GetAimVector() const { return m_AimVector; }
     f32 GetAimAngle() const { return m_AimAngle; }
+    AEVec2 GetEnemyDirectionVector() const { return m_enemyToPlayerDir; }
 
     bool IsAttacking() const { return m_AttackActive; }
     bool IsStunned() const { return m_CombatFlags.stunned; }
+    bool IsParried() const { return m_CombatFlags.parried; }
+    bool IsGotHit() const { return m_CombatFlags.gotHit; }
     bool CanAttack() const { return m_AllowAttack; }
     f32 GetAttackRange() const { return m_AttackRange; }
     f32 GetConeThreshold() const { return m_ConeThreshold; }
     f32 GetAttackProgress() const { return m_attackProgress; }
+    int GetLastAttackID() const { return m_LastAttackID; }
+
 
     AEGfxVertexList* GetEnemyMesh() const { return m_enemyMesh; }
 
@@ -58,12 +64,17 @@ public:
     void SetPosition(f32 x, f32 y) { m_pos.x = x; m_pos.y = y; }
     void SetAimVector(f32 x, f32 y) { m_AimVector.x = x, m_AimVector.y = y; }
     void SetAimAngle(f32 angle) { m_AimAngle = angle; }
+    void SetKnockback(AEVec2 knockbackVec) { AEVec2Add(&m_pos, &m_pos, &knockbackVec); }
+    void SetKnockbackVelocity(AEVec2 setVelocity) { m_KnockbackVelocity = setVelocity; }
+    void SetLastAttackID(int newID) { m_LastAttackID = newID; }
 
     // Flag Setters
     void SetParried(bool set) { m_CombatFlags.parried = set; }
     void SetStunned(bool set) { m_CombatFlags.stunned = set; }
+    void SetGotHit(bool set) { m_CombatFlags.gotHit = set; }
     void ResetParryFlag() { m_CombatFlags.parried = false; }
     void ResetStunFlag() { m_CombatFlags.stunned = false; }
+    void ResetGotHitFlag() { m_CombatFlags.gotHit = false; }
     
     void MarkAttackResolved() {
         m_CombatFlags.attackResolved = true;
@@ -83,8 +94,11 @@ protected:
     AEGfxVertexList* m_AttackRangeMesh{ nullptr };
 
     // Attack Logic -------------------
+    int m_LastAttackID{ -1 };
     bool  m_AttackActive{ false };
     bool  m_AllowAttack{ true };
+
+    AEVec2 m_KnockbackVelocity{};
 
     f32 m_AttackCooldown{};
     f32 m_AttackDuration{ 0.15f };
@@ -100,7 +114,22 @@ protected:
 
     Combat::System m_CombatSystem;
     Combat::CombatStats m_CombatStats{ 10.0f, 5.0f };
-    Combat::CombatFlags m_CombatFlags{ false, false, false, false, false, false, false, false, false };
+    Combat::CombatFlags m_CombatFlags
+    { 
+        false, 
+        false, 
+        false, 
+        false, 
+        false, 
+        false, 
+        false, 
+        false, 
+        false, 
+        false 
+    };
+
+    int m_AttackStopFrames{};
+    int m_DefendStopFrames{};
     
     float m_AttackFrameAccumulator{};
     int m_AttackCurrentFrame{};
@@ -125,12 +154,14 @@ protected:
     };
 
     // Damage Logic -------------------
-    
+
     // Mouse Aiming -------------------
     f32 m_DistMagPE{};
     AEVec2 m_VectorNormalizedPE{};
     AEVec2 m_AimVector{};
     f32 m_AimAngle{};
+
+    AEVec2 m_enemyToPlayerDir{};
 
     void BaseUpdate(f32 dt, Combat::System& combat, Player const& player);
     virtual void ChildUpdate(f32 dt, Combat::System& combat, Player const& player) = 0;

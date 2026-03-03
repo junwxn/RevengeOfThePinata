@@ -29,16 +29,17 @@ public:
     void Free();
 
     bool IsAttacking() const { return m_AttackActive; }
-    void StartAttack(Combat::CombatData::AttackData&);
+    void StartAttack(Combat::CombatData::AttackData&, std::vector<std::unique_ptr<Enemy>> const&);
 
     bool IsBlocking() const { return m_BlockActive; }
-    void StartBlock(Combat::CombatData::BlockData&);
+    void StartBlock(Combat::CombatData::BlockData&, std::vector<std::unique_ptr<Enemy>> const&);
 
     void GainAttackCharge() {
         ++m_AttackCharges;
         if (m_AttackCharges > m_MaxAttackCharge) {
             m_AttackCharges = m_MaxAttackCharge;
         }
+        std::cout << "Attack Charges: " << m_AttackCharges << std::endl;
     }
 
     void ResetCombatVariables();
@@ -58,6 +59,8 @@ public:
 
     f32 GetAttackRange() const { return m_AttackRange; }
     f32 GetConeThreshold() const { return m_ConeThreshold; }
+    f32 GetStartAngle() const { return m_StartAngle; }
+    f32 GetCurrentAngle() const { return m_CurrentAngle; }
 
     bool GetBlockStatus() const { return m_BlockActive; }
     bool GetParryStatus() const { return m_ParryActive; }
@@ -77,14 +80,14 @@ private:
     Combat::System combatSystem;
 
     // Position & Stats
-    float m_PosX, m_PosY;
-    float m_Speed;
-    float m_Size;
+    float m_PosX{}, m_PosY{};
+    float m_Speed{};
+    float m_Size{};
     PlayerState m_CurrentState;
 
     // Dash Logic
-    float m_DashCooldown;
-    float m_DashCooldown_Default;
+    float m_DashCooldown{};
+    float m_DashCooldown_Default{};
 
     // Visual Assets
     AEGfxVertexList* m_pMesh = nullptr;
@@ -106,9 +109,13 @@ private:
       true,  // blockedResolved
       false  // attackQueued
     };
+    int m_AttackStopFrames{};
+    int m_ParryStopFrames{};
+    int m_DefendStopFrames{};
 
     // Attack Logic
     // --------------------
+    int m_AttackID{};
     bool  m_AttackActive = false;
     bool  m_AllowAttack = true;
 

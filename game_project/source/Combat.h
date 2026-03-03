@@ -3,6 +3,7 @@
 
 class Player;
 class Enemy;
+class Camera;
 
 enum class CombatOutcome {
     OUTCOME_NONE,
@@ -36,6 +37,8 @@ namespace Combat {
         bool blockResolved;
 
         bool attackQueued;
+
+        bool gotHit;
     };
 
     struct CombatData {
@@ -89,15 +92,13 @@ namespace Combat {
         };
     };
 
-
-
     f32 ComputeDamage(Player& attacker, Enemy& defender);
     f32 ComputeDamage(Enemy& attacker, Player& defender);
 
     class System 
     {
         public:
-            void Update(Player& player, Enemy& enemy, float dt);
+            void Update(Player& player, Enemy& enemy, Camera& camera, float dt);
             void Resolve(Player& player, Enemy& enemy, CombatOutcome outcome);
             bool CanStartAttack_Enemy(const Player& player, const Enemy& enemy) const;
             bool IsEnemyInRange(const Player& player, const Enemy& enemy) const;
@@ -105,8 +106,10 @@ namespace Combat {
             CombatOutcome EvaluateAttack(const Player& player, const Enemy& enemy, float attackProgress) const;
 
             // Combat
-            void ApplyParryReaction_Enemy(Enemy& enemy);
+            //void ApplyParryReaction_Enemy(Enemy& enemy);
             void ApplyBlockReaction_Enemy(Player& player, Enemy& enemy);
+            //void ApplyGotHitReaction_Enemy(Player& player, Enemy& enemy);
+            void ApplyKnockbackReaction_Enemy(Player& player, Enemy& enemy, double multiplier);
             void ApplyDamage(Player& player, Enemy& enemy);
             void ColorIndicator(Enemy& enemy, f32 r, f32 g, f32 b, f32 a);
             double const GetOneFPS() const { return ONE_FRAME; };
@@ -116,6 +119,9 @@ namespace Combat {
             //f32 GetDistMagPE() const { return s_DistMagPE; }
             //AEVec2 GetVectorNormalizedPE() const { return s_VectorNormalizedPE; }
             //f32 GetDotProduct() const { return s_DotProduct; }
+            int const GetAttackerStopFrames() const { return attackerStopFrames; };
+            int const GetDefenderStopFrames() const { return defenderStopFrames; };
+            int const GetParryStopFrames() const { return parryStopFrames; };
 
         private:
             bool m_InRange { false };
@@ -127,6 +133,17 @@ namespace Combat {
             Combat::CombatData::StunData stunFrames{ stunRecoveryFrames };
             
             f32 stunDuration{ 2.0f };
+
+            int attackerStopFrames{ 4 };
+
+            f32 parryFrameAccumulator{};
+            int parryCurrentFrame{};
+            int parryStopFrames{ 4 };
+
+            f32 defenderFrameAccumulator{};
+            int defenderCurrentFrame{};
+            int defenderStopFrames{ 10 };
+
             CombatOutcome outcome{ CombatOutcome::OUTCOME_NONE };
             static double const ONE_FRAME;
     };

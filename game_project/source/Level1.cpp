@@ -81,7 +81,7 @@ void Level1_Update(float dt) {
 	if (wave1Active) {
 		for (auto& enemy : Wave1) {
 			enemy->Update(dt, CombatSystem, player);
-			CombatSystem.Update(player, *enemy, dt);
+			CombatSystem.Update(player, *enemy, camera, dt);
 		}
 
 		for (auto& enemy : Wave2) {
@@ -97,7 +97,7 @@ void Level1_Update(float dt) {
 	if (wave2Active) {
 		for (auto& enemy : Wave2) {
 			enemy->Update(dt, CombatSystem, player);
-			CombatSystem.Update(player, *enemy, dt);
+			CombatSystem.Update(player, *enemy, camera, dt);
 		}
 
 		for (auto& enemy : Wave2) {
