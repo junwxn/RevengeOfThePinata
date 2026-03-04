@@ -312,8 +312,8 @@ void ResolveCollision(float& posX, float& posY,
     // ORIGINAL position so both checks are order-independent.
     //   Screen-X slide → entity glides along the iso NE/SW wall face.
     //   Screen-Y slide → entity glides along the iso NW/SE wall face.
-    const bool xClear = !IsBoxSolid(newX, posY, probeX, probeY, map);
-    const bool yClear = !IsBoxSolid(posX, newY, probeX, probeY, map);
+    const bool xClear = (velX != 0.0f) && !IsBoxSolid(newX, posY, probeX, probeY, map);
+    const bool yClear = (velY != 0.0f) && !IsBoxSolid(posX, newY, probeX, probeY, map);
 
     if (xClear || yClear) {
         if (xClear) posX = newX;
