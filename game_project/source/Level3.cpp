@@ -366,6 +366,7 @@ void Level3_Free() {
 	Wave2.clear();
 	Wave3.clear();
 	player.Free();
+	augments.Free();
 }
 
 void Level3_Unload() {

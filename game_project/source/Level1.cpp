@@ -390,6 +390,7 @@ void Level1_Free() {
 	Wave1.clear();
 	Wave2.clear();
 	player.Free();
+	augments.Free();
 }
 void Level1_Unload() {
 	if (TexBlock)  { AEGfxTextureUnload(TexBlock);  TexBlock  = nullptr; }

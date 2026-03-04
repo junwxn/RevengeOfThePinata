@@ -539,12 +539,18 @@ void Player::Draw()
 
 void Player::Free()
 {
-    if (m_pMesh)
+    if (m_pMesh) {
         AEGfxMeshFree(m_pMesh);
-    if (m_AttackRangeMesh)
+        m_pMesh = nullptr;
+    }
+    if (m_AttackRangeMesh) {
         AEGfxMeshFree(m_AttackRangeMesh);
-    if (m_BlockRangeMesh)
+        m_AttackRangeMesh = nullptr;
+    }
+    if (m_BlockRangeMesh) {
         AEGfxMeshFree(m_BlockRangeMesh);
+        m_BlockRangeMesh = nullptr;
+    }
     if (m_playerHealthBarMesh) {
         AEGfxMeshFree(m_playerHealthBarMesh);
         m_playerHealthBarMesh = nullptr;

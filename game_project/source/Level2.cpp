@@ -319,6 +319,7 @@ void Level2_Free() {
 	Wave1.clear();
 	Wave2.clear();
 	player.Free();
+	augments.Free();
 }
 
 void Level2_Unload() {

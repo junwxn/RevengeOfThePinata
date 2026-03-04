@@ -188,7 +188,14 @@ void Augments::DrawShadow(f32 dt) {
 }
 
 void Augments::Free() {
-
+	if (augmentMesh) {
+		AEGfxMeshFree(augmentMesh);
+		augmentMesh = nullptr;
+	}
+	if (cardMesh) {
+		AEGfxMeshFree(cardMesh);
+		cardMesh = nullptr;
+	}
 }
 
 void Augments::Reset() {
