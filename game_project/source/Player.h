@@ -6,6 +6,7 @@
 #include "Combat.h"
 #include "Enemy.h"
 #include "Augments.h"
+#include "AugmentData.h"
 class MapSystem; // Forward-declare to avoid a circular header chain
 
 
@@ -79,6 +80,20 @@ public:
     void SetAimVector(float x, float y) { m_AimVector.x = x, m_AimVector.y = y; }
     void SetAimAngle(float angle) { m_AimAngle = angle; }
     void SetHDP(f32 dmg) { m_healthDepletionPercentage += dmg; }
+
+    // Speed multiplier for augment effects
+    float m_SpeedMultiplier = 1.0f;
+    void SetSpeedMultiplier(float mult) { m_SpeedMultiplier = mult; }
+    void SetBlockFrames(int startup, int parry, int recovery) {
+        b_StartUpFrames = startup;
+        b_ParryFrames = parry;
+        b_RecoveryFrames = recovery;
+        b_TotalFrames = b_StartUpFrames + b_ParryFrames + b_RecoveryFrames;
+        m_BlockData = {
+            b_StartDegree, b_EndDegree,
+            b_StartUpFrames, b_ParryFrames, b_RecoveryFrames, b_TotalFrames, b_Block
+        };
+    }
 
     // Call once after the map is loaded so the player can self-resolve wall collisions.
     void SetMap(const MapSystem* map) { m_pMap = map; }

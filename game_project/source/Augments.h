@@ -1,9 +1,12 @@
 #pragma once
 #include "Utils.h" // Access to AE system and Grid constants
+#include "AugmentData.h"
 
 class Augments
 {
 public:
+    void SetAugmentSet(AugmentSet set);
+
     void Init();
     void Update(f32 playerX, f32 playerY, f32 dt, f32 cameraX, f32 cameraY);
     void Draw(f32 playerX, f32 playerY);
@@ -49,7 +52,11 @@ private:
 
     bool startingAnimation = true;
 
+    AugmentSet m_currentSet = AugmentSet::SET_DASH;
+    AugmentID m_cardIDs[3] = { AugmentID::NONE, AugmentID::NONE, AugmentID::NONE };
+
     // Visual Assets
     AEGfxVertexList* augmentMesh = nullptr;
     AEGfxVertexList* cardMesh = nullptr;
+    s8 m_cardFont = -1;
 };

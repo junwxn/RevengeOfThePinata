@@ -5,6 +5,9 @@
 #include "Enemy.h"
 #include "Camera.h"
 #include "MathFunctions.h"
+#include "EventSystem.h"
+#include "AugmentData.h"
+#include "AugmentEffects.h"
 
 static std::ostream& operator<<(std::ostream& os, CombatOutcome outcome) {
 	if (outcome == CombatOutcome::OUTCOME_HIT) return os << "OUTCOME_HIT";
@@ -22,7 +25,12 @@ namespace Combat {
 
 	f32 ComputeDamage(Player& attacker, Enemy& defender) {
 		f32 damageDealt = attacker.GetCombatStats().attack - defender.GetCombatStats().defense;
-		return defender.GetCombatFlag().blockOn ? damageDealt / 2 : damageDealt;
+		f32 result = defender.GetCombatFlag().blockOn ? damageDealt / 2 : damageDealt;
+		// Amplified Damage augment: multiply damage if enemy is amplified
+		if (defender.m_damageAmplified) {
+			result *= defender.m_damageMultiplier;
+		}
+		return result;
 	}
 	f32 ComputeDamage(Enemy& attacker, Player& defender) {
 		f32 damageDealt = attacker.GetCombatStats().attack - defender.GetCombatStats().defense;
@@ -96,10 +104,16 @@ namespace Combat {
 			case CombatOutcome::OUTCOME_PARRIED:
 				std::cout << "IN PARRY" << std::endl;
 				player.GainAttackCharge();
-				//ApplyKnockbackReaction_Enemy(player, enemy, 4000.0);
 				enemy.SetParried(true);
 				enemy.MarkAttackResolved();
-				//std::cout << "Attack Charges: " << player.GetAttackCharges() << std::endl;
+				{
+					// Fire ON_PARRY_SUCCESS event for augment effects
+					EventData parryData;
+					parryData.playerX = player.GetX();
+					parryData.playerY = player.GetY();
+					parryData.targetEnemy = &enemy;
+					g_Events.Fire(GameEvent::ON_PARRY_SUCCESS, parryData);
+				}
 				break;
 
 			case CombatOutcome::OUTCOME_BLOCKED:
@@ -227,13 +241,25 @@ namespace Combat {
 	}
 
 	void System::ApplyDamage(Player& player, Enemy& enemy) {
+		// Shield Dash augment: if shield is active, reflect damage instead
+		if (g_Augments.Has(AugmentID::SHIELD_DASH) && AugmentEffects_IsShieldActive()) {
+			f32 reflectedDmg = ComputeDamage(enemy, player);
+			enemy.DeductHealth(reflectedDmg);
+			enemy.SetHDP(reflectedDmg);
+			return;
+		}
 		player.DeductHealth(ComputeDamage(enemy, player));
 		player.SetHDP(ComputeDamage(enemy, player));
 	}
 
 	void System::ApplyDamage(Enemy& enemy, Player& player) {
-		enemy.DeductHealth(ComputeDamage(player, enemy));
-		enemy.SetHDP(ComputeDamage(player, enemy));
+		f32 dmg = ComputeDamage(player, enemy);
+		enemy.DeductHealth(dmg);
+		enemy.SetHDP(dmg);
+		// Damaging Mark augment: accumulate damage on marked enemies
+		if (enemy.m_marked) {
+			enemy.m_markAccumulatedDamage += dmg;
+		}
 	}
 	void System::ColorIndicator(Enemy& enemy, f32 r, f32 g, f32 b, f32 a) {
 		f32 isoHeight = enemy.GetSize() * (GRID_H / GRID_W);

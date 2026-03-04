@@ -2,6 +2,7 @@
 #include "MainMenu.h"
 #include "GameStateManager.h"
 #include "Utils.h"
+#include "AugmentData.h"
 
 // --- Enums & Structs ---
 enum MenuScreen { MENU_MAIN, MENU_CONTROLS, MENU_CREDITS };
@@ -55,6 +56,7 @@ void MainMenu_Load() {
 
 // ========== INIT ==========
 void MainMenu_Init() {
+	g_Augments.Reset();
 	menuScreen = MENU_MAIN;
 	AEGfxSetCamPosition(0.0f, 0.0f);
 
