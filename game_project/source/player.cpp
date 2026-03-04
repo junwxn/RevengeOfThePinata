@@ -6,6 +6,10 @@
 #include "Colors.h"
 #include "MathFunctions.h"
 #include "Map.h"
+#include "EventSystem.h"
+#include "AugmentData.h"
+
+int g_PlayerAttackCharges = 100;
 
 std::ostream& operator<<(std::ostream& os, PlayerState const& ps)
 {
@@ -29,6 +33,11 @@ void Player::Init()
     m_DashCooldown = 0.1f;
 
     m_CurrentState = PlayerState::STATE_IDLE;
+
+    // Reset combat state for fresh start
+    m_CombatStats.health = m_CombatStats.maxHealth;
+    m_CombatFlags.isAlive = true;
+    m_healthDepletionPercentage = 0.0f;
 
     // --- Attack setup ---
     m_ConeThreshold = cos(AEDegToRad(m_ConeHalfAngleDeg));
@@ -115,11 +124,11 @@ void Player::Update(float dt, Combat::System& combat, std::vector<std::unique_pt
     else m_AllowAttack = true;
 
     // Start attack
-    if ((AEInputCheckTriggered(AEVK_LBUTTON) && m_AllowAttack && !m_BlockActive) || m_CombatFlags.attackQueued)
+    if ((AEInputCheckTriggered(AEVK_LBUTTON) && m_AllowAttack && !m_BlockActive) || (m_CombatFlags.attackQueued && g_Augments.Has(AugmentID::CHAIN_ATTACK)))
     {
         std::cout << "ATTACK" << std::endl;
         m_AllowBlock = false;
-        if (m_CombatFlags.attackQueued) StartAttack(m_AttackChain[m_AttackChainIterator], wave);
+        if (m_CombatFlags.attackQueued && g_Augments.Has(AugmentID::CHAIN_ATTACK)) StartAttack(m_AttackChain[m_AttackChainIterator], wave);
         else StartAttack(m_AttackBasic, wave);
 
         //for (auto& enemy : wave) {
@@ -215,8 +224,8 @@ void Player::Update(float dt, Combat::System& combat, std::vector<std::unique_pt
         if (m_AttackStopFrames > 0)
         {
             m_AttackStopFrames -= dt;
-            //std::cout << "m_AttackStopFrames: " << m_AttackStopFrames << std::endl;
-            if (AEInputCheckTriggered(AEVK_LBUTTON)
+            if (g_Augments.Has(AugmentID::CHAIN_ATTACK)
+                && AEInputCheckTriggered(AEVK_LBUTTON)
                 && m_AttackChainIterator < m_AttackChain.size() - 1
                 && m_AttackCharges > 1)
             {
@@ -269,8 +278,14 @@ void Player::Update(float dt, Combat::System& combat, std::vector<std::unique_pt
                     m_CombatFlags.attackHit = true;
                     m_AttackStopFrames = combatSystem.GetAttackerStopFrames();
                     combatSystem.ApplyDamage(*enemy, *this);
-                    // Apply damage here if needed
-                    //enemy->TakeDamage(m_AttackDamage);
+
+                    // Fire ON_ATTACK_HIT event for augment effects
+                    EventData hitData;
+                    hitData.playerX = m_PosX;
+                    hitData.playerY = m_PosY;
+                    hitData.damage = Combat::ComputeDamage(*this, *enemy);
+                    hitData.targetEnemy = enemy.get();
+                    g_Events.Fire(GameEvent::ON_ATTACK_HIT, hitData);
                 }
             }
             m_CombatFlags.attackHit = false;
@@ -278,8 +293,8 @@ void Player::Update(float dt, Combat::System& combat, std::vector<std::unique_pt
         else if (m_AttackCurrentFrame < m_AttackBasic.total)
         {
             // Recovery Phase
-            //std::cout << "RECOVERING" << std::endl;
-            if (AEInputCheckTriggered(AEVK_LBUTTON)
+            if (g_Augments.Has(AugmentID::CHAIN_ATTACK)
+                && AEInputCheckTriggered(AEVK_LBUTTON)
                 && m_AttackChainIterator < m_AttackChain.size() - 1
                 && m_AttackCharges > 1)
             {
@@ -441,6 +456,10 @@ void Player::Update(float dt, Combat::System& combat, std::vector<std::unique_pt
             // --- 4. Dash Logic ---
             if (AEInputCheckTriggered(AEVK_SPACE) && m_DashCooldown <= 0.0f)
             {
+                // Store pre-dash position for poison trail
+                float preDashX = m_PosX;
+                float preDashY = m_PosY;
+
                 float blinkDist = 0.0f;
 
                 if (moveX != 0 && moveY != 0)
@@ -479,11 +498,19 @@ void Player::Update(float dt, Combat::System& combat, std::vector<std::unique_pt
                 }
 
                 m_DashCooldown = m_DashCooldown_Default;
+
+                // Fire ON_DASH event for augment effects
+                EventData dashData;
+                dashData.playerX = m_PosX;
+                dashData.playerY = m_PosY;
+                dashData.dirX = dirX;
+                dashData.dirY = dirY;
+                g_Events.Fire(GameEvent::ON_DASH, dashData);
             }
 
             // --- 5. Apply Velocity with isometric wall-sliding collision ---
-            float velX = dirX * m_Speed * dt;
-            float velY = dirY * m_Speed * dt;
+            float velX = dirX * m_Speed * m_SpeedMultiplier * dt;
+            float velY = dirY * m_Speed * m_SpeedMultiplier * dt;
             if (m_pMap) {
                 ResolveCollision(m_PosX, m_PosY, velX, velY, m_Size, *m_pMap);
             }

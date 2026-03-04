@@ -40,12 +40,18 @@ Enemy::~Enemy() {
         AEGfxMeshFree(m_enemyHealthBarMesh);
         m_enemyHealthBarMesh = nullptr;
     }
+
+    if (m_markMesh) {
+        AEGfxMeshFree(m_markMesh);
+        m_markMesh = nullptr;
+    }
 }
 
 void Enemy::Init() {
     m_AttackRangeMesh = CreateAttackRangeMesh(m_AttackRange, 0xFF0000);
     m_enemyMesh = CreateCircleMesh(1.0f, 32, 0x50A655);
     m_enemyHealthBarMesh = CreateRectMesh(0xAEF359);
+    m_markMesh = CreateRectMesh(0xFFFFFF);
 }
 
 void Enemy::BaseUpdate(f32 dt, Combat::System& combat, Player const& player) {
@@ -100,6 +106,15 @@ void Enemy::BaseUpdate(f32 dt, Combat::System& combat, Player const& player) {
 
     AEVec2Scale(&m_KnockbackVelocity, &m_KnockbackVelocity, 0.85f);
 
+    // Damaging Mark: tick detonation animation
+    if (m_markDetonating) {
+        m_markDetonateTimer -= dt;
+        if (m_markDetonateTimer <= 0.0f) {
+            m_markDetonating = false;
+            m_markDetonateTimer = 0.0f;
+        }
+    }
+
     // Only use for single enemy
     if (AEInputCheckTriggered(AEVK_R)) {
         SetPosition(50.0f, 0.0f);
@@ -112,9 +127,20 @@ void Enemy::BaseUpdate(f32 dt, Combat::System& combat, Player const& player) {
     }
 
     // Start attack -------------------
-    if (!m_AttackActive && m_AllowAttack && m_CombatSystem.CanStartAttack_Enemy(player, *this))
+    // Wind-up: charge before swinging
+    if (!m_AttackActive && m_AllowAttack && !m_WindingUp && m_CombatSystem.CanStartAttack_Enemy(player, *this))
     {
-        StartAttack(this->m_AttackData);
+        m_WindingUp = true;
+        m_WindUpTimer = m_WindUpDuration;
+    }
+
+    if (m_WindingUp) {
+        m_WindUpTimer -= dt;
+        if (m_WindUpTimer <= 0.0f) {
+            m_WindingUp = false;
+            m_WindUpTimer = 0.0f;
+            StartAttack(this->m_AttackData);
+        }
     }
     //std::cout << "m_AttackActive: " << m_AttackActive << std::endl;
 
@@ -177,9 +203,22 @@ void Enemy::Draw() {
 
     // Draw Meshes --------------------
     // Enemy
-    if (!m_CombatFlags.parried && m_AttackCooldown >= 0.5f) DrawMesh(m_enemyMesh, m_size, isoHeight, m_pos.x, m_pos.y, 0.0f, 44, 255, 255, 255);
-    else if(m_AttackCooldown < 0.5f) DrawMesh(m_enemyMesh, m_size, isoHeight, m_pos.x, m_pos.y, 0.0f, 255, 255, 0, 255);
-    else DrawMesh(m_enemyMesh, m_size, isoHeight, m_pos.x, m_pos.y, 0.0f, 255, 0, 0, 255);
+    if (m_WindingUp && m_WindUpTimer < 0.2f) {
+        // Flash red just before attacking (last 0.2s of wind-up)
+        float flash = sinf(m_WindUpTimer * 40.0f);
+        float r = (flash > 0.0f) ? 255.0f : 180.0f;
+        DrawMesh(m_enemyMesh, m_size, isoHeight, m_pos.x, m_pos.y, 0.0f, r, 0, 0, 255);
+    }
+    else if (m_WindingUp) {
+        // Winding up — tint yellow to show charging
+        DrawMesh(m_enemyMesh, m_size, isoHeight, m_pos.x, m_pos.y, 0.0f, 255, 200, 0, 255);
+    }
+    else if (m_CombatFlags.parried) {
+        DrawMesh(m_enemyMesh, m_size, isoHeight, m_pos.x, m_pos.y, 0.0f, 255, 0, 0, 255);
+    }
+    else {
+        DrawMesh(m_enemyMesh, m_size, isoHeight, m_pos.x, m_pos.y, 0.0f, 44, 255, 255, 255);
+    }
 
     // Enemy sword
     f32 swordAngle = m_AttackActive ? m_CurrentAngle : m_AimAngle;
@@ -189,12 +228,27 @@ void Enemy::Draw() {
     // Enemy health bar
     f32 barWidth = m_size * 2.0f * m_CombatStats.health / m_CombatStats.maxHealth;
     f32 barHeight = m_size / 3.0f;
-    f32 dbarWidth = m_size * 2.0f * (m_CombatStats.health / m_CombatStats.maxHealth + m_healthDepletionPercentage/ 100.0f);
-    f32 dRate = 100.0f * dt;
+    f32 dbarWidth = m_size * 2.0f * (m_CombatStats.health / m_CombatStats.maxHealth + m_healthDepletionPercentage / m_CombatStats.maxHealth);
+    f32 dRate = m_CombatStats.maxHealth * dt;
     if (m_healthDepletionPercentage >= 0.0f) { m_healthDepletionPercentage -= dRate; };
 
     DrawMesh(m_enemyHealthBarMesh, dbarWidth, barHeight, m_pos.x - m_size, m_pos.y + m_size + barHeight / 2.0f + 5.0f, 0.0f, 255, 175, 65, 255); // Depleting bar
     DrawMesh(m_enemyHealthBarMesh, barWidth, barHeight, m_pos.x - m_size, m_pos.y + m_size + barHeight / 2.0f + 5.0f, 0.0f, 210, 70, 75, 255); // Instant bar
+
+    // Damaging Mark: draw dagger above marked/detonating enemies
+    if (m_marked && !m_markDetonating && m_markMesh) {
+        // Hovering dagger with gentle bob
+        float bobOffset = sinf(m_markTimer * 5.0f) * 4.0f;
+        float daggerY = m_pos.y + m_size + 40.0f + bobOffset;
+        DrawMesh(m_markMesh, 14.0f, 20.0f, m_pos.x, daggerY, 0.0f, 255, 255, 255, 255);
+    }
+    else if (m_markDetonating && m_markMesh) {
+        // Dagger drops from hover position down to enemy
+        float t = m_markDetonateTimer / 0.3f; // 1.0 = top, 0.0 = enemy
+        float hoverY = m_pos.y + m_size + 40.0f;
+        float daggerY = m_pos.y + (hoverY - m_pos.y) * t;
+        DrawMesh(m_markMesh, 14.0f, 20.0f, m_pos.x, daggerY, 0.0f, 255, 80, 80, 255);
+    }
 }
 
 void Enemy::StartAttack(Combat::CombatData::AttackData attackData) {
@@ -281,6 +335,7 @@ Boss::Boss(AEVec2 pos, f32 size, f32 hp, f32 speed)
     m_AttackData.active = m_AttackActiveFrames;
     m_AttackData.recovery = m_AttackRecoveryFrames;
     m_AttackData.total = m_AttackTotalFrames;
+    m_WindUpDuration = 1.0f; // Boss winds up longer
 }
 
 void Boss::ChildUpdate(f32 dt, Combat::System& combat, Player const& player) {

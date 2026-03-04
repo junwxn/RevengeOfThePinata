@@ -104,7 +104,10 @@ xcopy "$(SolutionDir)Extern\AlphaEngine\lib\fmod.dll" "$(OutDir)" /s /r /y /q</C
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="source\Audio.cpp" />
+    <ClCompile Include="source\AugmentData.cpp" />
+    <ClCompile Include="source\AugmentEffects.cpp" />
     <ClCompile Include="source\Augments.cpp" />
+    <ClCompile Include="source\EventSystem.cpp" />
     <ClCompile Include="source\BossLevel.cpp" />
     <ClCompile Include="source\Camera.cpp" />
     <ClCompile Include="source\Combat.cpp" />
@@ -118,6 +121,7 @@ xcopy "$(SolutionDir)Extern\AlphaEngine\lib\fmod.dll" "$(OutDir)" /s /r /y /q</C
     <ClCompile Include="source\Map.cpp" />
     <ClCompile Include="source\MathFunctions.cpp" />
     <ClCompile Include="source\Pause.cpp" />
+    <ClCompile Include="source\GameOver.cpp" />
     <ClCompile Include="source\Victory.cpp" />
     <ClCompile Include="source\pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
@@ -148,7 +152,10 @@ xcopy "$(SolutionDir)Extern\AlphaEngine\lib\fmod.dll" "$(OutDir)" /s /r /y /q</C
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="source\Audio.h" />
+    <ClInclude Include="source\AugmentData.h" />
+    <ClInclude Include="source\AugmentEffects.h" />
     <ClInclude Include="source\Augments.h" />
+    <ClInclude Include="source\EventSystem.h" />
     <ClInclude Include="source\BossLevel.h" />
     <ClInclude Include="source\Camera.h" />
     <ClInclude Include="source\Colors.h" />
@@ -163,6 +170,7 @@ xcopy "$(SolutionDir)Extern\AlphaEngine\lib\fmod.dll" "$(OutDir)" /s /r /y /q</C
     <ClInclude Include="source\Map.h" />
     <ClInclude Include="source\MathFunctions.h" />
     <ClInclude Include="source\Pause.h" />
+    <ClInclude Include="source\GameOver.h" />
     <ClInclude Include="source\Victory.h" />
     <ClInclude Include="source\pch.h" />
     <ClInclude Include="source\Player.h" />

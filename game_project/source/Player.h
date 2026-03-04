@@ -6,7 +6,11 @@
 #include "Combat.h"
 #include "Enemy.h"
 #include "Augments.h"
+#include "AugmentData.h"
 class MapSystem; // Forward-declare to avoid a circular header chain
+
+// Persistent attack charges across levels
+extern int g_PlayerAttackCharges;
 
 
 //-----------------------//
@@ -68,6 +72,7 @@ public:
     bool GetBlockStatus() const { return m_BlockActive; }
     bool GetParryStatus() const { return m_ParryActive; }
     int GetAttackCharges() const { return m_AttackCharges; }
+    void SetAttackCharges(int charges) { m_AttackCharges = charges; }
 
     Combat::CombatFlags GetCombatFlag() const { return m_CombatFlags; }
     Combat::CombatStats GetCombatStats() const { return m_CombatStats; }
@@ -80,6 +85,20 @@ public:
     void SetAimVector(float x, float y) { m_AimVector.x = x, m_AimVector.y = y; }
     void SetAimAngle(float angle) { m_AimAngle = angle; }
     void SetHDP(f32 dmg) { m_healthDepletionPercentage += dmg; }
+
+    // Speed multiplier for augment effects
+    float m_SpeedMultiplier = 1.0f;
+    void SetSpeedMultiplier(float mult) { m_SpeedMultiplier = mult; }
+    void SetBlockFrames(int startup, int parry, int recovery) {
+        b_StartUpFrames = startup;
+        b_ParryFrames = parry;
+        b_RecoveryFrames = recovery;
+        b_TotalFrames = b_StartUpFrames + b_ParryFrames + b_RecoveryFrames;
+        m_BlockData = {
+            b_StartDegree, b_EndDegree,
+            b_StartUpFrames, b_ParryFrames, b_RecoveryFrames, b_TotalFrames, b_Block
+        };
+    }
 
     // Call once after the map is loaded so the player can self-resolve wall collisions.
     void SetMap(const MapSystem* map) { m_pMap = map; }
@@ -214,8 +233,8 @@ private:
     f32 b_EndDegree{ 30.0f };
     bool b_Recovered{ true };
     bool b_Held{ false };
-    int b_StartUpFrames{ 2 };
-    int b_ParryFrames{ 7 };
+    int b_StartUpFrames{ 1 };
+    int b_ParryFrames{ 12 };
     int b_RecoveryFrames{ 15 };
     //int b_ActiveFrames{ 15 };
     int b_TotalFrames{ b_StartUpFrames + b_ParryFrames + b_RecoveryFrames };
