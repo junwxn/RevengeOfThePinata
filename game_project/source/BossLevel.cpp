@@ -65,6 +65,7 @@ void BossLevel_Load() {
 
 void BossLevel_Init() {
 	player.Init();
+	player.SetAttackCharges(g_PlayerAttackCharges);
 	player.SetMap(&gameMap);
 
 	Healthbar.w = 1200;
@@ -239,6 +240,7 @@ void BossLevel_Draw() {
 }
 
 void BossLevel_Free() {
+	g_PlayerAttackCharges = player.GetAttackCharges();
 	Wave1.clear();
 	player.Free();
 	AugmentEffects_Free();

@@ -9,6 +9,9 @@
 #include "AugmentData.h"
 class MapSystem; // Forward-declare to avoid a circular header chain
 
+// Persistent attack charges across levels
+extern int g_PlayerAttackCharges;
+
 
 //-----------------------//
 //---- Player States ----//
@@ -69,6 +72,7 @@ public:
     bool GetBlockStatus() const { return m_BlockActive; }
     bool GetParryStatus() const { return m_ParryActive; }
     int GetAttackCharges() const { return m_AttackCharges; }
+    void SetAttackCharges(int charges) { m_AttackCharges = charges; }
 
     Combat::CombatFlags GetCombatFlag() const { return m_CombatFlags; }
     Combat::CombatStats GetCombatStats() const { return m_CombatStats; }

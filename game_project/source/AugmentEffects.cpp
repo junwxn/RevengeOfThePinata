@@ -98,9 +98,11 @@ void AugmentEffects_Register() {
         g_Events.Subscribe(GameEvent::ON_ATTACK_HIT, [](EventData const& data) {
             if (data.targetEnemy) {
                 Enemy* enemy = static_cast<Enemy*>(data.targetEnemy);
+                if (!enemy->m_marked) {
+                    enemy->m_markAccumulatedDamage = 0.0f;
+                }
                 enemy->m_marked = true;
                 enemy->m_markTimer = 3.0f;
-                enemy->m_markAccumulatedDamage = 0.0f;
             }
         });
     }
@@ -189,11 +191,15 @@ void AugmentEffects_Update(float dt, Player& player, std::vector<std::unique_ptr
         if (enemy->m_marked) {
             enemy->m_markTimer -= dt;
             if (enemy->m_markTimer <= 0.0f) {
-                // Detonate: deal accumulated damage
-                enemy->DeductHealth(enemy->m_markAccumulatedDamage);
+                // Detonate: 10% max HP base + 20% of damage dealt while marked
+                float detonateDmg = enemy->GetCombatStats().maxHealth * 0.1f
+                                  + enemy->m_markAccumulatedDamage * 0.2f;
+                enemy->DeductHealth(detonateDmg);
                 enemy->m_marked = false;
                 enemy->m_markTimer = 0.0f;
                 enemy->m_markAccumulatedDamage = 0.0f;
+                enemy->m_markDetonating = true;
+                enemy->m_markDetonateTimer = 0.3f;
             }
         }
 

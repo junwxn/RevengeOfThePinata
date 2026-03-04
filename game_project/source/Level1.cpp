@@ -88,6 +88,7 @@ void Level1_Load() {
 void Level1_Init() {
 
 	player.Init();
+	player.SetAttackCharges(g_PlayerAttackCharges);
 	player.SetMap(&gameMap); // Enable player-map collision
 
 	// logic objects
@@ -404,6 +405,7 @@ void Level1_Draw() {
 	AESysFrameEnd();
 }
 void Level1_Free() {
+	g_PlayerAttackCharges = player.GetAttackCharges();
 	Wave1.clear();
 	Wave2.clear();
 	player.Free();

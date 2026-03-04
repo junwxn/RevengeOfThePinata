@@ -94,6 +94,11 @@ public:
     float m_markTimer = 0.0f;
     float m_markAccumulatedDamage = 0.0f;
 
+    // Augment: Damaging Mark (visual)
+    float m_markDetonateTimer = 0.0f;
+    bool  m_markDetonating = false;
+    AEGfxVertexList* m_markMesh{ nullptr };
+
     // Augment: Amplified Damage
     bool m_damageAmplified = false;
     float m_amplifyTimer = 0.0f;

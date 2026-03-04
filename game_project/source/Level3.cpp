@@ -110,6 +110,7 @@ void Level3_Load() {
 
 void Level3_Init() {
 	player.Init();
+	player.SetAttackCharges(g_PlayerAttackCharges);
 	player.SetMap(&gameMap);
 
 	Healthbar.w = 1200;
@@ -379,6 +380,7 @@ void Level3_Draw() {
 }
 
 void Level3_Free() {
+	g_PlayerAttackCharges = player.GetAttackCharges();
 	Wave1.clear();
 	Wave2.clear();
 	Wave3.clear();

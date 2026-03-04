@@ -9,6 +9,8 @@
 #include "EventSystem.h"
 #include "AugmentData.h"
 
+int g_PlayerAttackCharges = 100;
+
 std::ostream& operator<<(std::ostream& os, PlayerState const& ps)
 {
     if (ps == PlayerState::STATE_IDLE) return os << "STATE_IDLE";

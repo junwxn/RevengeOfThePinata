@@ -52,6 +52,8 @@ void Augments::Init() {
     distanceY = 0;
 
     choose = false; // is choosing cards?
+    augmentSelected = false;
+    startingAnimation = true;
 
     augmentMesh = CreateCircleMesh(1, 16, 0x000000);
     cardMesh = CreateRectMesh(0x000000);
@@ -204,8 +206,11 @@ void Augments::Draw(f32 playerX, f32 playerY) {
         DrawMesh(cardMesh, cardWidth, cardHeight, cards_x2, distanceY, 0.0f, 0, 0, 255, 255); // Blue Card (Right)
         DrawMesh(cardMesh, cardWidth, cardHeight, cards_x3, distanceY, 0.0f, 0, 255, 0, 255); // Green Card (Middle)
 
-        // Draw augment text on each card
-        if (m_cardFont != -1) {
+        // Draw augment text only after cards have settled into position
+        bool cardsInPosition = fabs(distanceY) <= 2.f
+            && fabs((playerX - 700) - cards_x1) <= 2.f
+            && fabs((playerX + 300) - cards_x2) <= 2.f;
+        if (m_cardFont != -1 && cardsInPosition) {
             float cardCentersX[3] = {
                 cards_x1 + cardWidth * 0.5f,
                 cards_x2 + cardWidth * 0.5f,

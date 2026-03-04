@@ -3,6 +3,8 @@
 #include "GameStateManager.h"
 #include "Utils.h"
 #include "AugmentData.h"
+#include "EventSystem.h"
+#include "Player.h"
 
 // --- Enums & Structs ---
 enum MenuScreen { MENU_MAIN, MENU_CONTROLS, MENU_CREDITS };
@@ -57,6 +59,7 @@ void MainMenu_Load() {
 // ========== INIT ==========
 void MainMenu_Init() {
 	g_Augments.Reset();
+	g_Events.ClearAll();
 	menuScreen = MENU_MAIN;
 	AEGfxSetCamPosition(0.0f, 0.0f);
 
@@ -104,7 +107,7 @@ void MainMenu_Update(float dt) {
 	// Click handling
 	if (AEInputCheckTriggered(AEVK_LBUTTON)) {
 		if (menuScreen == MENU_MAIN) {
-			if (mainButtons[0].hovered) next = GS_LEVEL1;
+			if (mainButtons[0].hovered) { g_PlayerAttackCharges = 100; next = GS_LEVEL1; }
 			if (mainButtons[1].hovered) menuScreen = MENU_CONTROLS;
 			if (mainButtons[2].hovered) menuScreen = MENU_CREDITS;
 			if (mainButtons[3].hovered) next = GS_QUIT;
