@@ -3,6 +3,7 @@
 #include "Player.h"
 #include "Level1.h"
 #include "camera.h"
+#include "Augments.h"
 #include "GameStateManager.h"
 #include "Map.h"
 #include "Pause.h"
@@ -20,6 +21,7 @@ Circle DMGCircle{};
 RectData Healthbar{};
 Camera camera{};
 MapSystem gameMap;
+Augments augments{};
 
 // update variables
 Combat::System CombatSystem;
@@ -32,6 +34,9 @@ f32 Barcount{ 0 };
 f32 MinibarWidth = 100;
 u8 CurrentBars{ 0 };
 
+// if wave ends
+bool endofwave{};
+bool preventingmovement{};
 
 void Level1_Load() {
 	TexBlock2	= AEGfxTextureLoad("Assets/block2.png");
@@ -69,6 +74,7 @@ void Level1_Init() {
 	camera.Init(player.GetX(), player.GetY());
 
 	Pause_Init();
+  augments.Init();
 }
 void Level1_Update(float dt) {
 	if (!AESysDoesWindowExist()) {
@@ -79,7 +85,7 @@ void Level1_Update(float dt) {
 	// Pause handles ESC toggle + menu input; returns true if paused
 	if (Pause_Update()) return;
 
-	player.Update(dt, CombatSystem, Wave1, camera.GetX(), camera.GetY());
+	player.Update(dt, CombatSystem, Wave1, camera.GetX(), camera.GetY(), preventingmovement);
 
 	if (AEInputCheckTriggered(AEVK_1)) {
 		if (wave1Active) {
@@ -190,7 +196,7 @@ void Level1_Update(float dt) {
 	}
 
 	// camera
-	camera.Update(dt, player.GetX(), player.GetY());
+	camera.Update(dt, player.GetX(), player.GetY(), preventingmovement);
 
 	if (AreCirclesIntersecting(HealCircle.pos_x, HealCircle.pos_y, HealCircle.r, player.GetX(), player.GetY(), player.GetSize())) {
 		Healthbar.var += 15 * dt;
@@ -210,6 +216,30 @@ void Level1_Update(float dt) {
 	Barcount = Healthbar.current / (Healthbar.w / 10);
 	CurrentBars = (Barcount >= 1) ? 1 : 0;
 
+	// Augments, only activates if the wave ends
+	if (AEInputCheckTriggered(AEVK_O)) {
+		std::cout << "AUGMENTS TRIGGERED" << std::endl;
+		endofwave = true;
+	}
+
+	if (endofwave) {
+		augments.Update(player.GetX(), player.GetY(), dt, camera.GetX(), camera.GetY());
+		if (augments.GetChoose()) {
+			preventingmovement = true;
+			//std::cout << "THIS WORKS NOW" << std::endl;
+		}
+		if (AEInputCheckTriggered(AEVK_P)) {
+			std::cout << "AUGMENTS TRIGGERED AGAIN" << std::endl;
+			endofwave = false;
+		}
+	}
+	else {
+		preventingmovement = false;
+	}
+
+	if (AEInputCheckTriggered(AEVK_ESCAPE) || 0 == AESysDoesWindowExist()) {
+		next = GS_QUIT;
+	}
 }
 void Level1_Draw() {
 	AESysFrameStart();
@@ -284,6 +314,11 @@ void Level1_Draw() {
 	}
 
 	Pause_Draw();
+
+	// If end of wave spawn augment ball
+	if (endofwave) {
+		augments.Draw(player.GetX(), player.GetY());
+	}
 
 	AESysFrameEnd();
 }

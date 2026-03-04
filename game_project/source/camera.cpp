@@ -35,10 +35,14 @@ void Camera::Update(f32 dt, f32 playerX, f32 playerY) {
     float dirX = 0.0f;
     float dirY = 0.0f;
 
-    if (AEInputCheckCurr(AEVK_W)) dirY += 1.0f;
-    if (AEInputCheckCurr(AEVK_S)) dirY -= 1.0f;
-    if (AEInputCheckCurr(AEVK_D)) dirX += 1.0f;
-    if (AEInputCheckCurr(AEVK_A)) dirX -= 1.0f;
+    if (!preventing_movement) {
+
+        if (AEInputCheckCurr(AEVK_W)) dirY += 1.0f;
+        if (AEInputCheckCurr(AEVK_S)) dirY -= 1.0f;
+        if (AEInputCheckCurr(AEVK_D)) dirX += 1.0f;
+        if (AEInputCheckCurr(AEVK_A)) dirX -= 1.0f;
+
+    }
 
     // --- 2. Calculate Isometric Offset ---
     float lookOffsetX = 0.0f;

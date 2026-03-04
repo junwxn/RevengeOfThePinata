@@ -41,7 +41,7 @@ void Player::Init()
     m_playerHealthBarMesh = CreateRectMesh(0xFF0000);
 }
 
-void Player::Update(float dt, Combat::System& combat, std::vector<std::unique_ptr<Enemy>> const& wave, f32 camX, f32 camY)
+void Player::Update(float dt, Combat::System& combat, std::vector<std::unique_ptr<Enemy>> const& wave, f32 camX, f32 camY, bool preventing_movement)
 {
     // Attack / Combat Logic
     // Mouse input
@@ -400,10 +400,14 @@ void Player::Update(float dt, Combat::System& combat, std::vector<std::unique_pt
 
     if (m_AttackStopFrames <= 0) 
     {
+
+    if (!preventing_movement) {
+
         if (AEInputCheckCurr(AEVK_W)) moveY += 1;
         if (AEInputCheckCurr(AEVK_S)) moveY -= 1;
         if (AEInputCheckCurr(AEVK_A)) moveX -= 1;
         if (AEInputCheckCurr(AEVK_D)) moveX += 1;
+
     }
 
     // --- 3. Execute Movement Logic ---

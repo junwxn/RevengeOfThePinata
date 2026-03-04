@@ -5,8 +5,9 @@
 #include "Utils.h" // Access to AE system and Grid constants
 #include "Combat.h"
 #include "Enemy.h"
-
+#include "Augments.h"
 class MapSystem; // Forward-declare to avoid a circular header chain
+
 
 //-----------------------//
 //---- Player States ----//
@@ -26,7 +27,7 @@ class Player
 {
 public:
     void Init();
-    void Update(float dt, Combat::System& combat, std::vector<std::unique_ptr<Enemy>> const& wave, f32 camX, f32 camY);
+    void Update(float dt, Combat::System& combat, std::vector<std::unique_ptr<Enemy>> const& wave, f32 camX, f32 camY, bool preventing_movement);
     void Draw();
     void Free();
 
@@ -81,6 +82,11 @@ public:
 
     // Call once after the map is loaded so the player can self-resolve wall collisions.
     void SetMap(const MapSystem* map) { m_pMap = map; }
+
+    // Augments
+    bool PreventMovement(bool notpreventing) const {
+        return notpreventing;
+    }
 
 private:
     Combat::System combatSystem;
@@ -242,4 +248,6 @@ private:
 
     // Non-owning pointer to the active map; set via SetMap().
     const MapSystem* m_pMap = nullptr;
+    // Augments
+    bool preventing_movement;
 };
