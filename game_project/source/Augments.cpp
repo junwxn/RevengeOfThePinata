@@ -50,6 +50,7 @@ void Augments::Update(f32 playerX, f32 playerY, f32 dt, f32 cameraX, f32 cameraY
     mouseWX += cameraX;
     mouseWY += cameraY;
 
+    // distance of the player and ball
     float playerballdist = sqrt(((dx - augPosX) * (dx - augPosX)) + ((dy - (augPosY - 65)) * (dy - (augPosY - 65))));
 
     //printf("Player x: %f\n", dx);
@@ -68,52 +69,47 @@ void Augments::Update(f32 playerX, f32 playerY, f32 dt, f32 cameraX, f32 cameraY
         if (AEInputCheckTriggered(AEVK_X)) {
             printf("CHOOSE ONCE\n");
             // setting the cards OG positions
-            cards_y = 1000;
-            cards_x1 = playerX - 200;
-            cards_x2 = playerX - 200;
-            cards_x3 = playerX - 200;
+            cards_y = cameraY + 1000;
+            cards_x1 = cameraX - 200;
+            cards_x2 = cameraX - 200;
+            cards_x3 = cameraX - 200;
             choose = true;
         }
     }
     else if (choose) {
 
-        windowTintX = playerX - 1600;
-        windowTintY = playerY;
+        windowTintX = cameraX - 1600;
+        windowTintY = cameraY;
 
-        distanceY = playerY - cards_y;
+        distanceY = cameraY - cards_y;
 
-        float distanceX1 = (playerX - 700) - cards_x1;
-        float distanceX2 = (playerX + 300) - cards_x2;
+        float distanceX1 = (cameraX - 700) - cards_x1;
+        float distanceX2 = (cameraX + 300) - cards_x2;
         //printf("Choosing...\n");
         // tie rand seed to THE CURRENT TIME (so that each choice is unique)
         // choices of cards, pick and display
         // clickbox for the cards, once picked set choose = false
 
         //std::cout << "mouseWX: " << mouseWX << std::endl;
-        std::cout << "mouseWY: " << mouseWY << std::endl;
+        //std::cout << "mouseWY: " << mouseWY << std::endl;
 
-        //std::cout << "cards_x1: " << cards_x1 << std::endl;
+        /*std::cout << "cards_y: " << cards_y
+            << " | playerY: " << playerY
+            << " | cameraY: " << cameraY
+            << std::endl;*/
 
-        // card 1
-        /*if (mouseWX > cards_x1 && mouseWX < (cards_x1 + 400) && mouseWY < (playerY - cards_y + 350) && mouseWY > (playerY - cards_y - 300)) {
-            std::cout << "Red picked" << std::endl;
-        } else if (mouseWX > cards_x2 && mouseWX < (cards_x2 + 400) && mouseWY < (playerY - cards_y + 350) && mouseWY >(playerY - cards_y - 300)) {
-            std::cout << "Blue picked" << std::endl;
-        } else if (mouseWX > (playerX - 200) && mouseWX < ((playerX - 200) + 400) && mouseWY < (playerY - cards_y + 350) && mouseWY >(playerY - cards_y - 300)) {
-            std::cout << "Green picked" << std::endl;
-        }*/
 
-        if (IsMouseInside(mouseWX, mouseWY, cards_x1 + (cardWidth * 0.5), distanceY, cardWidth, cardHeight))
+        if (IsMouseInside(mouseWX, mouseWY, cards_x1 + (cardWidth * 0.5), cards_y, cardWidth, cardHeight))
         {
             std::cout << "Red picked\n";
         }
 
-        if (IsMouseInside(mouseWX, mouseWY, cards_x2 + (cardWidth * 0.5), distanceY, cardWidth, cardHeight))
+        if (IsMouseInside(mouseWX, mouseWY, cards_x2 + (cardWidth * 0.5), cards_y, cardWidth, cardHeight))
         {
             std::cout << "Blue picked\n";
         }
 
-        if (IsMouseInside(mouseWX, mouseWY, cards_x3 + (cardWidth * 0.5), distanceY, cardWidth, cardHeight))
+        if (IsMouseInside(mouseWX, mouseWY, cards_x3 + (cardWidth * 0.5), cards_y, cardWidth, cardHeight))
         {
             std::cout << "Green picked\n";
         }
@@ -162,10 +158,15 @@ void Augments::Draw() {
 
         DrawMesh(cardMesh, 3200, 1800, windowTintX, windowTintY, 0.0f, 0, 0, 0, 100); // Tinted Window
 
+        //// drawing the cards and moving them to their picking positions
+        //DrawMesh(cardMesh, cardWidth, cardHeight, cards_x1, distanceY, 0.0f, 255, 0, 0, 255); // Red Card (Left)
+        //DrawMesh(cardMesh, cardWidth, cardHeight, cards_x2, distanceY, 0.0f, 0, 0, 255, 255); // Blue Card (Right)
+        //DrawMesh(cardMesh, cardWidth, cardHeight, cards_x3, distanceY, 0.0f, 0, 255, 0, 255); // Green Card (Middle)
+
         // drawing the cards and moving them to their picking positions
-        DrawMesh(cardMesh, cardWidth, cardHeight, cards_x1, distanceY, 0.0f, 255, 0, 0, 255); // Red Card (Left)
-        DrawMesh(cardMesh, cardWidth, cardHeight, cards_x2, distanceY, 0.0f, 0, 0, 255, 255); // Blue Card (Right)
-        DrawMesh(cardMesh, cardWidth, cardHeight, cards_x3, distanceY, 0.0f, 0, 255, 0, 255); // Green Card (Middle)
+        DrawMesh(cardMesh, cardWidth, cardHeight, cards_x1, cards_y, 0.0f, 255, 0, 0, 255); // Red Card (Left)
+        DrawMesh(cardMesh, cardWidth, cardHeight, cards_x2, cards_y, 0.0f, 0, 0, 255, 255); // Blue Card (Right)
+        DrawMesh(cardMesh, cardWidth, cardHeight, cards_x3, cards_y, 0.0f, 0, 255, 0, 255); // Green Card (Middle)
       
 
     }
