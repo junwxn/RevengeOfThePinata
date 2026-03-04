@@ -8,6 +8,10 @@
 #include "EventSystem.h"
 #include "AugmentData.h"
 #include "AugmentEffects.h"
+#include "Utils.h" // GRID_W, GRID_H
+
+// Iso ratio for normalizing Y axis in range checks
+static const float ISO_RATIO = GRID_H / GRID_W;
 
 static std::ostream& operator<<(std::ostream& os, CombatOutcome outcome) {
 	if (outcome == CombatOutcome::OUTCOME_HIT) return os << "OUTCOME_HIT";
@@ -134,13 +138,10 @@ namespace Combat {
 
 	bool System::CanStartAttack_Enemy(const Player& player, const Enemy& enemy) const {
 		// Direction vector / Forward vector
-		AEVec2 s_VectorToPlayer = { player.GetX() - enemy.GetX(), player.GetY() - enemy.GetY() };
+		double dx = player.GetX() - enemy.GetX();
+		double dy = (player.GetY() - enemy.GetY()) / ISO_RATIO; // Normalize Y to iso grid
 
-		double s_DistMagPE = Vectors::magnitude(s_VectorToPlayer.x, s_VectorToPlayer.y); // Dist between player and enemy
-		// Normalize vectors (To get direction)
-		AEVec2 s_VectorNormalizedToPlayer = Vectors::normalize(s_DistMagPE, s_VectorToPlayer.x, s_VectorToPlayer.y); // Normalized vector between mouse and player
-
-		//f32 dotProduct = (enemy.GetNormalizedVector().x * s_VectorNormalizedToPlayer.x + enemy.GetNormalizedVector().y * s_VectorNormalizedToPlayer.y);
+		double s_DistMagPE = Vectors::magnitude(dx, dy);
 
 		return s_DistMagPE <= enemy.GetAttackRange();
 	}
@@ -161,8 +162,9 @@ namespace Combat {
 
 		double dx = enemy.GetX() - player.GetX();
 		double dy = enemy.GetY() - player.GetY();
+		double isoDy = dy / ISO_RATIO; // Normalize Y to iso grid
 
-		double dist = Vectors::magnitude(dx, dy);
+		double dist = Vectors::magnitude(dx, isoDy);
 
 		// Outside attack radius
 		if (dist > player.GetAttackRange())

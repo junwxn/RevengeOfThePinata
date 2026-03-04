@@ -233,8 +233,8 @@ private:
     f32 b_EndDegree{ 30.0f };
     bool b_Recovered{ true };
     bool b_Held{ false };
-    int b_StartUpFrames{ 2 };
-    int b_ParryFrames{ 7 };
+    int b_StartUpFrames{ 1 };
+    int b_ParryFrames{ 12 };
     int b_RecoveryFrames{ 15 };
     //int b_ActiveFrames{ 15 };
     int b_TotalFrames{ b_StartUpFrames + b_ParryFrames + b_RecoveryFrames };
