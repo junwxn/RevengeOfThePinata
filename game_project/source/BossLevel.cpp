@@ -3,6 +3,8 @@
 #include "Player.h"
 #include "BossLevel.h"
 #include "camera.h"
+#include "AugmentEffects.h"
+#include "EventSystem.h"
 #include "GameStateManager.h"
 #include "Map.h"
 #include "Pause.h"
@@ -63,6 +65,7 @@ void BossLevel_Load() {
 
 void BossLevel_Init() {
 	player.Init();
+	player.SetAttackCharges(g_PlayerAttackCharges);
 	player.SetMap(&gameMap);
 
 	Healthbar.w = 1200;
@@ -76,6 +79,8 @@ void BossLevel_Init() {
 
 	camera.Init(player.GetX(), player.GetY());
 	Pause_Init();
+	AugmentEffects_Init(&player);
+	AugmentEffects_Register();
 
 	wave1Active = false;
 	bossDefeated = false;
@@ -156,6 +161,9 @@ void BossLevel_Update(float dt) {
 
 	camera.Update(dt, player.GetX(), player.GetY(), preventingmovement);
 
+	// Update augment effects (previous augments still active)
+	AugmentEffects_Update(dt, player, Wave1);
+
 	if (Healthbar.var < 0) Healthbar.var = 0;
 	if (Healthbar.var > 100) Healthbar.var = 100;
 	Healthbar.current = (Healthbar.var / 100) * (Healthbar.max - Healthbar.min);
@@ -165,6 +173,10 @@ void BossLevel_Update(float dt) {
 	if (AEInputCheckTriggered(AEVK_ESCAPE) || 0 == AESysDoesWindowExist()) {
 		next = GS_QUIT;
 	}
+	if (AEInputCheckTriggered(AEVK_K)) {
+		Wave1.clear();
+	}
+
 	if (AEInputCheckTriggered(AEVK_N)) {
 		next = GS_VICTORY;
 	}
@@ -222,12 +234,17 @@ void BossLevel_Draw() {
 
 	Pause_Draw();
 
+	AugmentEffects_Draw();
+
 	AESysFrameEnd();
 }
 
 void BossLevel_Free() {
+	g_PlayerAttackCharges = player.GetAttackCharges();
 	Wave1.clear();
 	player.Free();
+	AugmentEffects_Free();
+	g_Events.ClearAll();
 }
 
 void BossLevel_Unload() {

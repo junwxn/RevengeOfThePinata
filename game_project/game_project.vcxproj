@@ -103,7 +103,10 @@ xcopy "$(SolutionDir)Extern\AlphaEngine\lib\fmod.dll" "$(OutDir)" /s /r /y /q</C
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="source\AugmentData.cpp" />
+    <ClCompile Include="source\AugmentEffects.cpp" />
     <ClCompile Include="source\Augments.cpp" />
+    <ClCompile Include="source\EventSystem.cpp" />
     <ClCompile Include="source\BossLevel.cpp" />
     <ClCompile Include="source\Camera.cpp" />
     <ClCompile Include="source\Combat.cpp" />
@@ -146,7 +149,10 @@ xcopy "$(SolutionDir)Extern\AlphaEngine\lib\fmod.dll" "$(OutDir)" /s /r /y /q</C
     <ClCompile Include="source\Utils.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="source\AugmentData.h" />
+    <ClInclude Include="source\AugmentEffects.h" />
     <ClInclude Include="source\Augments.h" />
+    <ClInclude Include="source\EventSystem.h" />
     <ClInclude Include="source\BossLevel.h" />
     <ClInclude Include="source\Camera.h" />
     <ClInclude Include="source\Colors.h" />

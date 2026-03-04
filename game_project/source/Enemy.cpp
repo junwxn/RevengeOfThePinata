@@ -40,12 +40,18 @@ Enemy::~Enemy() {
         AEGfxMeshFree(m_enemyHealthBarMesh);
         m_enemyHealthBarMesh = nullptr;
     }
+
+    if (m_markMesh) {
+        AEGfxMeshFree(m_markMesh);
+        m_markMesh = nullptr;
+    }
 }
 
 void Enemy::Init() {
     m_AttackRangeMesh = CreateAttackRangeMesh(m_AttackRange, 0xFF0000);
     m_enemyMesh = CreateCircleMesh(1.0f, 32, 0x50A655);
     m_enemyHealthBarMesh = CreateRectMesh(0xAEF359);
+    m_markMesh = CreateRectMesh(0xFFFFFF);
 }
 
 void Enemy::BaseUpdate(f32 dt, Combat::System& combat, Player const& player) {
@@ -99,6 +105,15 @@ void Enemy::BaseUpdate(f32 dt, Combat::System& combat, Player const& player) {
     }
 
     AEVec2Scale(&m_KnockbackVelocity, &m_KnockbackVelocity, 0.85f);
+
+    // Damaging Mark: tick detonation animation
+    if (m_markDetonating) {
+        m_markDetonateTimer -= dt;
+        if (m_markDetonateTimer <= 0.0f) {
+            m_markDetonating = false;
+            m_markDetonateTimer = 0.0f;
+        }
+    }
 
     // Only use for single enemy
     if (AEInputCheckTriggered(AEVK_R)) {
@@ -189,12 +204,27 @@ void Enemy::Draw() {
     // Enemy health bar
     f32 barWidth = m_size * 2.0f * m_CombatStats.health / m_CombatStats.maxHealth;
     f32 barHeight = m_size / 3.0f;
-    f32 dbarWidth = m_size * 2.0f * (m_CombatStats.health / m_CombatStats.maxHealth + m_healthDepletionPercentage/ 100.0f);
-    f32 dRate = 100.0f * dt;
+    f32 dbarWidth = m_size * 2.0f * (m_CombatStats.health / m_CombatStats.maxHealth + m_healthDepletionPercentage / m_CombatStats.maxHealth);
+    f32 dRate = m_CombatStats.maxHealth * dt;
     if (m_healthDepletionPercentage >= 0.0f) { m_healthDepletionPercentage -= dRate; };
 
     DrawMesh(m_enemyHealthBarMesh, dbarWidth, barHeight, m_pos.x - m_size, m_pos.y + m_size + barHeight / 2.0f + 5.0f, 0.0f, 255, 175, 65, 255); // Depleting bar
     DrawMesh(m_enemyHealthBarMesh, barWidth, barHeight, m_pos.x - m_size, m_pos.y + m_size + barHeight / 2.0f + 5.0f, 0.0f, 210, 70, 75, 255); // Instant bar
+
+    // Damaging Mark: draw dagger above marked/detonating enemies
+    if (m_marked && !m_markDetonating && m_markMesh) {
+        // Hovering dagger with gentle bob
+        float bobOffset = sinf(m_markTimer * 5.0f) * 4.0f;
+        float daggerY = m_pos.y + m_size + 40.0f + bobOffset;
+        DrawMesh(m_markMesh, 14.0f, 20.0f, m_pos.x, daggerY, 0.0f, 255, 255, 255, 255);
+    }
+    else if (m_markDetonating && m_markMesh) {
+        // Dagger drops from hover position down to enemy
+        float t = m_markDetonateTimer / 0.3f; // 1.0 = top, 0.0 = enemy
+        float hoverY = m_pos.y + m_size + 40.0f;
+        float daggerY = m_pos.y + (hoverY - m_pos.y) * t;
+        DrawMesh(m_markMesh, 14.0f, 20.0f, m_pos.x, daggerY, 0.0f, 255, 80, 80, 255);
+    }
 }
 
 void Enemy::StartAttack(Combat::CombatData::AttackData attackData) {

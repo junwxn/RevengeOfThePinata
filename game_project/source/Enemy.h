@@ -90,6 +90,21 @@ public:
     // Combat -------------------------
     void DeductHealth(f32 damage) { m_CombatStats.health -= damage; }
 
+    // Augment: Damaging Mark
+    bool m_marked = false;
+    float m_markTimer = 0.0f;
+    float m_markAccumulatedDamage = 0.0f;
+
+    // Augment: Damaging Mark (visual)
+    float m_markDetonateTimer = 0.0f;
+    bool  m_markDetonating = false;
+    AEGfxVertexList* m_markMesh{ nullptr };
+
+    // Augment: Amplified Damage
+    bool m_damageAmplified = false;
+    float m_amplifyTimer = 0.0f;
+    float m_damageMultiplier = 1.0f;
+
     // Call once after the map is loaded so enemies can self-resolve wall collisions.
     void SetMap(const MapSystem* map) { m_pMap = map; }
 

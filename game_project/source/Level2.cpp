@@ -4,6 +4,9 @@
 #include "Level2.h"
 #include "camera.h"
 #include "Augments.h"
+#include "AugmentData.h"
+#include "AugmentEffects.h"
+#include "EventSystem.h"
 #include "GameStateManager.h"
 #include "Map.h"
 #include "Pause.h"
@@ -91,6 +94,7 @@ void Level2_Load() {
 
 void Level2_Init() {
 	player.Init();
+	player.SetAttackCharges(g_PlayerAttackCharges);
 	player.SetMap(&gameMap);
 
 	Healthbar.w = 1200;
@@ -105,6 +109,9 @@ void Level2_Init() {
 	camera.Init(player.GetX(), player.GetY());
 	Pause_Init();
 	augments.Init();
+	augments.SetAugmentSet(AugmentSet::SET_ATTACK);
+	AugmentEffects_Init(&player);
+	AugmentEffects_Register();
 
 	// Auto-spawn wave 1
 	wave1Active = false;
@@ -220,6 +227,9 @@ void Level2_Update(float dt) {
 
 	camera.Update(dt, player.GetX(), player.GetY(), preventingmovement);
 
+	// Update augment effects
+	AugmentEffects_Update(dt, player, wave1Active ? Wave1 : Wave2);
+
 	if (Healthbar.var < 0) Healthbar.var = 0;
 	if (Healthbar.var > 100) Healthbar.var = 100;
 	Healthbar.current = (Healthbar.var / 100) * (Healthbar.max - Healthbar.min);
@@ -242,6 +252,11 @@ void Level2_Update(float dt) {
 
 	if (AEInputCheckTriggered(AEVK_ESCAPE) || 0 == AESysDoesWindowExist()) {
 		next = GS_QUIT;
+	}
+
+	if (AEInputCheckTriggered(AEVK_K)) {
+		Wave1.clear();
+		Wave2.clear();
 	}
 
 	if (AEInputCheckTriggered(AEVK_N)) {
@@ -308,6 +323,8 @@ void Level2_Draw() {
 
 	Pause_Draw();
 
+	AugmentEffects_Draw();
+
 	if (endofwave) {
 		augments.Draw(player.GetX(), player.GetY());
 	}
@@ -316,10 +333,13 @@ void Level2_Draw() {
 }
 
 void Level2_Free() {
+	g_PlayerAttackCharges = player.GetAttackCharges();
 	Wave1.clear();
 	Wave2.clear();
 	player.Free();
 	augments.Free();
+	AugmentEffects_Free();
+	g_Events.ClearAll();
 }
 
 void Level2_Unload() {
