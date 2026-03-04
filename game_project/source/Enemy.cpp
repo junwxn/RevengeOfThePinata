@@ -126,9 +126,20 @@ void Enemy::BaseUpdate(f32 dt, Combat::System& combat, Player const& player) {
     }
 
     // Start attack -------------------
-    if (!m_AttackActive && m_AllowAttack && m_CombatSystem.CanStartAttack_Enemy(player, *this))
+    // Wind-up: charge before swinging
+    if (!m_AttackActive && m_AllowAttack && !m_WindingUp && m_CombatSystem.CanStartAttack_Enemy(player, *this))
     {
-        StartAttack(this->m_AttackData);
+        m_WindingUp = true;
+        m_WindUpTimer = m_WindUpDuration;
+    }
+
+    if (m_WindingUp) {
+        m_WindUpTimer -= dt;
+        if (m_WindUpTimer <= 0.0f) {
+            m_WindingUp = false;
+            m_WindUpTimer = 0.0f;
+            StartAttack(this->m_AttackData);
+        }
     }
     //std::cout << "m_AttackActive: " << m_AttackActive << std::endl;
 
@@ -191,9 +202,22 @@ void Enemy::Draw() {
 
     // Draw Meshes --------------------
     // Enemy
-    if (!m_CombatFlags.parried && m_AttackCooldown >= 0.5f) DrawMesh(m_enemyMesh, m_size, isoHeight, m_pos.x, m_pos.y, 0.0f, 44, 255, 255, 255);
-    else if(m_AttackCooldown < 0.5f) DrawMesh(m_enemyMesh, m_size, isoHeight, m_pos.x, m_pos.y, 0.0f, 255, 255, 0, 255);
-    else DrawMesh(m_enemyMesh, m_size, isoHeight, m_pos.x, m_pos.y, 0.0f, 255, 0, 0, 255);
+    if (m_WindingUp && m_WindUpTimer < 0.2f) {
+        // Flash red just before attacking (last 0.2s of wind-up)
+        float flash = sinf(m_WindUpTimer * 40.0f);
+        float r = (flash > 0.0f) ? 255.0f : 180.0f;
+        DrawMesh(m_enemyMesh, m_size, isoHeight, m_pos.x, m_pos.y, 0.0f, r, 0, 0, 255);
+    }
+    else if (m_WindingUp) {
+        // Winding up — tint yellow to show charging
+        DrawMesh(m_enemyMesh, m_size, isoHeight, m_pos.x, m_pos.y, 0.0f, 255, 200, 0, 255);
+    }
+    else if (m_CombatFlags.parried) {
+        DrawMesh(m_enemyMesh, m_size, isoHeight, m_pos.x, m_pos.y, 0.0f, 255, 0, 0, 255);
+    }
+    else {
+        DrawMesh(m_enemyMesh, m_size, isoHeight, m_pos.x, m_pos.y, 0.0f, 44, 255, 255, 255);
+    }
 
     // Enemy sword
     f32 swordAngle = m_AttackActive ? m_CurrentAngle : m_AimAngle;
@@ -310,6 +334,7 @@ Boss::Boss(AEVec2 pos, f32 size, f32 hp, f32 speed)
     m_AttackData.active = m_AttackActiveFrames;
     m_AttackData.recovery = m_AttackRecoveryFrames;
     m_AttackData.total = m_AttackTotalFrames;
+    m_WindUpDuration = 1.0f; // Boss winds up longer
 }
 
 void Boss::ChildUpdate(f32 dt, Combat::System& combat, Player const& player) {

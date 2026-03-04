@@ -173,6 +173,11 @@ protected:
     float m_StartDegree{ 30.0f };
     float m_EndDegree{ 30.0f };
     bool m_Recovered{ true };
+
+    // Attack wind-up
+    bool  m_WindingUp{ false };
+    float m_WindUpTimer{ 0.0f };
+    float m_WindUpDuration{ 0.6f }; // seconds to charge before swinging
     int m_AttackStartUpFrames{ 7 };
     int m_AttackActiveFrames{ 15 };
     int m_AttackRecoveryFrames{ 15 };
