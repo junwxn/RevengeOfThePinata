@@ -120,6 +120,7 @@ xcopy "$(SolutionDir)Extern\AlphaEngine\lib\fmod.dll" "$(OutDir)" /s /r /y /q</C
     <ClCompile Include="source\Map.cpp" />
     <ClCompile Include="source\MathFunctions.cpp" />
     <ClCompile Include="source\Pause.cpp" />
+    <ClCompile Include="source\GameOver.cpp" />
     <ClCompile Include="source\Victory.cpp" />
     <ClCompile Include="source\pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
@@ -167,6 +168,7 @@ xcopy "$(SolutionDir)Extern\AlphaEngine\lib\fmod.dll" "$(OutDir)" /s /r /y /q</C
     <ClInclude Include="source\Map.h" />
     <ClInclude Include="source\MathFunctions.h" />
     <ClInclude Include="source\Pause.h" />
+    <ClInclude Include="source\GameOver.h" />
     <ClInclude Include="source\Victory.h" />
     <ClInclude Include="source\pch.h" />
     <ClInclude Include="source\Player.h" />

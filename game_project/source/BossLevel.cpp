@@ -96,7 +96,10 @@ void BossLevel_Update(float dt) {
 		return;
 	}
 
-	if (Pause_Update(player.GetIsAlive())) return;
+	if (Pause_Update(true)) return;
+
+	// Player death -> Game Over screen
+	if (!player.GetIsAlive()) { next = GS_GAMEOVER; return; }
 
 	player.Update(dt, CombatSystem, Wave1, camera.GetX(), camera.GetY(), preventingmovement);
 

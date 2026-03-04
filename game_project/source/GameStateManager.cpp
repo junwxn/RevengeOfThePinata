@@ -7,6 +7,7 @@
 #include "Level3.h"
 #include "BossLevel.h"
 #include "Victory.h"
+#include "GameOver.h"
 
 int current = 0, previous = 0, next = 0;
 
@@ -69,6 +70,14 @@ void GSM_Update() {
 		fpDraw = Victory_Draw;
 		fpFree = Victory_Free;
 		fpUnload = Victory_Unload;
+		break;
+	case GS_GAMEOVER:
+		fpLoad = GameOver_Load;
+		fpInitialize = GameOver_Init;
+		fpUpdate = GameOver_Update;
+		fpDraw = GameOver_Draw;
+		fpFree = GameOver_Free;
+		fpUnload = GameOver_Unload;
 		break;
 	case GS_RESTART:
 		break;

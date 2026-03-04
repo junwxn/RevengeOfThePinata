@@ -149,7 +149,10 @@ void Level3_Update(float dt) {
 		return;
 	}
 
-	if (Pause_Update(player.GetIsAlive())) return;
+	if (Pause_Update(true)) return;
+
+	// Player death -> Game Over screen
+	if (!player.GetIsAlive()) { next = GS_GAMEOVER; return; }
 
 	// Pick the active wave for player combat
 	std::vector<std::unique_ptr<Enemy>>* activeWavePtr = &Wave1;

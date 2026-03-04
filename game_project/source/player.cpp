@@ -34,6 +34,11 @@ void Player::Init()
 
     m_CurrentState = PlayerState::STATE_IDLE;
 
+    // Reset combat state for fresh start
+    m_CombatStats.health = m_CombatStats.maxHealth;
+    m_CombatFlags.isAlive = true;
+    m_healthDepletionPercentage = 0.0f;
+
     // --- Attack setup ---
     m_ConeThreshold = cos(AEDegToRad(m_ConeHalfAngleDeg));
 

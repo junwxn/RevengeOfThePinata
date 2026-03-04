@@ -132,7 +132,10 @@ void Level2_Update(float dt) {
 		return;
 	}
 
-	if (Pause_Update(player.GetIsAlive())) return;
+	if (Pause_Update(true)) return;
+
+	// Player death -> Game Over screen
+	if (!player.GetIsAlive()) { next = GS_GAMEOVER; return; }
 
 	// Use Wave1 for player combat reference
 	auto& activeWave = wave1Active ? Wave1 : Wave2;
