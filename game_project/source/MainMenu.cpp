@@ -2,6 +2,7 @@
 #include "MainMenu.h"
 #include "GameStateManager.h"
 #include "Utils.h"
+#include "Audio.h"
 
 // --- Enums & Structs ---
 enum MenuScreen { MENU_MAIN, MENU_CONTROLS, MENU_CREDITS };
@@ -51,6 +52,7 @@ void MainMenu_Load() {
 	rectMesh  = CreateRectMesh(0xFFFFFFFF);
 	fontTitle = AEGfxCreateFont("Assets/liberation-mono.ttf", 72);
 	fontBody  = AEGfxCreateFont("Assets/liberation-mono.ttf", 36);
+	gAudio.Audio_Init();
 }
 
 // ========== INIT ==========
@@ -77,10 +79,16 @@ void MainMenu_Init() {
 
 	titleBob = 0.0f;
 	bgHue    = 0.0f;
+
+	//AEAudio bgm = AEAudioLoadMusic("Assets/Audio/BGM/mainMenu.wav");
+	//AEAudioGroup bgmGroup = AEAudioCreateGroup();
+	//AEAudioPlay(bgm, bgmGroup, 1.f, 1.f, -1);
+	gAudio.PlayBGM(1);
 }
 
 // ========== UPDATE ==========
 void MainMenu_Update(float dt) {
+	
 	// Mouse → world coords (window is 1600x900, origin at center)
 	s32 mx, my;
 	AEInputGetCursorPosition(&mx, &my);
