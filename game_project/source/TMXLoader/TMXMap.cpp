@@ -33,19 +33,26 @@ TMXMap::~TMXMap() noexcept
     std::vector<TMXTileLayer>{}.swap(m_layerVector);
 }
 
-void TMXMap::setMapSettings(std::vector<std::string> const &mapData, std::unordered_map<std::string, std::string> const &mapProps) noexcept
+void TMXMap::setMapSettings(std::vector<std::string> const& mapData, std::unordered_map<std::string, std::string> const& mapProps) noexcept
 {
-    m_version = std::stof(mapData[0]);
-    m_orientation = mapData[1];
-    m_renderOrder = mapData[2];
-    m_width = std::stoi(mapData[3]);
-    m_height = std::stoi(mapData[4]);
-    m_tileWidth = std::stoi(mapData[5]);
-    m_tileHeight = std::stoi(mapData[6]);
+    try {
+        m_version = std::stof(mapData[0]);
+        m_orientation = mapData[1];
+        m_renderOrder = mapData[2];
+        m_width = std::stoi(mapData[3]);
+        m_height = std::stoi(mapData[4]);
+        m_tileWidth = std::stoi(mapData[5]);
+        m_tileHeight = std::stoi(mapData[6]);
 
-    m_backgroundColour[0] = std::stoi(mapData[8]);
-    m_backgroundColour[1] = std::stoi(mapData[8]);
-    m_backgroundColour[2] = std::stoi(mapData[8]);
+        // Fix: Use index 7, 8, 9 for RGB instead of index 8 for all three
+        m_backgroundColour[0] = std::stoi(mapData[7]);
+        m_backgroundColour[1] = std::stoi(mapData[8]);
+        m_backgroundColour[2] = std::stoi(mapData[9]);
+    }
+    catch (...) {
+        // Fail gracefully instead of crashing the whole game
+        std::cout << "TMXLoader Warning: Failed to parse some map settings." << std::endl;
+    }
 
     m_propertiesMap = mapProps;
 }

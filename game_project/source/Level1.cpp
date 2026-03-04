@@ -5,6 +5,8 @@
 #include "camera.h"
 #include "Augments.h"
 #include "GameStateManager.h"
+#include "Map.h"
+#include "Pause.h"
 
 // load variables
 static AEGfxTexture* TexBlock2;
@@ -19,6 +21,7 @@ Circle DMGCircle{};
 RectData Healthbar{};
 Camera camera{};
 Augments augments{};
+MapSystem gameMap;
 
 // update variables
 Combat::System CombatSystem;
@@ -40,10 +43,18 @@ void Level1_Load() {
 	TexBlock	= AEGfxTextureLoad("Assets/block.png");
 	CircleMesh	= CreateCircleMesh(1.0f, 32, 0xFFFFFFFF);
 	RectMesh	= CreateRectMesh(0xFFFFFFFF);
+	gameMap.Init("Assets/untitled.tmx", "tilesheet_complete", "Assets/tilesheet_complete.png");
+
+	// Build the binary collision grid from the wall layer.
+	// Change "Tile Layer 2" to whatever your collision/wall layer is named in Tiled.
+	gameMap.BuildCollisionGrid("Tile Layer 2");
+
+	Pause_Load();
 }
 void Level1_Init() {
-	
+
 	player.Init();
+	player.SetMap(&gameMap); // Enable player↔map collision
 
 	// logic objects
 	HealCircle = { -400.0f, 0.0f, 150.0f };
@@ -62,10 +73,20 @@ void Level1_Init() {
 	// camera init
 	camera.Init(player.GetX(), player.GetY());
 
+	Pause_Init();
+
 	// Augments Init
 	augments.Init();
 }
 void Level1_Update(float dt) {
+	if (!AESysDoesWindowExist()) {
+		next = GS_QUIT;
+		return;
+	}
+
+	// Pause handles ESC toggle + menu input; returns true if paused
+	if (Pause_Update()) return;
+
 	player.Update(dt, CombatSystem, Wave1, camera.GetX(), camera.GetY(), preventingmovement);
 
 	if (AEInputCheckTriggered(AEVK_1)) {
@@ -101,7 +122,7 @@ void Level1_Update(float dt) {
 
 		for (auto& enemy : Wave1) {
 			enemy->Update(dt, CombatSystem, player);
-			CombatSystem.Update(player, *enemy, dt);
+			CombatSystem.Update(player, *enemy, camera, dt);
 		}
 
 		for (auto& enemy : Wave1) {
@@ -128,7 +149,7 @@ void Level1_Update(float dt) {
 
 		for (auto& enemy : Wave2) {
 			enemy->Update(dt, CombatSystem, player);
-			CombatSystem.Update(player, *enemy, dt);
+			CombatSystem.Update(player, *enemy, camera, dt);
 		}
 
 		for (auto& enemy : Wave2) {
@@ -151,11 +172,18 @@ void Level1_Update(float dt) {
 	float gridX = 0.5f * (invX + invY);
 	float gridY = 0.5f * (invY - invX);
 
-	// Map Limits (Matches your previous loop logic)
-	const float MAP_MAX_X = 6.0f;
-	const float MAP_MIN_X = -8.0f;
-	const float MAP_MAX_Y = 5.0f;
-	const float MAP_MIN_Y = -9.0f;
+	// --- Map Limits ---
+		// We apply the same -10 offset here that is used in MapSystem::Draw
+	const float GRID_OFFSET = -10.0f;
+
+	// Min limits are the starting grid index (0) plus the offset
+	float MAP_MIN_X = 1.0f + GRID_OFFSET;
+	float MAP_MIN_Y = 0.0f + GRID_OFFSET;
+
+	// Max limits are the map width/height minus 1 (to stay on the tile), plus the offset
+	// We use max(1, width) to prevent crashes if the map fails to load
+	float MAP_MAX_X = (float)(std::max)(1u, gameMap.GetMapWidth()) + GRID_OFFSET;
+	float MAP_MAX_Y = (float)(std::max)(1u, gameMap.GetMapHeight()) - 1.0f + GRID_OFFSET;
 
 	bool clamped = false;
 	if (gridX < MAP_MIN_X) { gridX = MAP_MIN_X; clamped = true; }
@@ -248,30 +276,28 @@ void Level1_Draw() {
 	AEGfxSetBlendMode(AE_GFX_BM_BLEND);
 	AEGfxSetTransparency(1.0f);
 
-	AEGfxTextureSet(TexBlock2, 0, 0);
-	for (int x = 15; x > 0; --x) {
-		for (int y = 15; y > 0; --y) {
-			Vec2 pos = GridToScreen(x - 10, y - 10);
-			AEMtx33 scale, trans, transform;
-			AEMtx33Scale(&scale, SPRITE_W, SPRITE_H);
-			AEMtx33Trans(&trans, pos.x, pos.y);
-			AEMtx33Concat(&transform, &trans, &scale);
-			AEGfxSetTransform(transform.m);
-			AEGfxMeshDraw(RectMesh, AE_GFX_MDM_TRIANGLES);
-		}
-	}
+	// 1. Draw the floor/background layer FIRST
+	gameMap.Draw("Tile Layer 1");
 
-	player.Draw();
+	// 2. Draw Layer 2 blocks that are BEHIND the player
+	std::vector<RenderNode> renderQueue;
 
+	// Add the Player
+	renderQueue.push_back({ player.GetY(), [&]() { player.Draw(); } });
+
+	// Add Wave 1 Enemies
 	if (wave1Active) {
 		for (auto& enemy : Wave1) {
-			enemy->Draw();
+			Enemy* ePtr = enemy.get();
+			renderQueue.push_back({ ePtr->GetY(), [ePtr]() { ePtr->Draw(); } });
 		}
 	}
 
+	// Add Wave 2 Enemies
 	if (wave2Active) {
 		for (auto& enemy : Wave2) {
-			enemy->Draw();
+			Enemy* ePtr = enemy.get();
+			renderQueue.push_back({ ePtr->GetY(), [ePtr]() { ePtr->Draw(); } });
 		}
 	}
 
@@ -279,6 +305,22 @@ void Level1_Draw() {
 	if (endofwave) {
 		augments.Draw();
 	}
+
+	// Ask the Map to push every block in Layer 2 into the queue!
+	gameMap.QueueLayer("Tile Layer 2", renderQueue);
+
+	// --- 3. SORT THE ENTIRE WORLD ---
+	// Sorts from Highest Y (Furthest Back) to Lowest Y (Closest to Front)
+	std::sort(renderQueue.begin(), renderQueue.end(), [](const RenderNode& a, const RenderNode& b) {
+		return a.y > b.y;
+		});
+
+	// --- 4. EXECUTE ALL DRAW CALLS ---
+	for (auto& node : renderQueue) {
+		node.drawCall();
+	}
+
+	Pause_Draw();
 
 	AESysFrameEnd();
 }
@@ -288,11 +330,12 @@ void Level1_Free() {
 	player.Free();
 }
 void Level1_Unload() {
-	AEGfxTextureUnload(TexBlock);
-	AEGfxTextureUnload(TexBlock2);
+	if (TexBlock)  { AEGfxTextureUnload(TexBlock);  TexBlock  = nullptr; }
+	if (TexBlock2) { AEGfxTextureUnload(TexBlock2); TexBlock2 = nullptr; }
 	AEGfxMeshFree(CircleMesh);
 	AEGfxMeshFree(RectMesh);
-
+	gameMap.Unload();
+	Pause_Unload();
 }
 
 void SpawnWave1() {
@@ -306,6 +349,7 @@ void SpawnWave1() {
 
 	for (auto& enemy : Wave1) {
 		enemy->Init();
+		enemy->SetMap(&gameMap); // Enable enemy↔map collision
 	}
 
 };
@@ -330,6 +374,7 @@ void SpawnWave2() {
 
 	for (auto& enemy : Wave2) {
 		enemy->Init();
+		enemy->SetMap(&gameMap); // Enable enemy↔map collision
 	}
 
 };

@@ -4,6 +4,7 @@
 #include "Player.h"
 #include "MathFunctions.h"
 #include "Utils.h"
+#include "Map.h"
 
 //std::ostream& operator<<(std::ostream& os, CombatOutcome outcome) {
 //    if (outcome == CombatOutcome::OUTCOME_HIT) return os << "OUTCOME_HIT";
@@ -11,6 +12,10 @@
 //    else if (outcome == CombatOutcome::OUTCOME_PARRIED) return os << "OUTCOME_PARRIED";
 //    return os << static_cast<int>(outcome);
 //}
+
+std::ostream& operator<<(std::ostream& os, AEVec2 vector) {
+    return os << vector.x << " " << vector.y << std::endl;
+}
 
 // ---------------------
 // | Base Class: Enemy |
@@ -44,6 +49,55 @@ void Enemy::Init() {
 }
 
 void Enemy::BaseUpdate(f32 dt, Combat::System& combat, Player const& player) {
+
+    //std::cout << "BASE RUNNING" << std::endl;
+
+    // --- Knockback with wall-bounce ---
+    AEVec2 frameMove;
+    AEVec2Scale(&frameMove, &m_KnockbackVelocity, dt);
+
+    float knockbackSpeed = AEVec2Length(&m_KnockbackVelocity);
+
+    if (!m_pMap || knockbackSpeed < 1.0f) {
+        // No map or negligible knockback — just apply raw move
+        AEVec2Add(&m_pos, &m_pos, &frameMove);
+    }
+    else {
+        float newX = m_pos.x + frameMove.x;
+        float newY = m_pos.y + frameMove.y;
+
+        if (!m_pMap->IsPositionBlocked(newX, newY, m_size)) {
+            // Full move is clear
+            m_pos.x = newX;
+            m_pos.y = newY;
+        }
+        else {
+            // Wall hit — check which axes are blocked and reflect them
+            bool xBlocked = m_pMap->IsPositionBlocked(m_pos.x + frameMove.x, m_pos.y, m_size);
+            bool yBlocked = m_pMap->IsPositionBlocked(m_pos.x, m_pos.y + frameMove.y, m_size);
+
+            if (xBlocked) m_KnockbackVelocity.x *= -0.5f;
+            if (yBlocked) m_KnockbackVelocity.y *= -0.5f;
+            if (!xBlocked && !yBlocked) {
+                // Corner case: both axes clear individually but diagonal blocked
+                m_KnockbackVelocity.x *= -0.5f;
+                m_KnockbackVelocity.y *= -0.5f;
+            }
+
+            // Wall-impact damage: only on a real slam (speed > 500)
+            constexpr float WALL_DAMAGE_SPEED_THRESHOLD = 500.0f;
+            if (knockbackSpeed > WALL_DAMAGE_SPEED_THRESHOLD) {
+                float wallDamage = m_CombatStats.maxHealth * 0.1f;
+                m_CombatStats.health -= wallDamage;
+                m_healthDepletionPercentage += wallDamage * 3.0f;
+            }
+
+            // Use ResolveCollision to find a safe final position (prevents clipping)
+            ResolveCollision(m_pos.x, m_pos.y, frameMove.x, frameMove.y, m_size, *m_pMap);
+        }
+    }
+
+    AEVec2Scale(&m_KnockbackVelocity, &m_KnockbackVelocity, 0.85f);
 
     // Only use for single enemy
     if (AEInputCheckTriggered(AEVK_R)) {
@@ -108,6 +162,7 @@ void Enemy::BaseUpdate(f32 dt, Combat::System& combat, Player const& player) {
         m_AllowAttack = false;
     }
 
+    //std::cout << "BASE ENDED" << std::endl;
 }
 
 void Enemy::Draw() {
@@ -121,7 +176,7 @@ void Enemy::Draw() {
 
     // Draw Meshes --------------------
     // Enemy
-    if (!m_CombatFlags.stunned && m_AttackCooldown >= 0.5f) DrawMesh(m_enemyMesh, m_size, isoHeight, m_pos.x, m_pos.y, 0.0f, 44, 255, 255, 255);
+    if (!m_CombatFlags.parried && m_AttackCooldown >= 0.5f) DrawMesh(m_enemyMesh, m_size, isoHeight, m_pos.x, m_pos.y, 0.0f, 44, 255, 255, 255);
     else if(m_AttackCooldown < 0.5f) DrawMesh(m_enemyMesh, m_size, isoHeight, m_pos.x, m_pos.y, 0.0f, 255, 255, 0, 255);
     else DrawMesh(m_enemyMesh, m_size, isoHeight, m_pos.x, m_pos.y, 0.0f, 255, 0, 0, 255);
 
@@ -166,21 +221,24 @@ void Enemy::DamageInfo() {
  //-----------------------
 void Walker::ChildUpdate(f32 dt, Combat::System& combat, Player const& player) {
     AEVec2 playerPos{ player.GetX(), player.GetY() };
-    AEVec2 enemyToPlayer;
-    AEVec2Sub(&enemyToPlayer, &playerPos, &m_pos);
-    AEVec2Normalize(&enemyToPlayer, &enemyToPlayer);
+    AEVec2Sub(&m_enemyToPlayerDir, &playerPos, &m_pos);
+    AEVec2Normalize(&m_enemyToPlayerDir, &m_enemyToPlayerDir);
 
     // Point sword towards player
-    m_AimAngle = atan2(-enemyToPlayer.y, -enemyToPlayer.x);
+    m_AimAngle = atan2(-m_enemyToPlayerDir.y, -m_enemyToPlayerDir.x);
 
     // Seek player
     if (!AreCirclesIntersecting(player.GetX(), player.GetY(), player.GetSize(),
                                 m_pos.x, m_pos.y, m_size)) {
-        AEVec2Scale(&enemyToPlayer, &enemyToPlayer, m_speed);
-        AEVec2Scale(&enemyToPlayer, &enemyToPlayer, dt);
+        float velX = m_enemyToPlayerDir.x * m_speed * dt;
+        float velY = m_enemyToPlayerDir.y * m_speed * dt;
 
-        // Move enemy towards player
-        if(!m_CombatFlags.stunned) AEVec2Add(&m_pos, &m_pos, &enemyToPlayer);
+        if (m_pMap) {
+            ResolveCollision(m_pos.x, m_pos.y, velX, velY, m_size, *m_pMap);
+        } else {
+            m_pos.x += velX;
+            m_pos.y += velY;
+        }
     }
 }
 
@@ -192,10 +250,10 @@ Dasher::Dasher(AEVec2 pos, f32 size, f32 hp, f32 speed, f32 dashCD)
 
 void Dasher::ChildUpdate(f32 dt, Combat::System& combat, Player const& player) {
     AEVec2 playerPos{ player.GetX(), player.GetY() };
-    AEVec2 enemyToPlayer;
-    AEVec2Sub(&enemyToPlayer, &playerPos, &m_pos);
-    AEVec2Normalize(&enemyToPlayer, &enemyToPlayer);
+    //AEVec2 enemyToPlayer;
+    AEVec2Sub(&m_enemyToPlayerDir, &playerPos, &m_pos);
+    AEVec2Normalize(&m_enemyToPlayerDir, &m_enemyToPlayerDir);
 
     // Point sword towards player
-    m_AimAngle = atan2(-enemyToPlayer.y, -enemyToPlayer.x);
+    m_AimAngle = atan2(-m_enemyToPlayerDir.y, -m_enemyToPlayerDir.x);
 }
