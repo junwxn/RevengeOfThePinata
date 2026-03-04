@@ -5,8 +5,9 @@
 #include "Utils.h" // Access to AE system and Grid constants
 #include "Combat.h"
 #include "Enemy.h"
-
 #include "Augments.h"
+class MapSystem; // Forward-declare to avoid a circular header chain
+
 
 //-----------------------//
 //---- Player States ----//
@@ -31,16 +32,17 @@ public:
     void Free();
 
     bool IsAttacking() const { return m_AttackActive; }
-    void StartAttack(Combat::CombatData::AttackData&);
+    void StartAttack(Combat::CombatData::AttackData&, std::vector<std::unique_ptr<Enemy>> const&);
 
     bool IsBlocking() const { return m_BlockActive; }
-    void StartBlock(Combat::CombatData::BlockData&);
+    void StartBlock(Combat::CombatData::BlockData&, std::vector<std::unique_ptr<Enemy>> const&);
 
     void GainAttackCharge() {
         ++m_AttackCharges;
         if (m_AttackCharges > m_MaxAttackCharge) {
             m_AttackCharges = m_MaxAttackCharge;
         }
+        std::cout << "Attack Charges: " << m_AttackCharges << std::endl;
     }
 
     void ResetCombatVariables();
@@ -60,6 +62,8 @@ public:
 
     f32 GetAttackRange() const { return m_AttackRange; }
     f32 GetConeThreshold() const { return m_ConeThreshold; }
+    f32 GetStartAngle() const { return m_StartAngle; }
+    f32 GetCurrentAngle() const { return m_CurrentAngle; }
 
     bool GetBlockStatus() const { return m_BlockActive; }
     bool GetParryStatus() const { return m_ParryActive; }
@@ -76,6 +80,8 @@ public:
     void SetAimAngle(float angle) { m_AimAngle = angle; }
     void SetHDP(f32 dmg) { m_healthDepletionPercentage += dmg; }
 
+    // Call once after the map is loaded so the player can self-resolve wall collisions.
+    void SetMap(const MapSystem* map) { m_pMap = map; }
 
     // Augments
     bool PreventMovement(bool notpreventing) const {
@@ -87,15 +93,15 @@ private:
 
 
     // Position & Stats
-    float m_PosX, m_PosY;
-    float m_Speed;
-    float m_Size;
-    f32 m_healthDepletionPercentage;
-    PlayerState m_CurrentState;
+    float m_PosX{}, m_PosY{};
+    float m_Speed{};
+    float m_Size{};
+    f32 m_healthDepletionPercentage{};
+    PlayerState m_CurrentState{};
 
     // Dash Logic
-    float m_DashCooldown;
-    float m_DashCooldown_Default;
+    float m_DashCooldown{};
+    float m_DashCooldown_Default{};
 
     // Visual Assets
     AEGfxVertexList* m_pMesh = nullptr;
@@ -128,9 +134,13 @@ private:
       true,  // blockedResolved
       false  // attackQueued
     };
+    int m_AttackStopFrames{};
+    int m_ParryStopFrames{};
+    int m_DefendStopFrames{};
 
     // Attack Logic
     // --------------------
+    int m_AttackID{};
     bool  m_AttackActive = false;
     bool  m_AllowAttack = true;
 
@@ -236,6 +246,8 @@ private:
     AEVec2 m_AimVector{};
     f32 m_AimAngle{};
 
+    // Non-owning pointer to the active map; set via SetMap().
+    const MapSystem* m_pMap = nullptr;
     // Augments
     bool preventing_movement;
 };

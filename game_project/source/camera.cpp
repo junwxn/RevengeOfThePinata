@@ -2,6 +2,7 @@
 
 #include "Camera.h"
 #include "Utils.h"
+#include <random>
 
 void Camera::Init(f32 startX, f32 startY) {
     m_X = startX;
@@ -11,7 +12,25 @@ void Camera::Init(f32 startX, f32 startY) {
     m_LookDist = 350.0f;
 }
 
-void Camera::Update(f32 dt, f32 playerX, f32 playerY, bool preventing_movement) {
+void Camera::Update(f32 dt, f32 playerX, f32 playerY) {
+
+    if (m_ScreenShake.timer > 0)
+    {
+        if (m_ScreenShake.timer < 0) m_ScreenShake.timer = 0;
+        m_ScreenShake.on = true;
+        m_ScreenShake.timer -= dt; // Decrement with time
+
+        f32 shakeMagnitude = m_ScreenShake.magnitude * (m_ScreenShake.timer / m_ScreenShake.duration);
+        m_shakeOffsetX = (rand() / (float)RAND_MAX * 2.0f - 1.0f) * shakeMagnitude;
+        m_shakeOffsetY = (rand() / (float)RAND_MAX * 2.0f - 1.0f) * shakeMagnitude;
+    }
+    else
+    {
+        m_shakeOffsetX = 0;
+        m_shakeOffsetY = 0;
+        m_ScreenShake.on = false;
+    }
+
     // --- 1. Determine Input Direction ---
     float dirX = 0.0f;
     float dirY = 0.0f;
@@ -67,6 +86,11 @@ void Camera::Update(f32 dt, f32 playerX, f32 playerY, bool preventing_movement) 
     m_X += (targetX - m_X) * m_Speed * dt;
     m_Y += (targetY - m_Y) * m_Speed * dt;
 
+    f32 renderX = m_X + m_shakeOffsetX;
+    f32 renderY = m_Y + m_shakeOffsetY;
+
+    if (m_ScreenShake.on) AEGfxSetCamPosition(renderX, renderY);
+
     // --- 5. Apply to Alpha Engine ---
-    AEGfxSetCamPosition(m_X, m_Y);
+    else AEGfxSetCamPosition(m_X, m_Y);
 }
