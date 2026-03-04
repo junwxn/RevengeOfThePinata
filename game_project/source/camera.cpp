@@ -12,7 +12,7 @@ void Camera::Init(f32 startX, f32 startY) {
     m_LookDist = 350.0f;
 }
 
-void Camera::Update(f32 dt, f32 playerX, f32 playerY) {
+void Camera::Update(f32 dt, f32 playerX, f32 playerY, bool preventing_movement) {
 
     if (m_ScreenShake.timer > 0)
     {

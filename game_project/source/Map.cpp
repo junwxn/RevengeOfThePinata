@@ -347,3 +347,45 @@ void ResolveCollision(float& posX, float& posY,
     else if (nwClear) { posX = slideNW_posX; posY = slideNW_posY; }
     // else: fully stuck against a corner, don't move
 }
+
+// ---------------------------------------------------------------------------
+// GetRandomSpawnPos — pick a random walkable tile, convert to world coords,
+// verify it isn't blocked and isn't too close to the player.
+// ---------------------------------------------------------------------------
+AEVec2 GetRandomSpawnPos(const MapSystem& map, const AEVec2& playerPos,
+                         float minDist, float enemyRadius)
+{
+    const unsigned mapW = map.GetMapWidth();
+    const unsigned mapH = map.GetMapHeight();
+
+    for (int attempt = 0; attempt < 100; ++attempt) {
+        int col = rand() % static_cast<int>(mapW);
+        int row = rand() % static_cast<int>(mapH);
+
+        // Mirror the rendering pipeline: Draw() does renderX = (mapW-1)-col
+        int renderX = static_cast<int>(mapW - 1) - col;
+        int renderY = static_cast<int>(mapH - 1) - row;
+
+        // Same offset used by Draw() and QueueLayer()
+        constexpr int RENDER_OFFSET = 10;
+        Vec2 pos = GridToScreen(renderX - RENDER_OFFSET, renderY - RENDER_OFFSET);
+
+        // Must be walkable
+        if (map.IsPositionBlocked(pos.x, pos.y, enemyRadius))
+            continue;
+
+        // Must be far enough from the player
+        float dx = pos.x - playerPos.x;
+        float dy = pos.y - playerPos.y;
+        if (sqrtf(dx * dx + dy * dy) < minDist)
+            continue;
+
+        return AEVec2{ pos.x, pos.y };
+    }
+
+    // Fallback: centre of the map
+    int midRX = static_cast<int>(mapW - 1) / 2;
+    int midRY = static_cast<int>(mapH - 1) / 2;
+    Vec2 center = GridToScreen(midRX - 10, midRY - 10);
+    return AEVec2{ center.x, center.y };
+}

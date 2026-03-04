@@ -103,19 +103,27 @@ void Augments::Update(f32 playerX, f32 playerY, f32 dt, f32 cameraX, f32 cameraY
             std::cout << "Green picked" << std::endl;
         }*/
 
-        if (IsMouseInside(mouseWX, mouseWY, cards_x1 + (cardWidth * 0.5), distanceY, cardWidth, cardHeight))
-        {
-            std::cout << "Red picked\n";
-        }
+        if (AEInputCheckTriggered(AEVK_LBUTTON)) {
+            if (IsMouseInside(mouseWX, mouseWY, cards_x1 + (cardWidth * 0.5), distanceY, cardWidth, cardHeight))
+            {
+                std::cout << "Red picked\n";
+                augmentSelected = true;
+                choose = false;
+            }
 
-        if (IsMouseInside(mouseWX, mouseWY, cards_x2 + (cardWidth * 0.5), distanceY, cardWidth, cardHeight))
-        {
-            std::cout << "Blue picked\n";
-        }
+            if (IsMouseInside(mouseWX, mouseWY, cards_x2 + (cardWidth * 0.5), distanceY, cardWidth, cardHeight))
+            {
+                std::cout << "Blue picked\n";
+                augmentSelected = true;
+                choose = false;
+            }
 
-        if (IsMouseInside(mouseWX, mouseWY, cards_x3 + (cardWidth * 0.5), distanceY, cardWidth, cardHeight))
-        {
-            std::cout << "Green picked\n";
+            if (IsMouseInside(mouseWX, mouseWY, cards_x3 + (cardWidth * 0.5), distanceY, cardWidth, cardHeight))
+            {
+                std::cout << "Green picked\n";
+                augmentSelected = true;
+                choose = false;
+            }
         }
 
         //DrawMesh(cardMesh, 400, 600, cards_x1, playerY - cards_y, 0.0f, 255, 0, 0, 255); // Red Card (Left)
@@ -181,4 +189,34 @@ void Augments::DrawShadow(f32 dt) {
 
 void Augments::Free() {
 
+}
+
+void Augments::Reset() {
+    augPosX = 0.f;
+    augPosY = 0.f;
+    augSize = 50.f;
+    interactRange = 100.f;
+
+    hoverPosY = augPosY;
+    hoverTime = 0.f;
+    hoverPower = 10.f;
+    hoverSpeed = 2.f;
+    deltaTime = 0;
+
+    isoHeight = 0;
+    cardWidth = 400;
+    cardHeight = 600;
+
+    windowTintX = 0;
+    windowTintY = 0;
+
+    cards_y = 0;
+    cards_x1 = 0;
+    cards_x2 = 0;
+    cards_x3 = 0;
+    distanceY = 0;
+
+    choose = false;
+    augmentSelected = false;
+    startingAnimation = true;
 }

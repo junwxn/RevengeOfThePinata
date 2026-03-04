@@ -62,7 +62,7 @@ void Player::Update(float dt, Combat::System& combat, std::vector<std::unique_pt
 
     // Vector from Player to Mouse World Position
     m_AimVector = { mouseWorldX - m_PosX, mouseWorldY - m_PosY };
-  
+
     //// Distance magnitude between
     m_DistMagMP = Vectors::magnitude(m_AimVector.x, m_AimVector.y); // Dist between mouse and player
     //// Normalize vectors (To get direction)
@@ -118,9 +118,9 @@ void Player::Update(float dt, Combat::System& combat, std::vector<std::unique_pt
     {
         std::cout << "ATTACK" << std::endl;
         m_AllowBlock = false;
-        if(m_CombatFlags.attackQueued) StartAttack(m_AttackChain[m_AttackChainIterator], wave);
+        if (m_CombatFlags.attackQueued) StartAttack(m_AttackChain[m_AttackChainIterator], wave);
         else StartAttack(m_AttackBasic, wave);
-        
+
         //for (auto& enemy : wave) {
         //    if (combatSystem.IsEnemyInRange(*this, *enemy)) {
         //        std::cout << "ENEMY HIT!" << std::endl;
@@ -128,7 +128,7 @@ void Player::Update(float dt, Combat::System& combat, std::vector<std::unique_pt
         //        m_AttackStopFrames = combatSystem.GetAttackerStopFrames();
         //    }
         //}
-		std::cout << "Attack Charges Left: " << m_AttackCharges - 1 << std::endl;
+        std::cout << "Attack Charges Left: " << m_AttackCharges - 1 << std::endl;
     }
     //else m_CombatFlags.attackHit = false;
 
@@ -215,7 +215,7 @@ void Player::Update(float dt, Combat::System& combat, std::vector<std::unique_pt
         {
             m_AttackStopFrames -= dt;
             //std::cout << "m_AttackStopFrames: " << m_AttackStopFrames << std::endl;
-            if (AEInputCheckTriggered(AEVK_LBUTTON) 
+            if (AEInputCheckTriggered(AEVK_LBUTTON)
                 && m_AttackChainIterator < m_AttackChain.size() - 1
                 && m_AttackCharges > 1)
             {
@@ -229,7 +229,7 @@ void Player::Update(float dt, Combat::System& combat, std::vector<std::unique_pt
 
         m_CurrentState = PlayerState::STATE_ATTACK;
 
-        if(m_AttackStopFrames <= 0) m_AttackFrameAccumulator += dt;
+        if (m_AttackStopFrames <= 0) m_AttackFrameAccumulator += dt;
 
         while (m_AttackFrameAccumulator >= combatSystem.GetOneFPS() && m_AttackCurrentFrame <= m_AttackBasic.total) {
             ++m_AttackCurrentFrame;
@@ -258,8 +258,8 @@ void Player::Update(float dt, Combat::System& combat, std::vector<std::unique_pt
             ///////////
             for (auto& enemy : wave)
             {
-                if (!enemy->GetCombatFlag().gotHit 
-                    && enemy->GetLastAttackID() !=  m_AttackID 
+                if (!enemy->GetCombatFlag().gotHit
+                    && enemy->GetLastAttackID() != m_AttackID
                     && combatSystem.IsEnemyInRange(*this, *enemy))
                 {
                     enemy->SetGotHit(true);
@@ -317,9 +317,9 @@ void Player::Update(float dt, Combat::System& combat, std::vector<std::unique_pt
 
         if (m_ParryStopFrames > 0) m_ParryStopFrames -= dt;
 
-        if(m_ParryStopFrames <= 0) m_BlockFrameAccumulator += dt;
+        if (m_ParryStopFrames <= 0) m_BlockFrameAccumulator += dt;
 
-        if(m_BlockCurrentFrame < m_BlockData.startUp + m_BlockData.parry)
+        if (m_BlockCurrentFrame < m_BlockData.startUp + m_BlockData.parry)
         {
             //std::cout << "WHILE 1" << std::endl;
             while (m_BlockFrameAccumulator >= combatSystem.GetOneFPS())
@@ -374,12 +374,12 @@ void Player::Update(float dt, Combat::System& combat, std::vector<std::unique_pt
             m_CurrentState = PlayerState::STATE_IDLE;
         }
         else m_BlockState.recovered = true;
-        
-    
+
+
         if (m_BlockState.held)
-        {  
+        {
             blockProgress = 1.0f;
-            if(!m_CombatFlags.parryOn) m_ParryActive = false;
+            if (!m_CombatFlags.parryOn) m_ParryActive = false;
             m_CombatFlags.parryOn = false;
         }
     }
@@ -398,95 +398,98 @@ void Player::Update(float dt, Combat::System& combat, std::vector<std::unique_pt
     s8 moveX = 0;
     s8 moveY = 0;
 
-    if (m_AttackStopFrames <= 0) 
+    if (m_AttackStopFrames <= 0)
     {
 
-    if (!preventing_movement) {
+        if (!preventing_movement) {
 
-        if (AEInputCheckCurr(AEVK_W)) moveY += 1;
-        if (AEInputCheckCurr(AEVK_S)) moveY -= 1;
-        if (AEInputCheckCurr(AEVK_A)) moveX -= 1;
-        if (AEInputCheckCurr(AEVK_D)) moveX += 1;
+            if (AEInputCheckCurr(AEVK_W)) moveY += 1;
+            if (AEInputCheckCurr(AEVK_S)) moveY -= 1;
+            if (AEInputCheckCurr(AEVK_A)) moveX -= 1;
+            if (AEInputCheckCurr(AEVK_D)) moveX += 1;
 
-    }
-
-    // --- 3. Execute Movement Logic ---
-    if (moveX != 0 || moveY != 0)
-    {
-        float dirX = 0.0f;
-        float dirY = 0.0f;
-
-        // Determine Direction
-        if (moveX != 0 && moveY != 0)
-        {
-            // Diagonal Normalization
-            float halfW = GRID_W * 0.5f;
-            float halfH = GRID_H * 0.5f;
-            float length = sqrt(halfW * halfW + halfH * halfH);
-
-            float isoStepX = halfW / length;
-            float isoStepY = halfH / length;
-
-            dirX = (moveX > 0 ? isoStepX : -isoStepX);
-            dirY = (moveY > 0 ? isoStepY : -isoStepY);
-        }
-        else
-        {
-            // Orthogonal Normalization
-            dirX = (float)moveX;
-            dirY = (float)moveY;
         }
 
-        // --- 4. Dash Logic ---
-        if (AEInputCheckTriggered(AEVK_SPACE) && m_DashCooldown <= 0.0f)
+        // --- 3. Execute Movement Logic ---
+        if (moveX != 0 || moveY != 0)
         {
-            float blinkDist = 0.0f;
+            float dirX = 0.0f;
+            float dirY = 0.0f;
 
+            // Determine Direction
             if (moveX != 0 && moveY != 0)
             {
-                // Diagonal: Move Hypotenuse of one tile
+                // Diagonal Normalization
                 float halfW = GRID_W * 0.5f;
                 float halfH = GRID_H * 0.5f;
-                blinkDist = sqrt(halfW * halfW + halfH * halfH);
+                float length = sqrt(halfW * halfW + halfH * halfH);
+
+                float isoStepX = halfW / length;
+                float isoStepY = halfH / length;
+
+                dirX = (moveX > 0 ? isoStepX : -isoStepX);
+                dirY = (moveY > 0 ? isoStepY : -isoStepY);
             }
             else
             {
-                // Orthogonal: Move Width or Height
-                blinkDist = (moveX != 0) ? GRID_W : GRID_H;
+                // Orthogonal Normalization
+                dirX = (float)moveX;
+                dirY = (float)moveY;
             }
 
-            // Dash uses the same collision resolution as walking, stepped in
-            // small increments along the path so the player can't tunnel
-            // through thin walls.  If a step is blocked the player stops at
-            // the last clear position (wall-sliding still applies per step).
-            float dashVelX = dirX * blinkDist;
-            float dashVelY = dirY * blinkDist;
-            if (m_pMap) {
-                const int steps = (int)(blinkDist / 16.0f) + 1;
-                float stepVelX = dashVelX / steps;
-                float stepVelY = dashVelY / steps;
-                for (int i = 0; i < steps; ++i) {
-                    float prevX = m_PosX, prevY = m_PosY;
-                    ResolveCollision(m_PosX, m_PosY, stepVelX, stepVelY, m_Size, *m_pMap);
-                    // If this step made no progress, stop early.
-                    if (m_PosX == prevX && m_PosY == prevY) break;
+            // --- 4. Dash Logic ---
+            if (AEInputCheckTriggered(AEVK_SPACE) && m_DashCooldown <= 0.0f)
+            {
+                float blinkDist = 0.0f;
+
+                if (moveX != 0 && moveY != 0)
+                {
+                    // Diagonal: Move Hypotenuse of one tile
+                    float halfW = GRID_W * 0.5f;
+                    float halfH = GRID_H * 0.5f;
+                    blinkDist = sqrt(halfW * halfW + halfH * halfH);
                 }
-            } else {
-                m_PosX += dashVelX;
-                m_PosY += dashVelY;
+                else
+                {
+                    // Orthogonal: Move Width or Height
+                    blinkDist = (moveX != 0) ? GRID_W : GRID_H;
+                }
+
+                // Dash uses the same collision resolution as walking, stepped in
+                // small increments along the path so the player can't tunnel
+                // through thin walls.  If a step is blocked the player stops at
+                // the last clear position (wall-sliding still applies per step).
+                float dashVelX = dirX * blinkDist;
+                float dashVelY = dirY * blinkDist;
+                if (m_pMap) {
+                    const int steps = (int)(blinkDist / 16.0f) + 1;
+                    float stepVelX = dashVelX / steps;
+                    float stepVelY = dashVelY / steps;
+                    for (int i = 0; i < steps; ++i) {
+                        float prevX = m_PosX, prevY = m_PosY;
+                        ResolveCollision(m_PosX, m_PosY, stepVelX, stepVelY, m_Size, *m_pMap);
+                        // If this step made no progress, stop early.
+                        if (m_PosX == prevX && m_PosY == prevY) break;
+                    }
+                }
+                else {
+                    m_PosX += dashVelX;
+                    m_PosY += dashVelY;
+                }
+
+                m_DashCooldown = m_DashCooldown_Default;
             }
 
-            m_DashCooldown = m_DashCooldown_Default;
-        }
-
-        // --- 5. Apply Velocity with isometric wall-sliding collision ---
-        float velX = dirX * m_Speed * dt;
-        float velY = dirY * m_Speed * dt;
-        if (m_pMap) {
-            ResolveCollision(m_PosX, m_PosY, velX, velY, m_Size, *m_pMap);
-        } else {
-            m_PosX += velX;
-            m_PosY += velY;
+            // --- 5. Apply Velocity with isometric wall-sliding collision ---
+            float velX = dirX * m_Speed * dt;
+            float velY = dirY * m_Speed * dt;
+            if (m_pMap) {
+                ResolveCollision(m_PosX, m_PosY, velX, velY, m_Size, *m_pMap);
+            }
+            else {
+                m_PosX += velX;
+                m_PosY += velY;
+            }
         }
     }
 }

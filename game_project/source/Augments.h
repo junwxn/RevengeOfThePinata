@@ -24,7 +24,14 @@ public:
         return choose;
     }
 
+    bool GetAugmentSelected() const {
+        return augmentSelected;
+    }
+
+    void Reset();
+
 private:
+    bool augmentSelected = false;
     // Position & Stats
     float augPosX, augPosY;
     float augSize;
