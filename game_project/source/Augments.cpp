@@ -102,6 +102,9 @@ void Augments::Update(f32 playerX, f32 playerY, f32 dt, f32 cameraX, f32 cameraY
         if (IsMouseInside(mouseWX, mouseWY, cards_x1 + (cardWidth * 0.5), cards_y, cardWidth, cardHeight))
         {
             std::cout << "Red picked\n";
+
+            // Augment double-dash
+
         }
 
         if (IsMouseInside(mouseWX, mouseWY, cards_x2 + (cardWidth * 0.5), cards_y, cardWidth, cardHeight))

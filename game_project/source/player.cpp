@@ -24,7 +24,7 @@ void Player::Init()
     m_PosY = 0.0f;
     m_Speed = 300.0f;
     m_Size = 40.0f;
-    m_DashCooldown_Default = 0.1f;
+    m_DashCooldown_Default = 0.5f;
     m_DashCooldown = 0.1f;
 
     m_CurrentState = PlayerState::STATE_IDLE;
