@@ -48,6 +48,12 @@ Enemy::~Enemy() {
 }
 
 void Enemy::Init() {
+    // Free any existing meshes before creating new ones (prevents leaks on re-init)
+    if (m_AttackRangeMesh)    { AEGfxMeshFree(m_AttackRangeMesh);    m_AttackRangeMesh    = nullptr; }
+    if (m_enemyMesh)          { AEGfxMeshFree(m_enemyMesh);          m_enemyMesh          = nullptr; }
+    if (m_enemyHealthBarMesh) { AEGfxMeshFree(m_enemyHealthBarMesh); m_enemyHealthBarMesh = nullptr; }
+    if (m_markMesh)           { AEGfxMeshFree(m_markMesh);           m_markMesh           = nullptr; }
+
     m_AttackRangeMesh = CreateAttackRangeMesh(m_AttackRange, 0xFF0000);
     m_enemyMesh = CreateCircleMesh(1.0f, 32, 0x50A655);
     m_enemyHealthBarMesh = CreateRectMesh(0xAEF359);

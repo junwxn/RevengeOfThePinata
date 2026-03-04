@@ -48,12 +48,12 @@ static void SpawnWave1_L2() {
 
 	// 3 Walkers + 2 Dashers
 	for (int i = 0; i < 3; ++i) {
-		AEVec2 p = GetRandomSpawnPos(gameMap, playerPos, 200.0f, 40.0f);
-		Wave1.push_back(std::make_unique<Walker>(p, 40.0f, 120.0f, 220.0f));
+		AEVec2 p = GetRandomSpawnPos(gameMap, playerPos, 200.0f, ENEMY_SIZE);
+		Wave1.push_back(std::make_unique<Walker>(p, ENEMY_SIZE, 120.0f, 220.0f));
 	}
 	for (int i = 0; i < 2; ++i) {
-		AEVec2 p = GetRandomSpawnPos(gameMap, playerPos, 200.0f, 40.0f);
-		Wave1.push_back(std::make_unique<Dasher>(p, 40.0f, 100.0f, 250.0f, 0.1f));
+		AEVec2 p = GetRandomSpawnPos(gameMap, playerPos, 200.0f, ENEMY_SIZE);
+		Wave1.push_back(std::make_unique<Dasher>(p, ENEMY_SIZE, 100.0f, 250.0f, 0.1f));
 	}
 
 	for (auto& enemy : Wave1) {
@@ -68,12 +68,12 @@ static void SpawnWave2_L2() {
 
 	// 5 Walkers + 5 Dashers
 	for (int i = 0; i < 5; ++i) {
-		AEVec2 p = GetRandomSpawnPos(gameMap, playerPos, 200.0f, 40.0f);
-		Wave2.push_back(std::make_unique<Walker>(p, 40.0f, 120.0f, 220.0f));
+		AEVec2 p = GetRandomSpawnPos(gameMap, playerPos, 200.0f, ENEMY_SIZE);
+		Wave2.push_back(std::make_unique<Walker>(p, ENEMY_SIZE, 120.0f, 220.0f));
 	}
 	for (int i = 0; i < 5; ++i) {
-		AEVec2 p = GetRandomSpawnPos(gameMap, playerPos, 200.0f, 40.0f);
-		Wave2.push_back(std::make_unique<Dasher>(p, 40.0f, 100.0f, 250.0f, 0.1f));
+		AEVec2 p = GetRandomSpawnPos(gameMap, playerPos, 200.0f, ENEMY_SIZE);
+		Wave2.push_back(std::make_unique<Dasher>(p, ENEMY_SIZE, 100.0f, 250.0f, 0.1f));
 	}
 
 	for (auto& enemy : Wave2) {
@@ -348,8 +348,8 @@ void Level2_Free() {
 void Level2_Unload() {
 	if (TexBlock)  { AEGfxTextureUnload(TexBlock);  TexBlock  = nullptr; }
 	if (TexBlock2) { AEGfxTextureUnload(TexBlock2); TexBlock2 = nullptr; }
-	AEGfxMeshFree(CircleMesh);
-	AEGfxMeshFree(RectMesh);
+	AEGfxMeshFree(CircleMesh); CircleMesh = nullptr;
+	AEGfxMeshFree(RectMesh);  RectMesh  = nullptr;
 	gameMap.Unload();
 	Pause_Unload();
 }

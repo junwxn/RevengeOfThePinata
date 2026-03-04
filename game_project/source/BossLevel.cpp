@@ -40,11 +40,11 @@ static void SpawnBossWave() {
 	AEVec2 playerPos = { player.GetX(), player.GetY() };
 
 	// 1 Boss (spawned on a valid tile) + 3 Walkers
-	AEVec2 bossPos = GetRandomSpawnPos(gameMap, playerPos, 200.0f, 80.0f);
-	Wave1.push_back(std::make_unique<Boss>(bossPos, 80.0f, 500.0f, 150.0f));
+	AEVec2 bossPos = GetRandomSpawnPos(gameMap, playerPos, 200.0f, BOSS_SIZE);
+	Wave1.push_back(std::make_unique<Boss>(bossPos, BOSS_SIZE, 500.0f, 150.0f));
 	for (int i = 0; i < 3; ++i) {
-		AEVec2 p = GetRandomSpawnPos(gameMap, playerPos, 200.0f, 40.0f);
-		Wave1.push_back(std::make_unique<Walker>(p, 40.0f, 100.0f, 200.0f));
+		AEVec2 p = GetRandomSpawnPos(gameMap, playerPos, 200.0f, ENEMY_SIZE);
+		Wave1.push_back(std::make_unique<Walker>(p, ENEMY_SIZE, 100.0f, 200.0f));
 	}
 
 	for (auto& enemy : Wave1) {
@@ -253,8 +253,8 @@ void BossLevel_Free() {
 void BossLevel_Unload() {
 	if (TexBlock)  { AEGfxTextureUnload(TexBlock);  TexBlock  = nullptr; }
 	if (TexBlock2) { AEGfxTextureUnload(TexBlock2); TexBlock2 = nullptr; }
-	AEGfxMeshFree(CircleMesh);
-	AEGfxMeshFree(RectMesh);
+	AEGfxMeshFree(CircleMesh); CircleMesh = nullptr;
+	AEGfxMeshFree(RectMesh);  RectMesh  = nullptr;
 	gameMap.Unload();
 	Pause_Unload();
 }

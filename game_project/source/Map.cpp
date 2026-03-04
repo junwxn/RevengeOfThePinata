@@ -146,6 +146,12 @@ void MapSystem::Unload() {
         AEGfxMeshFree(pair.second);
     }
     m_tileMeshes.clear();
+
+    // Clean up TMXLoader data and collision grid
+    m_currentMap = nullptr;
+    m_collisionGrid.clear();
+    m_gridWidth = 0;
+    m_gridHeight = 0;
 }
 
 // Custom mesh builder that accepts UV parameters

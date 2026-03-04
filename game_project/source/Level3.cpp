@@ -51,12 +51,12 @@ static void SpawnWave1_L3() {
 
 	// 5 Walkers + 3 Dashers
 	for (int i = 0; i < 5; ++i) {
-		AEVec2 p = GetRandomSpawnPos(gameMap, playerPos, 200.0f, 40.0f);
-		Wave1.push_back(std::make_unique<Walker>(p, 40.0f, 150.0f, 240.0f));
+		AEVec2 p = GetRandomSpawnPos(gameMap, playerPos, 200.0f, ENEMY_SIZE);
+		Wave1.push_back(std::make_unique<Walker>(p, ENEMY_SIZE, 150.0f, 240.0f));
 	}
 	for (int i = 0; i < 3; ++i) {
-		AEVec2 p = GetRandomSpawnPos(gameMap, playerPos, 200.0f, 40.0f);
-		Wave1.push_back(std::make_unique<Dasher>(p, 40.0f, 120.0f, 270.0f, 0.1f));
+		AEVec2 p = GetRandomSpawnPos(gameMap, playerPos, 200.0f, ENEMY_SIZE);
+		Wave1.push_back(std::make_unique<Dasher>(p, ENEMY_SIZE, 120.0f, 270.0f, 0.1f));
 	}
 	for (auto& enemy : Wave1) {
 		enemy->Init();
@@ -70,8 +70,8 @@ static void SpawnWave2_L3() {
 
 	// 8 Dashers
 	for (int i = 0; i < 8; ++i) {
-		AEVec2 p = GetRandomSpawnPos(gameMap, playerPos, 200.0f, 40.0f);
-		Wave2.push_back(std::make_unique<Dasher>(p, 40.0f, 120.0f, 270.0f, 0.1f));
+		AEVec2 p = GetRandomSpawnPos(gameMap, playerPos, 200.0f, ENEMY_SIZE);
+		Wave2.push_back(std::make_unique<Dasher>(p, ENEMY_SIZE, 120.0f, 270.0f, 0.1f));
 	}
 	for (auto& enemy : Wave2) {
 		enemy->Init();
@@ -85,12 +85,12 @@ static void SpawnWave3_L3() {
 
 	// 5 Walkers + 5 Dashers
 	for (int i = 0; i < 5; ++i) {
-		AEVec2 p = GetRandomSpawnPos(gameMap, playerPos, 200.0f, 40.0f);
-		Wave3.push_back(std::make_unique<Walker>(p, 40.0f, 150.0f, 240.0f));
+		AEVec2 p = GetRandomSpawnPos(gameMap, playerPos, 200.0f, ENEMY_SIZE);
+		Wave3.push_back(std::make_unique<Walker>(p, ENEMY_SIZE, 150.0f, 240.0f));
 	}
 	for (int i = 0; i < 5; ++i) {
-		AEVec2 p = GetRandomSpawnPos(gameMap, playerPos, 200.0f, 40.0f);
-		Wave3.push_back(std::make_unique<Dasher>(p, 40.0f, 120.0f, 270.0f, 0.1f));
+		AEVec2 p = GetRandomSpawnPos(gameMap, playerPos, 200.0f, ENEMY_SIZE);
+		Wave3.push_back(std::make_unique<Dasher>(p, ENEMY_SIZE, 120.0f, 270.0f, 0.1f));
 	}
 	for (auto& enemy : Wave3) {
 		enemy->Init();
@@ -396,8 +396,8 @@ void Level3_Free() {
 void Level3_Unload() {
 	if (TexBlock)  { AEGfxTextureUnload(TexBlock);  TexBlock  = nullptr; }
 	if (TexBlock2) { AEGfxTextureUnload(TexBlock2); TexBlock2 = nullptr; }
-	AEGfxMeshFree(CircleMesh);
-	AEGfxMeshFree(RectMesh);
+	AEGfxMeshFree(CircleMesh); CircleMesh = nullptr;
+	AEGfxMeshFree(RectMesh);  RectMesh  = nullptr;
 	gameMap.Unload();
 	Pause_Unload();
 }
