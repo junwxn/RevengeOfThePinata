@@ -6,6 +6,3 @@ void Level1_Update(float dt);
 void Level1_Draw();
 void Level1_Free();
 void Level1_Unload();
-
-void SpawnWave1();
-void SpawnWave2();

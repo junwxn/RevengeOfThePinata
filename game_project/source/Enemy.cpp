@@ -257,3 +257,50 @@ void Dasher::ChildUpdate(f32 dt, Combat::System& combat, Player const& player) {
     // Point sword towards player
     m_AimAngle = atan2(-m_enemyToPlayerDir.y, -m_enemyToPlayerDir.x);
 }
+
+// ---------------------
+// | Child Class: Boss |
+// ---------------------
+Boss::Boss(AEVec2 pos, f32 size, f32 hp, f32 speed)
+    : Enemy(pos, size, hp, speed)
+{
+    // Boss has higher stats
+    m_CombatStats.health = hp;
+    m_CombatStats.maxHealth = hp;
+    m_CombatStats.attack = 50.0f;
+    m_CombatStats.defense = 10.0f;
+    m_AttackRange = 175.0f;
+    m_Damage = 40;
+    m_AttackData.damage = 40;
+    m_AttackStartUpFrames = 10;
+    m_AttackActiveFrames = 20;
+    m_AttackRecoveryFrames = 20;
+    m_AttackTotalFrames = m_AttackStartUpFrames + m_AttackActiveFrames + m_AttackRecoveryFrames;
+    m_AttackData.startUp = m_AttackStartUpFrames;
+    m_AttackData.active = m_AttackActiveFrames;
+    m_AttackData.recovery = m_AttackRecoveryFrames;
+    m_AttackData.total = m_AttackTotalFrames;
+}
+
+void Boss::ChildUpdate(f32 dt, Combat::System& combat, Player const& player) {
+    AEVec2 playerPos{ player.GetX(), player.GetY() };
+    AEVec2Sub(&m_enemyToPlayerDir, &playerPos, &m_pos);
+    AEVec2Normalize(&m_enemyToPlayerDir, &m_enemyToPlayerDir);
+
+    // Point sword towards player
+    m_AimAngle = atan2(-m_enemyToPlayerDir.y, -m_enemyToPlayerDir.x);
+
+    // Seek player (slower than Walker)
+    if (!AreCirclesIntersecting(player.GetX(), player.GetY(), player.GetSize(),
+                                m_pos.x, m_pos.y, m_size)) {
+        float velX = m_enemyToPlayerDir.x * m_speed * dt;
+        float velY = m_enemyToPlayerDir.y * m_speed * dt;
+
+        if (m_pMap) {
+            ResolveCollision(m_pos.x, m_pos.y, velX, velY, m_size, *m_pMap);
+        } else {
+            m_pos.x += velX;
+            m_pos.y += velY;
+        }
+    }
+}

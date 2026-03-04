@@ -218,3 +218,14 @@ protected:
 
     void ChildUpdate(f32 dt, Combat::System& combat, Player const& player) override;
 };
+
+// ---------------------
+// | Child Class: Boss |
+// ---------------------
+class Boss : public Enemy {
+public:
+    Boss(AEVec2 pos, f32 size, f32 hp, f32 speed);
+
+protected:
+    void ChildUpdate(f32 dt, Combat::System& combat, Player const& player) override;
+};

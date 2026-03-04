@@ -77,3 +77,10 @@ void ResolveCollision(float& posX, float& posY,
                       float velX, float velY,
                       float radius,
                       const MapSystem& map);
+
+// ---------------------------------------------------------------------------
+// Returns a random walkable world position that is at least minDist pixels
+// away from playerPos.  Retries up to 100 times; falls back to map centre.
+// ---------------------------------------------------------------------------
+AEVec2 GetRandomSpawnPos(const MapSystem& map, const AEVec2& playerPos,
+                         float minDist, float enemyRadius);

@@ -3,6 +3,10 @@
 #include "GameStateManager.h"
 #include "MainMenu.h"
 #include "level1.h"
+#include "Level2.h"
+#include "Level3.h"
+#include "BossLevel.h"
+#include "Victory.h"
 
 int current = 0, previous = 0, next = 0;
 
@@ -33,6 +37,38 @@ void GSM_Update() {
 		fpDraw = Level1_Draw;
 		fpFree = Level1_Free;
 		fpUnload = Level1_Unload;
+		break;
+	case GS_LEVEL2:
+		fpLoad = Level2_Load;
+		fpInitialize = Level2_Init;
+		fpUpdate = Level2_Update;
+		fpDraw = Level2_Draw;
+		fpFree = Level2_Free;
+		fpUnload = Level2_Unload;
+		break;
+	case GS_LEVEL3:
+		fpLoad = Level3_Load;
+		fpInitialize = Level3_Init;
+		fpUpdate = Level3_Update;
+		fpDraw = Level3_Draw;
+		fpFree = Level3_Free;
+		fpUnload = Level3_Unload;
+		break;
+	case GS_BOSSLEVEL:
+		fpLoad = BossLevel_Load;
+		fpInitialize = BossLevel_Init;
+		fpUpdate = BossLevel_Update;
+		fpDraw = BossLevel_Draw;
+		fpFree = BossLevel_Free;
+		fpUnload = BossLevel_Unload;
+		break;
+	case GS_VICTORY:
+		fpLoad = Victory_Load;
+		fpInitialize = Victory_Init;
+		fpUpdate = Victory_Update;
+		fpDraw = Victory_Draw;
+		fpFree = Victory_Free;
+		fpUnload = Victory_Unload;
 		break;
 	case GS_RESTART:
 		break;
