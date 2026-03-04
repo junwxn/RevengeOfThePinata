@@ -125,7 +125,7 @@ void Level2_Update(float dt) {
 		return;
 	}
 
-	if (Pause_Update()) return;
+	if (Pause_Update(player.GetIsAlive())) return;
 
 	// Use Wave1 for player combat reference
 	auto& activeWave = wave1Active ? Wave1 : Wave2;

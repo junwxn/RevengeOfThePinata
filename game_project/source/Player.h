@@ -71,6 +71,7 @@ public:
 
     Combat::CombatFlags GetCombatFlag() const { return m_CombatFlags; }
     Combat::CombatStats GetCombatStats() const { return m_CombatStats; }
+    bool GetIsAlive() const { return m_CombatFlags.isAlive; }
 
     void DeductHealth(f32 damage) { m_CombatStats.health -= damage; }
 
@@ -111,7 +112,8 @@ private:
     // -------------------------- //
     //      COMBAT VARIABLES      //
     // -------------------------- //
-    Combat::CombatStats m_CombatStats{
+    Combat::CombatStats m_CombatStats
+    {
         200.0f, // health
         40.0f, // attack
         5.0f, // defense
@@ -122,17 +124,19 @@ private:
     };
 
     Combat::CombatFlags m_CombatFlags
-    { false, // attackHit
-      false, // blockOn
-      false, // parryOn
-      false, // blocked
-      false, // parried
-      false, // stunned
-      //true,  // recovered
-      true,  // attackResolved
-      true,  // parryResolved
-      true,  // blockedResolved
-      false  // attackQueued
+    { 
+        true, // isAlive
+        false, // attackHit
+        false, // blockOn
+        false, // parryOn
+        false, // blocked
+        false, // parried
+        false, // stunned
+         //true,  // recovered
+        true,  // attackResolved
+         true,  // parryResolved
+        true,  // blockedResolved
+        false  // attackQueued
     };
     int m_AttackStopFrames{};
     int m_ParryStopFrames{};

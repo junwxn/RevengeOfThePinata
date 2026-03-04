@@ -50,6 +50,7 @@ void Enemy::Init() {
 
 void Enemy::BaseUpdate(f32 dt, Combat::System& combat, Player const& player) {
 
+    if (m_CombatStats.health <= 0) m_CombatFlags.isAlive = false;
     //std::cout << "BASE RUNNING" << std::endl;
 
     // --- Knockback with wall-bounce ---

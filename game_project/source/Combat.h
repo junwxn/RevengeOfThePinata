@@ -25,6 +25,7 @@ namespace Combat {
     };
 
     struct CombatFlags {
+        bool isAlive;
         bool attackHit;
         bool blockOn;
         bool parryOn;

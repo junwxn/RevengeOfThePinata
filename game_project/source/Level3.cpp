@@ -142,7 +142,7 @@ void Level3_Update(float dt) {
 		return;
 	}
 
-	if (Pause_Update()) return;
+	if (Pause_Update(player.GetIsAlive())) return;
 
 	// Pick the active wave for player combat
 	std::vector<std::unique_ptr<Enemy>>* activeWavePtr = &Wave1;

@@ -91,7 +91,7 @@ void BossLevel_Update(float dt) {
 		return;
 	}
 
-	if (Pause_Update()) return;
+	if (Pause_Update(player.GetIsAlive())) return;
 
 	player.Update(dt, CombatSystem, Wave1, camera.GetX(), camera.GetY(), preventingmovement);
 

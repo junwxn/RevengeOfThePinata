@@ -126,7 +126,7 @@ void Level1_Update(float dt) {
 	}
 
 	// Pause handles ESC toggle + menu input; returns true if paused
-	if (Pause_Update()) return;
+	if (Pause_Update(player.GetIsAlive())) return;
 
 	auto& activeWave = wave1Active ? Wave1 : Wave2;
 	player.Update(dt, CombatSystem, activeWave, camera.GetX(), camera.GetY(), preventingmovement);

@@ -43,6 +43,7 @@ void Player::Init()
 
 void Player::Update(float dt, Combat::System& combat, std::vector<std::unique_ptr<Enemy>> const& wave, f32 camX, f32 camY, bool preventing_movement)
 {
+    if (m_CombatStats.health <= 0) m_CombatFlags.isAlive = false;
     // Attack / Combat Logic
     // Mouse input
     s32 mouseX, mouseY;

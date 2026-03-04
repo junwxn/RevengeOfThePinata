@@ -62,6 +62,7 @@ public:
 
     Combat::CombatFlags GetCombatFlag() const { return m_CombatFlags; }
     Combat::CombatStats GetCombatStats() const { return m_CombatStats; }
+    bool GetIsAlive() const { return m_CombatFlags.isAlive; }
 
     // Setters ------------------------
     void SetPosition(f32 x, f32 y) { m_pos.x = x; m_pos.y = y; }
@@ -127,28 +128,30 @@ protected:
     //Combat::CombatStats m_CombatStats{ 10.0f, 5.0f };
     Combat::CombatFlags m_CombatFlags
     { 
-        false, 
-        false, 
-        false, 
-        false, 
-        false, 
-        false, 
-        false, 
-        false, 
-        false, 
-        false 
+        true,   // isAlive
+        false,  // attackHit
+        false,  // blockOn
+        false,  // parryOn
+        false,  // blocked
+        false,  // parried
+        false,  // stunned
+        false,  // attackResolved
+        false,  // parryResolved
+        false,  // blockedResolved
+        false   // attackQueued
     };
 
     int m_AttackStopFrames{};
     int m_DefendStopFrames{};
-    Combat::CombatStats m_CombatStats{
-    100.0f, // health
-    30.0f, // attack
-    5.0f, // defense
-    0.0f, // crit chance
-    0.0f, // crit multiplier
-    0.0f, // attack multiplier
-    100.0f // max health
+    Combat::CombatStats m_CombatStats
+    {
+        100.0f, // health
+        30.0f, // attack
+        5.0f, // defense
+        0.0f, // crit chance
+        0.0f, // crit multiplier
+        0.0f, // attack multiplier
+        100.0f // max health
     };
     // Combat::CombatFlags m_CombatFlags{ false, false, false, false, false, false, false, false, false };
     
