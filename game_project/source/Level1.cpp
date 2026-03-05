@@ -382,6 +382,10 @@ void Level1_Draw() {
 		}
 	}
 
+	// If end of wave spawn augment ball
+	if (endofwave) {
+		augments.Draw();
+	}
 
 	// Ask the Map to push every block in Layer 2 into the queue!
 	gameMap.QueueLayer("Tile Layer 2", renderQueue);
@@ -395,11 +399,6 @@ void Level1_Draw() {
 	// --- 4. EXECUTE ALL DRAW CALLS ---
 	for (auto& node : renderQueue) {
 		node.drawCall();
-	}
-
-	// If end of wave spawn augment ball (AT THE VERY FRONT)
-	if (endofwave) {
-		augments.Draw();
 	}
 
 	Pause_Draw();
