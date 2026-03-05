@@ -191,9 +191,6 @@ void MainMenu_Draw() {
 		float panelEase = Smoothstep(entranceTimer * 2.5f);
 		DrawPanel(0, -150, 400, 380, panelEase);
 
-		// Separator line between title area and button panel
-		DrawMesh(rectMesh, 400, 2, -200, 55, 0, 80, 50, 120, 180 * panelEase);
-
 		// Styled buttons with entrance stagger
 		for (int i = 0; i < 4; i++) {
 			float delay = i * 0.08f;
@@ -230,7 +227,7 @@ void MainMenu_Draw() {
 	// Subtitle (main screen only)
 	if (menuScreen == MENU_MAIN) {
 		float subEase = Smoothstep(entranceTimer * 2.0f);
-		const char* sub = "A GAM150 Team Project";
+		const char* sub = "";
 		float tw, th;
 		AEGfxGetPrintSize(fontBody, sub, 0.7f, &tw, &th);
 		AEGfxPrint(fontBody, sub, -tw * 0.5f, 155.0f / 450.0f, 0.7f, 0.6f, 0.5f, 0.7f, subEase);
