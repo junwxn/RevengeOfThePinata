@@ -103,17 +103,25 @@ xcopy "$(SolutionDir)Extern\AlphaEngine\lib\fmod.dll" "$(OutDir)" /s /r /y /q</C
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="source\AugmentData.cpp" />
+    <ClCompile Include="source\AugmentEffects.cpp" />
     <ClCompile Include="source\Augments.cpp" />
+    <ClCompile Include="source\EventSystem.cpp" />
+    <ClCompile Include="source\BossLevel.cpp" />
     <ClCompile Include="source\Camera.cpp" />
     <ClCompile Include="source\Combat.cpp" />
     <ClCompile Include="source\Enemy.cpp" />
     <ClCompile Include="source\GameStateManager.cpp" />
     <ClCompile Include="source\Level1.cpp" />
+    <ClCompile Include="source\Level2.cpp" />
+    <ClCompile Include="source\Level3.cpp" />
     <ClCompile Include="source\Main.cpp" />
     <ClCompile Include="source\MainMenu.cpp" />
     <ClCompile Include="source\Map.cpp" />
     <ClCompile Include="source\MathFunctions.cpp" />
     <ClCompile Include="source\Pause.cpp" />
+    <ClCompile Include="source\GameOver.cpp" />
+    <ClCompile Include="source\Victory.cpp" />
     <ClCompile Include="source\pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
@@ -142,7 +150,11 @@ xcopy "$(SolutionDir)Extern\AlphaEngine\lib\fmod.dll" "$(OutDir)" /s /r /y /q</C
     <ClCompile Include="source\Utils.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="source\AugmentData.h" />
+    <ClInclude Include="source\AugmentEffects.h" />
     <ClInclude Include="source\Augments.h" />
+    <ClInclude Include="source\EventSystem.h" />
+    <ClInclude Include="source\BossLevel.h" />
     <ClInclude Include="source\Camera.h" />
     <ClInclude Include="source\Colors.h" />
     <ClInclude Include="source\Combat.h" />
@@ -150,10 +162,14 @@ xcopy "$(SolutionDir)Extern\AlphaEngine\lib\fmod.dll" "$(OutDir)" /s /r /y /q</C
     <ClInclude Include="source\GameStateList.h" />
     <ClInclude Include="source\GameStateManager.h" />
     <ClInclude Include="source\Level1.h" />
+    <ClInclude Include="source\Level2.h" />
+    <ClInclude Include="source\Level3.h" />
     <ClInclude Include="source\MainMenu.h" />
     <ClInclude Include="source\Map.h" />
     <ClInclude Include="source\MathFunctions.h" />
     <ClInclude Include="source\Pause.h" />
+    <ClInclude Include="source\GameOver.h" />
+    <ClInclude Include="source\Victory.h" />
     <ClInclude Include="source\pch.h" />
     <ClInclude Include="source\Player.h" />
     <ClInclude Include="source\TMXLoader\TMXLoader.h" />

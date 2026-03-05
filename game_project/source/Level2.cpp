@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "Utils.h"
 #include "Player.h"
-#include "Level1.h"
+#include "Level2.h"
 #include "camera.h"
 #include "Augments.h"
 #include "AugmentData.h"
@@ -19,9 +19,6 @@ static AEGfxVertexList* RectMesh;
 
 // init variables
 static Player player{};
-static Circle HealCircle{};
-static Circle DMGCircle{};
-static RectData Healthbar{};
 static Camera camera{};
 static MapSystem gameMap;
 static Augments augments{};
@@ -34,23 +31,30 @@ static bool wave1Active{};
 static bool wave2Active{};
 static bool wave1Spawned{};
 static bool wave2Spawned{};
+
+// healthbar
+static RectData Healthbar{};
 static f32 Barcount{ 0 };
 static f32 MinibarWidth = 100;
 static u8 CurrentBars{ 0 };
 
-// if wave ends
+// wave state
 static bool endofwave{};
 static bool preventingmovement{};
 
-static void SpawnWave1() {
+static void SpawnWave1_L2() {
 	Wave1.clear();
 	AEVec2 playerPos = { player.GetX(), player.GetY() };
 
-	AEVec2 p1 = GetRandomSpawnPos(gameMap, playerPos, 200.0f, 40.0f);
-	Wave1.push_back(std::make_unique<Walker>(p1, 40.0f, 100.0f, 200.0f));
-
-	AEVec2 p2 = GetRandomSpawnPos(gameMap, playerPos, 200.0f, 40.0f);
-	Wave1.push_back(std::make_unique<Dasher>(p2, 40.0f, 100.0f, 200.0f, 0.1f));
+	// 3 Walkers + 2 Dashers
+	for (int i = 0; i < 3; ++i) {
+		AEVec2 p = GetRandomSpawnPos(gameMap, playerPos, 200.0f, 40.0f);
+		Wave1.push_back(std::make_unique<Walker>(p, 40.0f, 120.0f, 220.0f));
+	}
+	for (int i = 0; i < 2; ++i) {
+		AEVec2 p = GetRandomSpawnPos(gameMap, playerPos, 200.0f, 40.0f);
+		Wave1.push_back(std::make_unique<Dasher>(p, 40.0f, 100.0f, 250.0f, 0.1f));
+	}
 
 	for (auto& enemy : Wave1) {
 		enemy->Init();
@@ -58,13 +62,18 @@ static void SpawnWave1() {
 	}
 }
 
-static void SpawnWave2() {
+static void SpawnWave2_L2() {
 	Wave2.clear();
 	AEVec2 playerPos = { player.GetX(), player.GetY() };
 
-	for (int i = 0; i < 10; ++i) {
-		AEVec2 spawnPos = GetRandomSpawnPos(gameMap, playerPos, 200.0f, 40.0f);
-		Wave2.push_back(std::make_unique<Walker>(spawnPos, 40.0f, 100.0f, 200.0f));
+	// 5 Walkers + 5 Dashers
+	for (int i = 0; i < 5; ++i) {
+		AEVec2 p = GetRandomSpawnPos(gameMap, playerPos, 200.0f, 40.0f);
+		Wave2.push_back(std::make_unique<Walker>(p, 40.0f, 120.0f, 220.0f));
+	}
+	for (int i = 0; i < 5; ++i) {
+		AEVec2 p = GetRandomSpawnPos(gameMap, playerPos, 200.0f, 40.0f);
+		Wave2.push_back(std::make_unique<Dasher>(p, 40.0f, 100.0f, 250.0f, 0.1f));
 	}
 
 	for (auto& enemy : Wave2) {
@@ -73,29 +82,21 @@ static void SpawnWave2() {
 	}
 }
 
-void Level1_Load() {
-	TexBlock2	= AEGfxTextureLoad("Assets/block2.png");
-	TexBlock	= AEGfxTextureLoad("Assets/block.png");
-	CircleMesh	= CreateCircleMesh(1.0f, 32, 0xFFFFFFFF);
-	RectMesh	= CreateRectMesh(0xFFFFFFFF);
+void Level2_Load() {
+	TexBlock2 = AEGfxTextureLoad("Assets/block2.png");
+	TexBlock = AEGfxTextureLoad("Assets/block.png");
+	CircleMesh = CreateCircleMesh(1.0f, 32, 0xFFFFFFFF);
+	RectMesh = CreateRectMesh(0xFFFFFFFF);
 	gameMap.Init("Assets/untitled.tmx", "tilesheet_complete", "Assets/tilesheet_complete.png");
-
-	// Build the binary collision grid from the wall layer.
 	gameMap.BuildCollisionGrid("Tile Layer 2");
-
 	Pause_Load();
 }
-void Level1_Init() {
 
+void Level2_Init() {
 	player.Init();
 	player.SetAttackCharges(g_PlayerAttackCharges);
-	player.SetMap(&gameMap); // Enable player-map collision
+	player.SetMap(&gameMap);
 
-	// logic objects
-	HealCircle = { -400.0f, 0.0f, 150.0f };
-	DMGCircle = { 400.0f, 0.0f, 150.0f };
-
-	// healthbar Init
 	Healthbar.w = 1200;
 	Healthbar.h = 50;
 	Healthbar.pos_x = -Healthbar.w / 2;
@@ -105,12 +106,10 @@ void Level1_Init() {
 	Healthbar.var = 100;
 	Healthbar.current = (Healthbar.var / 100) * (Healthbar.max - Healthbar.min);
 
-	// camera init
 	camera.Init(player.GetX(), player.GetY());
-
 	Pause_Init();
 	augments.Init();
-	augments.SetAugmentSet(AugmentSet::SET_DASH);
+	augments.SetAugmentSet(AugmentSet::SET_ATTACK);
 	AugmentEffects_Init(&player);
 	AugmentEffects_Register();
 
@@ -122,53 +121,31 @@ void Level1_Init() {
 	endofwave = false;
 	preventingmovement = false;
 
-	SpawnWave1();
+	SpawnWave1_L2();
 	wave1Active = true;
 	wave1Spawned = true;
 }
-void Level1_Update(float dt) {
+
+void Level2_Update(float dt) {
 	if (!AESysDoesWindowExist()) {
 		next = GS_QUIT;
 		return;
 	}
 
-	// Pause handles ESC toggle + menu input; returns true if paused
 	if (Pause_Update(true)) return;
 
 	// Player death -> Game Over screen
 	if (!player.GetIsAlive()) { next = GS_GAMEOVER; return; }
 
+	// Use Wave1 for player combat reference
 	auto& activeWave = wave1Active ? Wave1 : Wave2;
 	player.Update(dt, CombatSystem, activeWave, camera.GetX(), camera.GetY(), preventingmovement);
-
-	// Debug wave triggers (keys 1/2 still work)
-	if (AEInputCheckTriggered(AEVK_1)) {
-		if (wave1Active) {
-			Wave1.clear();
-		}
-		else {
-			SpawnWave1();
-		}
-		wave1Active = !wave1Active;
-	}
-	else if (AEInputCheckTriggered(AEVK_2)) {
-		if (wave2Active) {
-			Wave2.clear();
-		}
-		else {
-			SpawnWave2();
-		}
-		wave2Active = !wave2Active;
-	}
 
 	// --- Wave 1 logic ---
 	if (wave1Active) {
 		Wave1.erase(
 			std::remove_if(Wave1.begin(), Wave1.end(),
-				[](const std::unique_ptr<Enemy>& e)
-				{
-					return e->GetCombatStats().health  <= 0.0f;
-				}),
+				[](const std::unique_ptr<Enemy>& e) { return e->GetCombatStats().health <= 0.0f; }),
 			Wave1.end()
 		);
 
@@ -188,9 +165,9 @@ void Level1_Update(float dt) {
 
 		if (Wave1.empty()) {
 			wave1Active = false;
-			// Auto-spawn wave 2 if not yet spawned
+			// Spawn wave 2 if not yet spawned
 			if (!wave2Spawned) {
-				SpawnWave2();
+				SpawnWave2_L2();
 				wave2Active = true;
 				wave2Spawned = true;
 			}
@@ -201,10 +178,7 @@ void Level1_Update(float dt) {
 	if (wave2Active) {
 		Wave2.erase(
 			std::remove_if(Wave2.begin(), Wave2.end(),
-				[](const std::unique_ptr<Enemy>& e)
-				{
-					return e->GetCombatStats().health <= 0.0f;
-				}),
+				[](const std::unique_ptr<Enemy>& e) { return e->GetCombatStats().health <= 0.0f; }),
 			Wave2.end()
 		);
 
@@ -231,23 +205,14 @@ void Level1_Update(float dt) {
 	// map boundaries
 	float halfW = GRID_W * 0.5f;
 	float halfH = GRID_H * 0.5f;
-
-	// Convert Screen -> Grid
 	float invX = player.GetX() / halfW;
 	float invY = player.GetY() / halfH;
 	float gridX = 0.5f * (invX + invY);
 	float gridY = 0.5f * (invY - invX);
 
-	// --- Map Limits ---
-		// We apply the same -10 offset here that is used in MapSystem::Draw
 	const float GRID_OFFSET = -10.0f;
-
-	// Min limits are the starting grid index (0) plus the offset
 	float MAP_MIN_X = 1.0f + GRID_OFFSET;
 	float MAP_MIN_Y = 0.0f + GRID_OFFSET;
-
-	// Max limits are the map width/height minus 1 (to stay on the tile), plus the offset
-	// We use max(1, width) to prevent crashes if the map fails to load
 	float MAP_MAX_X = (float)(std::max)(1u, gameMap.GetMapWidth()) + GRID_OFFSET;
 	float MAP_MAX_Y = (float)(std::max)(1u, gameMap.GetMapHeight()) - 1.0f + GRID_OFFSET;
 
@@ -263,48 +228,25 @@ void Level1_Update(float dt) {
 		player.SetPosition(newScreenX, newScreenY);
 	}
 
-	// camera
 	camera.Update(dt, player.GetX(), player.GetY(), preventingmovement);
 
 	// Update augment effects
 	AugmentEffects_Update(dt, player, wave1Active ? Wave1 : Wave2);
 
-	if (AreCirclesIntersecting(HealCircle.pos_x, HealCircle.pos_y, HealCircle.r, player.GetX(), player.GetY(), player.GetSize())) {
-		Healthbar.var += 15 * dt;
-	}
-	if (AreCirclesIntersecting(DMGCircle.pos_x, DMGCircle.pos_y, DMGCircle.r, player.GetX(), player.GetY(), player.GetSize())) {
-		Healthbar.var -= 15 * dt;
-	}
-
-	if (player.GetCombatFlag().attackHit) {
-		Healthbar.var -= player.GetCombatStats().attack;
-	}
-
 	if (Healthbar.var < 0) Healthbar.var = 0;
 	if (Healthbar.var > 100) Healthbar.var = 100;
-
 	Healthbar.current = (Healthbar.var / 100) * (Healthbar.max - Healthbar.min);
 	Barcount = Healthbar.current / (Healthbar.w / 10);
 	CurrentBars = (Barcount >= 1) ? 1 : 0;
 
-	// Augments, only activates if the wave ends
-	// Debug augment trigger (O key still works)
-	if (AEInputCheckTriggered(AEVK_O)) {
-		std::cout << "AUGMENTS TRIGGERED" << std::endl;
-		endofwave = true;
-	}
-
+	// Augments — triggers after all waves cleared
 	if (endofwave) {
 		augments.Update(player.GetX(), player.GetY(), dt, camera.GetX(), camera.GetY());
 		if (augments.GetChoose()) {
 			preventingmovement = true;
 		}
 		if (augments.GetAugmentSelected()) {
-			next = GS_LEVEL2;
-		}
-		if (AEInputCheckTriggered(AEVK_P)) {
-			std::cout << "AUGMENTS TRIGGERED AGAIN" << std::endl;
-			endofwave = false;
+			next = GS_LEVEL3;
 		}
 	}
 	else {
@@ -321,25 +263,22 @@ void Level1_Update(float dt) {
 	}
 
 	if (AEInputCheckTriggered(AEVK_N)) {
-		next = GS_LEVEL2;
+		next = GS_LEVEL3;
 	}
 }
-void Level1_Draw() {
+
+void Level2_Draw() {
 	AESysFrameStart();
-	AEGfxSetBackgroundColor(0.0f, 0.23f, 0.34f);
+	AEGfxSetBackgroundColor(0.0f, 0.2f, 0.3f);
 	AEGfxSetRenderMode(AE_GFX_RM_COLOR);
 	AEGfxSetBlendMode(AE_GFX_BM_BLEND);
 	AEGfxSetTransparency(1.0f);
 
-	//draw heal/dmg circles
-	DrawMesh(CircleMesh, HealCircle.r, HealCircle.r, HealCircle.pos_x, HealCircle.pos_y, 0, 0, 255, 0, 255);
-	DrawMesh(CircleMesh, DMGCircle.r, DMGCircle.r, DMGCircle.pos_x, DMGCircle.pos_y, 0, 255, 0, 0, 255);
-
-	//draw healthbar
+	// healthbar
 	DrawMesh(RectMesh, Healthbar.w, Healthbar.h, Healthbar.pos_x, Healthbar.pos_y, 0, 255, 0, 0, 150);
 	DrawMesh(RectMesh, Healthbar.current, Healthbar.h, Healthbar.pos_x, Healthbar.pos_y, 0, 255, 0, 0, 255);
 
-	//draw minibar
+	// minibar
 	int tempBars = CurrentBars;
 	while (tempBars <= Barcount && tempBars != 0) {
 		float xPos = (tempBars == 1) ? Healthbar.min : Healthbar.min + (tempBars - 1) * ((Healthbar.w / 10) + (((Healthbar.w / 10.0f) - MinibarWidth) / 9.0f));
@@ -350,31 +289,24 @@ void Level1_Draw() {
 		DrawMesh(RectMesh, MinibarWidth, Healthbar.h, Healthbar.min, Healthbar.pos_y - 80, 0, 255, 0, 0, 255);
 	}
 
-	//draw map
+	// map
 	AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
 	AEGfxSetColorToMultiply(1.0f, 1.0f, 1.0f, 1.0f);
 	AEGfxSetColorToAdd(0.0f, 0.0f, 0.0f, 0.0f);
 	AEGfxSetBlendMode(AE_GFX_BM_BLEND);
 	AEGfxSetTransparency(1.0f);
 
-	// 1. Draw the floor/background layer FIRST
 	gameMap.Draw("Tile Layer 1");
 
-	// 2. Draw Layer 2 blocks that are BEHIND the player
 	std::vector<RenderNode> renderQueue;
-
-	// Add the Player
 	renderQueue.push_back({ player.GetY(), [&]() { player.Draw(); } });
 
-	// Add Wave 1 Enemies
 	if (wave1Active) {
 		for (auto& enemy : Wave1) {
 			Enemy* ePtr = enemy.get();
 			renderQueue.push_back({ ePtr->GetY(), [ePtr]() { ePtr->Draw(); } });
 		}
 	}
-
-	// Add Wave 2 Enemies
 	if (wave2Active) {
 		for (auto& enemy : Wave2) {
 			Enemy* ePtr = enemy.get();
@@ -382,39 +314,28 @@ void Level1_Draw() {
 		}
 	}
 
-
-	// Ask the Map to push every block in Layer 2 into the queue!
 	gameMap.QueueLayer("Tile Layer 2", renderQueue);
 
-	// --- 3. SORT THE ENTIRE WORLD ---
-	// Sorts from Highest Y (Furthest Back) to Lowest Y (Closest to Front)
 	std::sort(renderQueue.begin(), renderQueue.end(), [](const RenderNode& a, const RenderNode& b) {
 		return a.y > b.y;
-		});
+	});
 
-	// --- 4. EXECUTE ALL DRAW CALLS ---
 	for (auto& node : renderQueue) {
 		node.drawCall();
 	}
 
-	// If end of wave spawn augment ball (AT THE VERY FRONT)
-	if (endofwave) {
-		augments.Draw();
-	}
-
 	Pause_Draw();
 
-	// Draw augment effects (poison clouds, etc.)
 	AugmentEffects_Draw();
 
-	// If end of wave spawn augment ball
 	if (endofwave) {
 		augments.Draw(player.GetX(), player.GetY());
 	}
 
 	AESysFrameEnd();
 }
-void Level1_Free() {
+
+void Level2_Free() {
 	g_PlayerAttackCharges = player.GetAttackCharges();
 	Wave1.clear();
 	Wave2.clear();
@@ -423,7 +344,8 @@ void Level1_Free() {
 	AugmentEffects_Free();
 	g_Events.ClearAll();
 }
-void Level1_Unload() {
+
+void Level2_Unload() {
 	if (TexBlock)  { AEGfxTextureUnload(TexBlock);  TexBlock  = nullptr; }
 	if (TexBlock2) { AEGfxTextureUnload(TexBlock2); TexBlock2 = nullptr; }
 	AEGfxMeshFree(CircleMesh);

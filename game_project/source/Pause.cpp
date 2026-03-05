@@ -39,11 +39,12 @@ void Pause_Init() {
 	}
 }
 
-bool Pause_Update() {
+bool Pause_Update(bool isPlayerAlive) {
 	// Toggle pause
 	if (AEInputCheckTriggered(AEVK_ESCAPE)) {
 		paused = !paused;
 	}
+	if (!isPlayerAlive) paused = true;
 
 	if (!paused) return false;
 

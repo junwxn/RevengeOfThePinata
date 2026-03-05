@@ -5,6 +5,13 @@
 #include "Enemy.h"
 #include "Camera.h"
 #include "MathFunctions.h"
+#include "EventSystem.h"
+#include "AugmentData.h"
+#include "AugmentEffects.h"
+#include "Utils.h" // GRID_W, GRID_H
+
+// Iso ratio for normalizing Y axis in range checks
+static const float ISO_RATIO = GRID_H / GRID_W;
 
 static std::ostream& operator<<(std::ostream& os, CombatOutcome outcome) {
 	if (outcome == CombatOutcome::OUTCOME_HIT) return os << "OUTCOME_HIT";
@@ -22,7 +29,12 @@ namespace Combat {
 
 	f32 ComputeDamage(Player& attacker, Enemy& defender) {
 		f32 damageDealt = attacker.GetCombatStats().attack - defender.GetCombatStats().defense;
-		return defender.GetCombatFlag().blockOn ? damageDealt / 2 : damageDealt;
+		f32 result = defender.GetCombatFlag().blockOn ? damageDealt / 2 : damageDealt;
+		// Amplified Damage augment: multiply damage if enemy is amplified
+		if (defender.m_damageAmplified) {
+			result *= defender.m_damageMultiplier;
+		}
+		return result;
 	}
 	f32 ComputeDamage(Enemy& attacker, Player& defender) {
 		f32 damageDealt = attacker.GetCombatStats().attack - defender.GetCombatStats().defense;
@@ -96,10 +108,16 @@ namespace Combat {
 			case CombatOutcome::OUTCOME_PARRIED:
 				std::cout << "IN PARRY" << std::endl;
 				player.GainAttackCharge();
-				//ApplyKnockbackReaction_Enemy(player, enemy, 4000.0);
 				enemy.SetParried(true);
 				enemy.MarkAttackResolved();
-				//std::cout << "Attack Charges: " << player.GetAttackCharges() << std::endl;
+				{
+					// Fire ON_PARRY_SUCCESS event for augment effects
+					EventData parryData;
+					parryData.playerX = player.GetX();
+					parryData.playerY = player.GetY();
+					parryData.targetEnemy = &enemy;
+					g_Events.Fire(GameEvent::ON_PARRY_SUCCESS, parryData);
+				}
 				break;
 
 			case CombatOutcome::OUTCOME_BLOCKED:
@@ -120,13 +138,10 @@ namespace Combat {
 
 	bool System::CanStartAttack_Enemy(const Player& player, const Enemy& enemy) const {
 		// Direction vector / Forward vector
-		AEVec2 s_VectorToPlayer = { player.GetX() - enemy.GetX(), player.GetY() - enemy.GetY() };
+		double dx = player.GetX() - enemy.GetX();
+		double dy = (player.GetY() - enemy.GetY()) / ISO_RATIO; // Normalize Y to iso grid
 
-		double s_DistMagPE = Vectors::magnitude(s_VectorToPlayer.x, s_VectorToPlayer.y); // Dist between player and enemy
-		// Normalize vectors (To get direction)
-		AEVec2 s_VectorNormalizedToPlayer = Vectors::normalize(s_DistMagPE, s_VectorToPlayer.x, s_VectorToPlayer.y); // Normalized vector between mouse and player
-
-		//f32 dotProduct = (enemy.GetNormalizedVector().x * s_VectorNormalizedToPlayer.x + enemy.GetNormalizedVector().y * s_VectorNormalizedToPlayer.y);
+		double s_DistMagPE = Vectors::magnitude(dx, dy);
 
 		return s_DistMagPE <= enemy.GetAttackRange();
 	}
@@ -147,8 +162,9 @@ namespace Combat {
 
 		double dx = enemy.GetX() - player.GetX();
 		double dy = enemy.GetY() - player.GetY();
+		double isoDy = dy / ISO_RATIO; // Normalize Y to iso grid
 
-		double dist = Vectors::magnitude(dx, dy);
+		double dist = Vectors::magnitude(dx, isoDy);
 
 		// Outside attack radius
 		if (dist > player.GetAttackRange())
@@ -227,13 +243,25 @@ namespace Combat {
 	}
 
 	void System::ApplyDamage(Player& player, Enemy& enemy) {
+		// Shield Dash augment: if shield is active, reflect damage instead
+		if (g_Augments.Has(AugmentID::SHIELD_DASH) && AugmentEffects_IsShieldActive()) {
+			f32 reflectedDmg = ComputeDamage(enemy, player);
+			enemy.DeductHealth(reflectedDmg);
+			enemy.SetHDP(reflectedDmg);
+			return;
+		}
 		player.DeductHealth(ComputeDamage(enemy, player));
 		player.SetHDP(ComputeDamage(enemy, player));
 	}
 
 	void System::ApplyDamage(Enemy& enemy, Player& player) {
-		enemy.DeductHealth(ComputeDamage(player, enemy));
-		enemy.SetHDP(ComputeDamage(player, enemy));
+		f32 dmg = ComputeDamage(player, enemy);
+		enemy.DeductHealth(dmg);
+		enemy.SetHDP(dmg);
+		// Damaging Mark augment: accumulate damage on marked enemies
+		if (enemy.m_marked) {
+			enemy.m_markAccumulatedDamage += dmg;
+		}
 	}
 	void System::ColorIndicator(Enemy& enemy, f32 r, f32 g, f32 b, f32 a) {
 		f32 isoHeight = enemy.GetSize() * (GRID_H / GRID_W);

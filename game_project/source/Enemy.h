@@ -62,6 +62,7 @@ public:
 
     Combat::CombatFlags GetCombatFlag() const { return m_CombatFlags; }
     Combat::CombatStats GetCombatStats() const { return m_CombatStats; }
+    bool GetIsAlive() const { return m_CombatFlags.isAlive; }
 
     // Setters ------------------------
     void SetPosition(f32 x, f32 y) { m_pos.x = x; m_pos.y = y; }
@@ -88,6 +89,21 @@ public:
 
     // Combat -------------------------
     void DeductHealth(f32 damage) { m_CombatStats.health -= damage; }
+
+    // Augment: Damaging Mark
+    bool m_marked = false;
+    float m_markTimer = 0.0f;
+    float m_markAccumulatedDamage = 0.0f;
+
+    // Augment: Damaging Mark (visual)
+    float m_markDetonateTimer = 0.0f;
+    bool  m_markDetonating = false;
+    AEGfxVertexList* m_markMesh{ nullptr };
+
+    // Augment: Amplified Damage
+    bool m_damageAmplified = false;
+    float m_amplifyTimer = 0.0f;
+    float m_damageMultiplier = 1.0f;
 
     // Call once after the map is loaded so enemies can self-resolve wall collisions.
     void SetMap(const MapSystem* map) { m_pMap = map; }
@@ -127,28 +143,30 @@ protected:
     //Combat::CombatStats m_CombatStats{ 10.0f, 5.0f };
     Combat::CombatFlags m_CombatFlags
     { 
-        false, 
-        false, 
-        false, 
-        false, 
-        false, 
-        false, 
-        false, 
-        false, 
-        false, 
-        false 
+        true,   // isAlive
+        false,  // attackHit
+        false,  // blockOn
+        false,  // parryOn
+        false,  // blocked
+        false,  // parried
+        false,  // stunned
+        false,  // attackResolved
+        false,  // parryResolved
+        false,  // blockedResolved
+        false   // attackQueued
     };
 
     int m_AttackStopFrames{};
     int m_DefendStopFrames{};
-    Combat::CombatStats m_CombatStats{
-    100.0f, // health
-    30.0f, // attack
-    5.0f, // defense
-    0.0f, // crit chance
-    0.0f, // crit multiplier
-    0.0f, // attack multiplier
-    100.0f // max health
+    Combat::CombatStats m_CombatStats
+    {
+        100.0f, // health
+        30.0f, // attack
+        5.0f, // defense
+        0.0f, // crit chance
+        0.0f, // crit multiplier
+        0.0f, // attack multiplier
+        100.0f // max health
     };
     // Combat::CombatFlags m_CombatFlags{ false, false, false, false, false, false, false, false, false };
     
@@ -158,6 +176,11 @@ protected:
     float m_StartDegree{ 30.0f };
     float m_EndDegree{ 30.0f };
     bool m_Recovered{ true };
+
+    // Attack wind-up
+    bool  m_WindingUp{ false };
+    float m_WindUpTimer{ 0.0f };
+    float m_WindUpDuration{ 0.6f }; // seconds to charge before swinging
     int m_AttackStartUpFrames{ 7 };
     int m_AttackActiveFrames{ 15 };
     int m_AttackRecoveryFrames{ 15 };
@@ -216,5 +239,16 @@ public:
 protected:
     f32 m_dashCD{ 0.1f };
 
+    void ChildUpdate(f32 dt, Combat::System& combat, Player const& player) override;
+};
+
+// ---------------------
+// | Child Class: Boss |
+// ---------------------
+class Boss : public Enemy {
+public:
+    Boss(AEVec2 pos, f32 size, f32 hp, f32 speed);
+
+protected:
     void ChildUpdate(f32 dt, Combat::System& combat, Player const& player) override;
 };
