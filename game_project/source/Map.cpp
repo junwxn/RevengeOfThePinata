@@ -253,6 +253,16 @@ bool MapSystem::IsWalkable(int col, int row) const {
     return m_collisionGrid[row][col] == 0;
 }
 
+bool MapSystem::IsWalkableForSize(int col, int row, int clearance) const {
+    for (int dr = -clearance; dr <= clearance; ++dr) {
+        for (int dc = -clearance; dc <= clearance; ++dc) {
+            if (!IsWalkable(col + dc, row + dr))
+                return false;
+        }
+    }
+    return true;
+}
+
 bool MapSystem::isSolid(float worldX, float worldY) const {
     if (m_collisionGrid.empty()) return false;
 
