@@ -54,6 +54,7 @@ public:
     GridPos WorldToTMX(float worldX, float worldY) const;
     AEVec2  TMXToWorld(int col, int row) const;
     bool    IsWalkable(int col, int row) const;
+    bool    IsWalkableForSize(int col, int row, int clearance) const;
 
     unsigned GetMapWidth() const;
     unsigned GetMapHeight() const;
