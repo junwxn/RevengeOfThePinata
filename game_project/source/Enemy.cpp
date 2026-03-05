@@ -314,7 +314,7 @@ void Enemy::ComputePath(AEVec2 const& targetPos) {
     // Boss (50) → 1.
     const float halfMin = (std::min)(GRID_W * 0.5f, GRID_H * 0.5f);
     int clearance = static_cast<int>(std::ceilf(m_size * 0.9f / halfMin)) - 1;
-    if (clearance < 0) clearance = 0;
+    if (clearance < 0) clearance = 0.5;
 
     GridPos start = m_pMap->WorldToTMX(m_pos.x, m_pos.y);
     GridPos goal  = m_pMap->WorldToTMX(targetPos.x, targetPos.y);
@@ -448,13 +448,14 @@ static bool HasLineOfSight(AEVec2 const& from, AEVec2 const& to,
     float dist = AEVec2Length(&diff);
     if (dist < 1.0f) return true;
 
-    const float stepSize = 16.0f; // check every 16 pixels
+    float stepSize = (std::min)(5.0f, radius * 0.5f);
+    float safeRadius = radius + 2.5f;
     int steps = static_cast<int>(dist / stepSize) + 1;
     for (int i = 1; i <= steps; ++i) {
         float t = static_cast<float>(i) / steps;
         float px = from.x + diff.x * t;
         float py = from.y + diff.y * t;
-        if (map.IsPositionBlocked(px, py, radius + 0.1f))
+        if (map.IsPositionBlocked(px, py, safeRadius))
             return false;
     }
     return true;
@@ -465,7 +466,7 @@ AEVec2 Enemy::FollowPath() {
         return { 0.0f, 0.0f };
 
     // Advance past any waypoints we're already close to.
-    constexpr float WAYPOINT_THRESHOLD = 20.0f;
+     float WAYPOINT_THRESHOLD = 1.0f;
     while (m_pathIndex < static_cast<int>(m_path.size())) {
         AEVec2 diff;
         AEVec2Sub(&diff, &m_path[m_pathIndex], &m_pos);
@@ -481,7 +482,7 @@ AEVec2 Enemy::FollowPath() {
     // doesn't try to hit exact tile centers at corners.
     if (m_pMap) {
         int bestIndex = m_pathIndex;
-        int lookAhead = (std::min)(m_pathIndex + 5, static_cast<int>(m_path.size()) - 1);
+        int lookAhead = (std::min)(m_pathIndex + 3, static_cast<int>(m_path.size()) - 1);
         for (int i = lookAhead; i > m_pathIndex; --i) {
             if (HasLineOfSight(m_pos, m_path[i], m_size, *m_pMap)) {
                 bestIndex = i;
@@ -550,10 +551,13 @@ void Enemy::MoveTowardTarget(AEVec2 const& targetPos, f32 dt) {
     ResolveCollision(m_pos.x, m_pos.y, velX, velY, m_size, *m_pMap);
 
     // If fully stuck, try each axis independently to unstick at corners
-    if (m_pos.x == prevX && m_pos.y == prevY) {
+    if (m_pos.x == prevX && velX != 0.0f) {
+        // X was blocked, let Y slide
+        ResolveCollision(m_pos.x, m_pos.y, 0.0f, velY, m_size, *m_pMap);
+    }
+    else if (m_pos.y == prevY && velY != 0.0f) {
+        // Y was blocked, let X slide
         ResolveCollision(m_pos.x, m_pos.y, velX, 0.0f, m_size, *m_pMap);
-        if (m_pos.x == prevX)
-            ResolveCollision(m_pos.x, m_pos.y, 0.0f, velY, m_size, *m_pMap);
     }
 }
 
