@@ -483,7 +483,7 @@ AEVec2 Enemy::FollowPath() {
     // doesn't try to hit exact tile centers at corners.
     if (m_pMap) {
         int bestIndex = m_pathIndex;
-        int lookAhead = (std::min)(m_pathIndex + 3, static_cast<int>(m_path.size()) - 1);
+        int lookAhead = (std::min)(m_pathIndex + 1, static_cast<int>(m_path.size()) - 1);
         for (int i = lookAhead; i > m_pathIndex; --i) {
             if (HasLineOfSight(m_pos, m_path[i], m_size, *m_pMap)) {
                 bestIndex = i;
