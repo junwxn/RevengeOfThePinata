@@ -28,7 +28,7 @@ void Player::Init()
     m_PosX = 0.0f;
     m_PosY = 0.0f;
     m_Speed = 300.0f;
-    m_Size = 40.0f;
+    m_Size = PLAYER_SIZE;
     m_DashCooldown_Default = 0.1f;
     m_DashCooldown = 0.1f;
 
@@ -42,10 +42,14 @@ void Player::Init()
     // --- Attack setup ---
     m_ConeThreshold = cos(AEDegToRad(m_ConeHalfAngleDeg));
 
+    // Free any existing meshes before creating new ones (prevents leaks on restart)
+    if (m_AttackRangeMesh) { AEGfxMeshFree(m_AttackRangeMesh); m_AttackRangeMesh = nullptr; }
+    if (m_BlockRangeMesh)  { AEGfxMeshFree(m_BlockRangeMesh);  m_BlockRangeMesh  = nullptr; }
+    if (m_pMesh)           { AEGfxMeshFree(m_pMesh);           m_pMesh           = nullptr; }
+    if (m_playerHealthBarMesh) { AEGfxMeshFree(m_playerHealthBarMesh); m_playerHealthBarMesh = nullptr; }
+
     m_AttackRangeMesh = CreateLineMesh(m_AttackRange, Colors::bananaYellow);
     m_BlockRangeMesh = CreateLineMesh(m_AttackRange, Colors::red);
-    // Create a local mesh for the player
-    // (Assuming CreateCircleMesh is defined in Utils.h/cpp)
     m_pMesh = CreateCircleMesh(1.0f, 32, 0x50A655);
     m_playerHealthBarMesh = CreateRectMesh(0xFF0000);
 }

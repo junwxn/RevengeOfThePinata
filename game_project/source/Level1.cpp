@@ -10,6 +10,7 @@
 #include "GameStateManager.h"
 #include "Map.h"
 #include "Pause.h"
+#include "Debug.h"
 
 // load variables
 static AEGfxTexture* TexBlock2;
@@ -46,11 +47,11 @@ static void SpawnWave1() {
 	Wave1.clear();
 	AEVec2 playerPos = { player.GetX(), player.GetY() };
 
-	AEVec2 p1 = GetRandomSpawnPos(gameMap, playerPos, 200.0f, 40.0f);
-	Wave1.push_back(std::make_unique<Walker>(p1, 40.0f, 100.0f, 200.0f));
+	AEVec2 p1 = GetRandomSpawnPos(gameMap, playerPos, 200.0f, ENEMY_SIZE);
+	Wave1.push_back(std::make_unique<Walker>(p1, ENEMY_SIZE, 100.0f, 200.0f));
 
-	AEVec2 p2 = GetRandomSpawnPos(gameMap, playerPos, 200.0f, 40.0f);
-	Wave1.push_back(std::make_unique<Dasher>(p2, 40.0f, 100.0f, 200.0f, 0.1f));
+	AEVec2 p2 = GetRandomSpawnPos(gameMap, playerPos, 200.0f, ENEMY_SIZE);
+	Wave1.push_back(std::make_unique<Dasher>(p2, ENEMY_SIZE, 100.0f, 200.0f, 3.0f));
 
 	for (auto& enemy : Wave1) {
 		enemy->Init();
@@ -63,8 +64,8 @@ static void SpawnWave2() {
 	AEVec2 playerPos = { player.GetX(), player.GetY() };
 
 	for (int i = 0; i < 10; ++i) {
-		AEVec2 spawnPos = GetRandomSpawnPos(gameMap, playerPos, 200.0f, 40.0f);
-		Wave2.push_back(std::make_unique<Walker>(spawnPos, 40.0f, 100.0f, 200.0f));
+		AEVec2 spawnPos = GetRandomSpawnPos(gameMap, playerPos, 200.0f, ENEMY_SIZE);
+		Wave2.push_back(std::make_unique<Walker>(spawnPos, ENEMY_SIZE, 100.0f, 200.0f));
 	}
 
 	for (auto& enemy : Wave2) {
@@ -84,6 +85,7 @@ void Level1_Load() {
 	gameMap.BuildCollisionGrid("Tile Layer 2");
 
 	Pause_Load();
+	Debug_Load();
 }
 void Level1_Init() {
 
@@ -125,6 +127,17 @@ void Level1_Init() {
 	SpawnWave1();
 	wave1Active = true;
 	wave1Spawned = true;
+
+	Debug_Init();
+	DebugContext dbgCtx = {};
+	dbgCtx.player    = &player;
+	dbgCtx.camera    = &camera;
+	dbgCtx.map       = &gameMap;
+	dbgCtx.waves[0]  = &Wave1;
+	dbgCtx.waves[1]  = &Wave2;
+	dbgCtx.waveCount = 2;
+	dbgCtx.levelName = "Level 1";
+	Debug_Register(dbgCtx);
 }
 void Level1_Update(float dt) {
 	if (!AESysDoesWindowExist()) {
@@ -134,6 +147,7 @@ void Level1_Update(float dt) {
 
 	// Pause handles ESC toggle + menu input; returns true if paused
 	if (Pause_Update(true)) return;
+	Debug_Update();
 
 	// Player death -> Game Over screen
 	if (!player.GetIsAlive()) { next = GS_GAMEOVER; return; }
@@ -395,7 +409,10 @@ void Level1_Draw() {
 		node.drawCall();
 	}
 
+	Debug_DrawWorld(camera.GetX(), camera.GetY());
+
 	Pause_Draw();
+	Debug_DrawHUD();
 
 	// Draw augment effects (poison clouds, etc.)
 	AugmentEffects_Draw();
@@ -419,8 +436,9 @@ void Level1_Free() {
 void Level1_Unload() {
 	if (TexBlock)  { AEGfxTextureUnload(TexBlock);  TexBlock  = nullptr; }
 	if (TexBlock2) { AEGfxTextureUnload(TexBlock2); TexBlock2 = nullptr; }
-	AEGfxMeshFree(CircleMesh);
-	AEGfxMeshFree(RectMesh);
+	AEGfxMeshFree(CircleMesh); CircleMesh = nullptr;
+	AEGfxMeshFree(RectMesh);  RectMesh  = nullptr;
 	gameMap.Unload();
 	Pause_Unload();
+	Debug_Unload();
 }

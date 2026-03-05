@@ -5,6 +5,9 @@
 #include "MathFunctions.h"
 #include "Utils.h"
 #include "Map.h"
+#include <cmath>
+#include <queue>
+#include <unordered_map>
 
 //std::ostream& operator<<(std::ostream& os, CombatOutcome outcome) {
 //    if (outcome == CombatOutcome::OUTCOME_HIT) return os << "OUTCOME_HIT";
@@ -48,6 +51,12 @@ Enemy::~Enemy() {
 }
 
 void Enemy::Init() {
+    // Free any existing meshes before creating new ones (prevents leaks on re-init)
+    if (m_AttackRangeMesh)    { AEGfxMeshFree(m_AttackRangeMesh);    m_AttackRangeMesh    = nullptr; }
+    if (m_enemyMesh)          { AEGfxMeshFree(m_enemyMesh);          m_enemyMesh          = nullptr; }
+    if (m_enemyHealthBarMesh) { AEGfxMeshFree(m_enemyHealthBarMesh); m_enemyHealthBarMesh = nullptr; }
+    if (m_markMesh)           { AEGfxMeshFree(m_markMesh);           m_markMesh           = nullptr; }
+
     m_AttackRangeMesh = CreateAttackRangeMesh(m_AttackRange, 0xFF0000);
     m_enemyMesh = CreateCircleMesh(1.0f, 32, 0x50A655);
     m_enemyHealthBarMesh = CreateRectMesh(0xAEF359);
@@ -271,6 +280,287 @@ void Enemy::DamageInfo() {
 
 }
 
+// ---------------------------------------------------------------------------
+// A* pathfinding helpers (file-local)
+// ---------------------------------------------------------------------------
+namespace {
+    struct AStarNode {
+        GridPos pos;
+        float gCost;
+        float fCost;
+    };
+    struct AStarCompare {
+        bool operator()(AStarNode const& a, AStarNode const& b) const {
+            return a.fCost > b.fCost; // min-heap
+        }
+    };
+    float Heuristic(GridPos const& a, GridPos const& b) {
+        int dx = std::abs(a.col - b.col);
+        int dy = std::abs(a.row - b.row);
+        return static_cast<float>((std::max)(dx, dy)) + 0.414f * static_cast<float>((std::min)(dx, dy));
+    }
+}
+
+void Enemy::ComputePath(AEVec2 const& targetPos) {
+    m_path.clear();
+    m_pathIndex = 0;
+    m_hasValidPath = false;
+    m_lastTargetPos = targetPos;
+
+    if (!m_pMap) return;
+
+    // Compute clearance: how many extra cells around each position must be
+    // walkable for this entity to fit through.  Normal enemies (25) → 0,
+    // Boss (50) → 1.
+    const float halfMin = (std::min)(GRID_W * 0.5f, GRID_H * 0.5f);
+    int clearance = static_cast<int>(std::ceilf(m_size * 0.9f / halfMin)) - 1;
+    if (clearance < 0) clearance = 0.5;
+
+    GridPos start = m_pMap->WorldToTMX(m_pos.x, m_pos.y);
+    GridPos goal  = m_pMap->WorldToTMX(targetPos.x, targetPos.y);
+
+    // If goal is not walkable for this entity size, search outward
+    if (!m_pMap->IsWalkableForSize(goal.col, goal.row, clearance)) {
+        bool found = false;
+        int searchRadius = clearance + 1;
+        for (int ring = 1; ring <= searchRadius && !found; ++ring) {
+            for (int dr = -ring; dr <= ring && !found; ++dr) {
+                for (int dc = -ring; dc <= ring && !found; ++dc) {
+                    if (std::abs(dr) != ring && std::abs(dc) != ring) continue;
+                    GridPos alt{ goal.col + dc, goal.row + dr };
+                    if (m_pMap->IsWalkableForSize(alt.col, alt.row, clearance)) {
+                        goal = alt;
+                        found = true;
+                    }
+                }
+            }
+        }
+        if (!found) return;
+    }
+
+    // If start is not walkable for this entity size, search outward
+    if (!m_pMap->IsWalkableForSize(start.col, start.row, clearance)) {
+        bool found = false;
+        int searchRadius = clearance + 1;
+        for (int ring = 1; ring <= searchRadius && !found; ++ring) {
+            for (int dr = -ring; dr <= ring && !found; ++dr) {
+                for (int dc = -ring; dc <= ring && !found; ++dc) {
+                    if (std::abs(dr) != ring && std::abs(dc) != ring) continue;
+                    GridPos alt{ start.col + dc, start.row + dr };
+                    if (m_pMap->IsWalkableForSize(alt.col, alt.row, clearance)) {
+                        start = alt;
+                        found = true;
+                    }
+                }
+            }
+        }
+        if (!found) return;
+    }
+
+    if (start == goal) {
+        m_path.push_back(targetPos);
+        m_hasValidPath = true;
+        return;
+    }
+
+    const int maxIter = static_cast<int>(m_pMap->GetMapWidth()) * static_cast<int>(m_pMap->GetMapHeight());
+
+    std::priority_queue<AStarNode, std::vector<AStarNode>, AStarCompare> openSet;
+    std::unordered_map<GridPos, float, GridPosHash> gScore;
+    std::unordered_map<GridPos, GridPos, GridPosHash> cameFrom;
+
+    gScore[start] = 0.0f;
+    openSet.push({ start, 0.0f, Heuristic(start, goal) });
+
+    int iterations = 0;
+    bool found = false;
+
+    static const int dc[] = { -1, 0, 1, -1, 1, -1, 0, 1 };
+    static const int dr[] = { -1, -1, -1, 0, 0, 1, 1, 1 };
+    static const float costs[] = { 1.414f, 1.0f, 1.414f, 1.0f, 1.0f, 1.414f, 1.0f, 1.414f };
+
+    while (!openSet.empty() && iterations < maxIter) {
+        ++iterations;
+        AStarNode current = openSet.top();
+        openSet.pop();
+
+        if (current.pos == goal) {
+            found = true;
+            break;
+        }
+
+        // Skip if we already found a better path to this node
+        auto it = gScore.find(current.pos);
+        if (it != gScore.end() && current.gCost > it->second)
+            continue;
+
+        for (int i = 0; i < 8; ++i) {
+            GridPos neighbor{ current.pos.col + dc[i], current.pos.row + dr[i] };
+
+            if (!m_pMap->IsWalkableForSize(neighbor.col, neighbor.row, clearance))
+                continue;
+
+            // Corner-cutting prevention for diagonals
+            bool isDiagonal = (dc[i] != 0 && dr[i] != 0);
+            if (isDiagonal) {
+                if (!m_pMap->IsWalkableForSize(current.pos.col + dc[i], current.pos.row, clearance) ||
+                    !m_pMap->IsWalkableForSize(current.pos.col, current.pos.row + dr[i], clearance))
+                    continue;
+            }
+
+            float tentativeG = current.gCost + costs[i];
+            auto nIt = gScore.find(neighbor);
+            if (nIt == gScore.end() || tentativeG < nIt->second) {
+                gScore[neighbor] = tentativeG;
+                cameFrom[neighbor] = current.pos;
+                openSet.push({ neighbor, tentativeG, tentativeG + Heuristic(neighbor, goal) });
+            }
+        }
+    }
+
+    if (!found) return;
+
+    // Reconstruct path
+    std::vector<GridPos> gridPath;
+    GridPos cur = goal;
+    while (cur != start) {
+        gridPath.push_back(cur);
+        cur = cameFrom[cur];
+    }
+
+    // Convert to world-space (reverse order so index 0 = first waypoint)
+    m_path.reserve(gridPath.size());
+    for (int i = static_cast<int>(gridPath.size()) - 1; i >= 0; --i) {
+        m_path.push_back(m_pMap->TMXToWorld(gridPath[i].col, gridPath[i].row));
+    }
+    m_pathIndex = 0;
+    m_hasValidPath = true;
+}
+
+// Line-of-sight check: can the entity walk from 'from' to 'to' without
+// hitting a solid tile?  Steps along the line in small increments.
+static bool HasLineOfSight(AEVec2 const& from, AEVec2 const& to,
+                           float radius, const MapSystem& map)
+{
+    AEVec2 diff;
+    diff.x = to.x - from.x;
+    diff.y = to.y - from.y;
+    float dist = AEVec2Length(&diff);
+    if (dist < 1.0f) return true;
+
+    float stepSize = (std::min)(5.0f, radius * 0.5f);
+    float safeRadius = radius + 2.5f;
+    int steps = static_cast<int>(dist / stepSize) + 1;
+    for (int i = 1; i <= steps; ++i) {
+        float t = static_cast<float>(i) / steps;
+        float px = from.x + diff.x * t;
+        float py = from.y + diff.y * t;
+        if (map.IsPositionBlocked(px, py, safeRadius))
+            return false;
+    }
+    return true;
+}
+
+AEVec2 Enemy::FollowPath() {
+    if (!m_hasValidPath || m_pathIndex >= static_cast<int>(m_path.size()))
+        return { 0.0f, 0.0f };
+
+    // Advance past any waypoints we're already close to.
+     float WAYPOINT_THRESHOLD = 1.0f;
+    while (m_pathIndex < static_cast<int>(m_path.size())) {
+        AEVec2 diff;
+        AEVec2Sub(&diff, &m_path[m_pathIndex], &m_pos);
+        if (AEVec2Length(&diff) >= WAYPOINT_THRESHOLD)
+            break;
+        ++m_pathIndex;
+    }
+
+    if (m_pathIndex >= static_cast<int>(m_path.size()))
+        return { 0.0f, 0.0f };
+
+    // Look-ahead: skip to the furthest visible waypoint so the enemy
+    // doesn't try to hit exact tile centers at corners.
+    if (m_pMap) {
+        int bestIndex = m_pathIndex;
+        int lookAhead = (std::min)(m_pathIndex + 3, static_cast<int>(m_path.size()) - 1);
+        for (int i = lookAhead; i > m_pathIndex; --i) {
+            if (HasLineOfSight(m_pos, m_path[i], m_size, *m_pMap)) {
+                bestIndex = i;
+                break;
+            }
+        }
+        m_pathIndex = bestIndex;
+    }
+
+    AEVec2 dir;
+    AEVec2Sub(&dir, &m_path[m_pathIndex], &m_pos);
+    float dist = AEVec2Length(&dir);
+    if (dist > 0.001f)
+        AEVec2Normalize(&dir, &dir);
+    return dir;
+}
+
+bool Enemy::NeedsPathRecalc(AEVec2 const& targetPos, f32 dt) {
+    m_pathTimer -= dt;
+    if (m_pathTimer <= 0.0f) {
+        m_pathTimer = m_pathRecalcInterval;
+        return true;
+    }
+    float dx = targetPos.x - m_lastTargetPos.x;
+    float dy = targetPos.y - m_lastTargetPos.y;
+    if (dx * dx + dy * dy > 100.0f * 100.0f)
+        return true;
+    return false;
+}
+
+void Enemy::MoveTowardTarget(AEVec2 const& targetPos, f32 dt) {
+    if (!m_pMap) {
+        // No map — direct seek
+        m_pos.x += m_enemyToPlayerDir.x * m_speed * dt;
+        m_pos.y += m_enemyToPlayerDir.y * m_speed * dt;
+        return;
+    }
+
+    if (NeedsPathRecalc(targetPos, dt))
+        ComputePath(targetPos);
+
+    // Stuck detection: if we haven't moved much, force a full path recalculation
+    float dx = m_pos.x - m_lastPos.x;
+    float dy = m_pos.y - m_lastPos.y;
+    if (dx * dx + dy * dy < STUCK_DIST_THRESHOLD * STUCK_DIST_THRESHOLD) {
+        m_stuckTimer += dt;
+        if (m_stuckTimer >= STUCK_TIME_THRESHOLD) {
+            m_pathTimer = 0.0f; // force recalc next frame
+            m_stuckTimer = 0.0f;
+        }
+    } else {
+        m_stuckTimer = 0.0f;
+    }
+    m_lastPos = m_pos;
+
+    AEVec2 dir = FollowPath();
+    float len = AEVec2Length(&dir);
+    if (len < 0.001f) {
+        // Fallback to direct seek if no valid path
+        dir = m_enemyToPlayerDir;
+    }
+
+    float velX = dir.x * m_speed * dt;
+    float velY = dir.y * m_speed * dt;
+    float prevX = m_pos.x, prevY = m_pos.y;
+    ResolveCollision(m_pos.x, m_pos.y, velX, velY, m_size, *m_pMap);
+
+    // If fully stuck, try each axis independently to unstick at corners
+    if (m_pos.x == prevX && velX != 0.0f) {
+        // X was blocked, let Y slide
+        ResolveCollision(m_pos.x, m_pos.y, 0.0f, velY, m_size, *m_pMap);
+    }
+    else if (m_pos.y == prevY && velY != 0.0f) {
+        // Y was blocked, let X slide
+        ResolveCollision(m_pos.x, m_pos.y, velX, 0.0f, m_size, *m_pMap);
+    }
+}
+
 //------------------------
  //| Child Class: Walker |
  //-----------------------
@@ -282,18 +572,10 @@ void Walker::ChildUpdate(f32 dt, Combat::System& combat, Player const& player) {
     // Point sword towards player
     m_AimAngle = atan2(-m_enemyToPlayerDir.y, -m_enemyToPlayerDir.x);
 
-    // Seek player
+    // Seek player via A* pathfinding
     if (!AreCirclesIntersecting(player.GetX(), player.GetY(), player.GetSize(),
                                 m_pos.x, m_pos.y, m_size)) {
-        float velX = m_enemyToPlayerDir.x * m_speed * dt;
-        float velY = m_enemyToPlayerDir.y * m_speed * dt;
-
-        if (m_pMap) {
-            ResolveCollision(m_pos.x, m_pos.y, velX, velY, m_size, *m_pMap);
-        } else {
-            m_pos.x += velX;
-            m_pos.y += velY;
-        }
+        MoveTowardTarget(playerPos, dt);
     }
 }
 
@@ -301,16 +583,58 @@ void Walker::ChildUpdate(f32 dt, Combat::System& combat, Player const& player) {
 // | Child Class: Dasher |
 // -----------------------
 Dasher::Dasher(AEVec2 pos, f32 size, f32 hp, f32 speed, f32 dashCD)
-    : Enemy(pos, size, hp, speed), m_dashCD{ dashCD } {}
+    : Enemy(pos, size, hp, speed), m_dashCD{ dashCD }
+{
+    // Stagger initial timers so grouped Dashers don't all lunge at once
+    m_dashTimer = static_cast<f32>(rand()) / RAND_MAX * m_dashCD;
+}
+
+void Dasher::PerformDash(AEVec2 const& direction) {
+    if (!m_pMap) {
+        m_pos.x += direction.x * m_dashDistance;
+        m_pos.y += direction.y * m_dashDistance;
+        return;
+    }
+
+    // Step-wise collision (same pattern as player dash)
+    const int steps = static_cast<int>(m_dashDistance / 16.0f) + 1;
+    float stepVelX = direction.x * m_dashDistance / steps;
+    float stepVelY = direction.y * m_dashDistance / steps;
+    for (int i = 0; i < steps; ++i) {
+        float prevX = m_pos.x, prevY = m_pos.y;
+        ResolveCollision(m_pos.x, m_pos.y, stepVelX, stepVelY, m_size, *m_pMap);
+        if (m_pos.x == prevX && m_pos.y == prevY) break;
+    }
+}
 
 void Dasher::ChildUpdate(f32 dt, Combat::System& combat, Player const& player) {
     AEVec2 playerPos{ player.GetX(), player.GetY() };
-    //AEVec2 enemyToPlayer;
     AEVec2Sub(&m_enemyToPlayerDir, &playerPos, &m_pos);
-    AEVec2Normalize(&m_enemyToPlayerDir, &m_enemyToPlayerDir);
+    f32 dist = AEVec2Length(&m_enemyToPlayerDir);
+    if (dist > 0.001f)
+        AEVec2Normalize(&m_enemyToPlayerDir, &m_enemyToPlayerDir);
 
     // Point sword towards player
     m_AimAngle = atan2(-m_enemyToPlayerDir.y, -m_enemyToPlayerDir.x);
+
+    // Skip movement if stunned, winding up, or attacking
+    if (m_CombatFlags.stunned || m_WindingUp || m_AttackActive) return;
+
+    // Tick dash cooldown
+    m_dashTimer -= dt;
+
+    // Dash if cooldown ready and player in range
+    if (m_dashTimer <= 0.0f && dist >= m_dashMinRange && dist <= m_dashRange) {
+        PerformDash(m_enemyToPlayerDir);
+        m_dashTimer = m_dashCD;
+        return;
+    }
+
+    // Walk toward player via A* pathfinding (same as Walker/Boss)
+    if (!AreCirclesIntersecting(player.GetX(), player.GetY(), player.GetSize(),
+                                m_pos.x, m_pos.y, m_size)) {
+        MoveTowardTarget(playerPos, dt);
+    }
 }
 
 // ---------------------
@@ -346,17 +670,9 @@ void Boss::ChildUpdate(f32 dt, Combat::System& combat, Player const& player) {
     // Point sword towards player
     m_AimAngle = atan2(-m_enemyToPlayerDir.y, -m_enemyToPlayerDir.x);
 
-    // Seek player (slower than Walker)
+    // Seek player via A* pathfinding
     if (!AreCirclesIntersecting(player.GetX(), player.GetY(), player.GetSize(),
                                 m_pos.x, m_pos.y, m_size)) {
-        float velX = m_enemyToPlayerDir.x * m_speed * dt;
-        float velY = m_enemyToPlayerDir.y * m_speed * dt;
-
-        if (m_pMap) {
-            ResolveCollision(m_pos.x, m_pos.y, velX, velY, m_size, *m_pMap);
-        } else {
-            m_pos.x += velX;
-            m_pos.y += velY;
-        }
+        MoveTowardTarget(playerPos, dt);
     }
 }

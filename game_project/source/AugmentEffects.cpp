@@ -47,6 +47,10 @@ void AugmentEffects_Init(Player* player) {
     g_poisonClouds.clear();
     g_speedBoostTimer = 0.0f;
 
+    // Free any existing meshes before creating new ones (prevents leaks on restart)
+    if (s_poisonMesh) { AEGfxMeshFree(s_poisonMesh); s_poisonMesh = nullptr; }
+    if (s_markMesh)   { AEGfxMeshFree(s_markMesh);   s_markMesh   = nullptr; }
+
     s_poisonMesh = CreateCircleMesh(1.0f, 16, 0x00FF00);
     s_markMesh = CreateRectMesh(0xFF0000);
 }

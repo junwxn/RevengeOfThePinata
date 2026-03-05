@@ -3,7 +3,7 @@
 #include "Combat.h"
 #include "Player.h"
 
-class MapSystem; // Forward-declare to avoid a circular header chain
+#include "Map.h"
 
 // ----------------
 // | Enemy States |
@@ -108,12 +108,19 @@ public:
     // Call once after the map is loaded so enemies can self-resolve wall collisions.
     void SetMap(const MapSystem* map) { m_pMap = map; }
 
+    // Debug overlay getters
+    const std::vector<AEVec2>& GetPath() const { return m_path; }
+    int GetPathIndex() const { return m_pathIndex; }
+    bool GetHasValidPath() const { return m_hasValidPath; }
+    bool IsWindingUp() const { return m_WindingUp; }
+    f32 GetSpeed() const { return m_speed; }
+
 protected:
     // Enemy stats --------------------
     AEVec2 m_pos{};
     f32 m_hp{ 100.0f }; // to be removed?
     f32 m_speed{ 300.0f };
-    f32 m_size{ 40.0f };
+    f32 m_size{ ENEMY_SIZE };
     f32 m_healthDepletionPercentage{};
     // Meshes -------------------------
     AEGfxVertexList* m_enemyMesh{ nullptr };
@@ -211,6 +218,25 @@ protected:
     // Non-owning pointer to the active map; set via SetMap().
     const MapSystem* m_pMap = nullptr;
 
+    // A* pathfinding
+    std::vector<AEVec2> m_path;
+    int   m_pathIndex{0};
+    float m_pathTimer{0.0f};
+    float m_pathRecalcInterval{0.5f};
+    AEVec2 m_lastTargetPos{};
+    bool  m_hasValidPath{false};
+
+    // Stuck detection
+    AEVec2 m_lastPos{};
+    float  m_stuckTimer{0.0f};
+    static constexpr float STUCK_TIME_THRESHOLD = 0.3f;
+    static constexpr float STUCK_DIST_THRESHOLD = 2.0f;
+
+    void   ComputePath(AEVec2 const& targetPos);
+    AEVec2 FollowPath();
+    bool   NeedsPathRecalc(AEVec2 const& targetPos, f32 dt);
+    void   MoveTowardTarget(AEVec2 const& targetPos, f32 dt);
+
     void BaseUpdate(f32 dt, Combat::System& combat, Player const& player);
     virtual void ChildUpdate(f32 dt, Combat::System& combat, Player const& player) = 0;
 };
@@ -237,8 +263,13 @@ public:
     Dasher(AEVec2 pos, f32 size, f32 hp, f32 speed, f32 dashCD); // Child constructor
 
 protected:
-    f32 m_dashCD{ 0.1f };
+    f32 m_dashCD{ 3.0f };          // cooldown duration (seconds)
+    f32 m_dashTimer{ 0.0f };       // countdown; dash ready when <= 0
+    f32 m_dashRange{ 400.0f };     // trigger dash within this distance
+    f32 m_dashMinRange{ 80.0f };   // don't dash if already this close
+    f32 m_dashDistance{ 200.0f };   // world-space pixels (~2 tiles)
 
+    void PerformDash(AEVec2 const& direction);
     void ChildUpdate(f32 dt, Combat::System& combat, Player const& player) override;
 };
 

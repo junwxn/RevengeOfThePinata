@@ -8,6 +8,10 @@ const f32 GRID_H = 64.0f;
 const f32 SPRITE_W = 111.0f;
 const f32 SPRITE_H = 128.0f;
 
+const f32 PLAYER_SIZE = 25.0f;
+const f32 ENEMY_SIZE  = 25.0f;
+const f32 BOSS_SIZE   = 50.0f;
+
 // --- Structs ---
 struct Vec2 {
     f32 x, y;

@@ -8,6 +8,7 @@
 #include "GameStateManager.h"
 #include "Map.h"
 #include "Pause.h"
+#include "Debug.h"
 
 // load variables
 static AEGfxTexture* TexBlock2;
@@ -40,11 +41,11 @@ static void SpawnBossWave() {
 	AEVec2 playerPos = { player.GetX(), player.GetY() };
 
 	// 1 Boss (spawned on a valid tile) + 3 Walkers
-	AEVec2 bossPos = GetRandomSpawnPos(gameMap, playerPos, 200.0f, 80.0f);
-	Wave1.push_back(std::make_unique<Boss>(bossPos, 80.0f, 500.0f, 150.0f));
+	AEVec2 bossPos = GetRandomSpawnPos(gameMap, playerPos, 200.0f, BOSS_SIZE);
+	Wave1.push_back(std::make_unique<Boss>(bossPos, BOSS_SIZE, 500.0f, 150.0f));
 	for (int i = 0; i < 3; ++i) {
-		AEVec2 p = GetRandomSpawnPos(gameMap, playerPos, 200.0f, 40.0f);
-		Wave1.push_back(std::make_unique<Walker>(p, 40.0f, 100.0f, 200.0f));
+		AEVec2 p = GetRandomSpawnPos(gameMap, playerPos, 200.0f, ENEMY_SIZE);
+		Wave1.push_back(std::make_unique<Walker>(p, ENEMY_SIZE, 100.0f, 200.0f));
 	}
 
 	for (auto& enemy : Wave1) {
@@ -61,6 +62,7 @@ void BossLevel_Load() {
 	gameMap.Init("Assets/untitled.tmx", "tilesheet_complete", "Assets/tilesheet_complete.png");
 	gameMap.BuildCollisionGrid("Tile Layer 2");
 	Pause_Load();
+	Debug_Load();
 }
 
 void BossLevel_Init() {
@@ -88,6 +90,16 @@ void BossLevel_Init() {
 
 	SpawnBossWave();
 	wave1Active = true;
+
+	Debug_Init();
+	DebugContext dbgCtx = {};
+	dbgCtx.player    = &player;
+	dbgCtx.camera    = &camera;
+	dbgCtx.map       = &gameMap;
+	dbgCtx.waves[0]  = &Wave1;
+	dbgCtx.waveCount = 1;
+	dbgCtx.levelName = "Boss Level";
+	Debug_Register(dbgCtx);
 }
 
 void BossLevel_Update(float dt) {
@@ -97,6 +109,7 @@ void BossLevel_Update(float dt) {
 	}
 
 	if (Pause_Update(true)) return;
+	Debug_Update();
 
 	// Player death -> Game Over screen
 	if (!player.GetIsAlive()) { next = GS_GAMEOVER; return; }
@@ -235,7 +248,10 @@ void BossLevel_Draw() {
 		node.drawCall();
 	}
 
+	Debug_DrawWorld(camera.GetX(), camera.GetY());
+
 	Pause_Draw();
+	Debug_DrawHUD();
 
 	AugmentEffects_Draw();
 
@@ -253,8 +269,9 @@ void BossLevel_Free() {
 void BossLevel_Unload() {
 	if (TexBlock)  { AEGfxTextureUnload(TexBlock);  TexBlock  = nullptr; }
 	if (TexBlock2) { AEGfxTextureUnload(TexBlock2); TexBlock2 = nullptr; }
-	AEGfxMeshFree(CircleMesh);
-	AEGfxMeshFree(RectMesh);
+	AEGfxMeshFree(CircleMesh); CircleMesh = nullptr;
+	AEGfxMeshFree(RectMesh);  RectMesh  = nullptr;
 	gameMap.Unload();
 	Pause_Unload();
+	Debug_Unload();
 }
