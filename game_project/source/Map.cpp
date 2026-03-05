@@ -208,6 +208,51 @@ void MapSystem::BuildCollisionGrid(std::string const& collisionLayerName) {
             m_collisionGrid[row][col] = (tiles[row][col] != 0) ? 1u : 0u;
 }
 
+GridPos MapSystem::WorldToTMX(float worldX, float worldY) const {
+    constexpr int RENDER_OFFSET = 10;
+    const float halfW = GRID_W * 0.5f;
+    const float halfH = GRID_H * 0.5f;
+
+    // The diamond footprint sits at the bottom of the tile sprite, offset
+    // down by halfH from the left-anchor point.  Shift worldY up by halfH
+    // so the inverse transform maps to the correct visual diamond.
+    const float adjY = worldY + halfH;
+
+    const float isoX = (worldX / halfW + adjY / halfH) * 0.5f;
+    const float isoY = (-worldX / halfW + adjY / halfH) * 0.5f;
+
+    const int tileX = static_cast<int>(std::floorf(isoX));
+    const int tileY = static_cast<int>(std::floorf(isoY)) + 1;
+
+    const int renderX = tileX + RENDER_OFFSET;
+    const int renderY = tileY + RENDER_OFFSET;
+
+    const int tmxCol = static_cast<int>(m_gridWidth)  - 1 - renderX;
+    const int tmxRow = static_cast<int>(m_gridHeight) - 1 - renderY;
+
+    return { tmxCol, tmxRow };
+}
+
+AEVec2 MapSystem::TMXToWorld(int col, int row) const {
+    constexpr int RENDER_OFFSET = 10;
+    int renderX = static_cast<int>(m_gridWidth)  - 1 - col;
+    int renderY = static_cast<int>(m_gridHeight) - 1 - row;
+    Vec2 pos = GridToScreen(renderX - RENDER_OFFSET, renderY - RENDER_OFFSET);
+    // Return the centre of the tile's collision diamond, not the left anchor.
+    // The diamond centre is offset by (+halfW, -halfH) from the left anchor.
+    const float halfW = GRID_W * 0.5f;
+    const float halfH = GRID_H * 0.5f;
+    return { pos.x + halfW, pos.y - halfH };
+}
+
+bool MapSystem::IsWalkable(int col, int row) const {
+    if (col < 0 || row < 0 ||
+        col >= static_cast<int>(m_gridWidth) ||
+        row >= static_cast<int>(m_gridHeight))
+        return false;
+    return m_collisionGrid[row][col] == 0;
+}
+
 bool MapSystem::isSolid(float worldX, float worldY) const {
     if (m_collisionGrid.empty()) return false;
 
@@ -237,8 +282,13 @@ bool MapSystem::isSolid(float worldX, float worldY) const {
     const float halfW = GRID_W * 0.5f; // 55.5f
     const float halfH = GRID_H * 0.5f; // 32.0f
 
-    const float isoX = (worldX / halfW + worldY / halfH) * 0.5f;
-    const float isoY = (-worldX / halfW + worldY / halfH) * 0.5f;
+    // The diamond footprint sits at the bottom of the tile sprite, offset
+    // down by halfH from the left-anchor point.  Shift worldY up by halfH
+    // so the inverse transform maps to the correct visual diamond.
+    const float adjY = worldY + halfH;
+
+    const float isoX = (worldX / halfW + adjY / halfH) * 0.5f;
+    const float isoY = (-worldX / halfW + adjY / halfH) * 0.5f;
 
     // floor + left-anchor +1 correction on the Y axis
     const int tileX = static_cast<int>(std::floorf(isoX));

@@ -8,6 +8,7 @@
 #include "GameStateManager.h"
 #include "Map.h"
 #include "Pause.h"
+#include "Debug.h"
 
 // load variables
 static AEGfxTexture* TexBlock2;
@@ -61,6 +62,7 @@ void BossLevel_Load() {
 	gameMap.Init("Assets/untitled.tmx", "tilesheet_complete", "Assets/tilesheet_complete.png");
 	gameMap.BuildCollisionGrid("Tile Layer 2");
 	Pause_Load();
+	Debug_Load();
 }
 
 void BossLevel_Init() {
@@ -88,6 +90,16 @@ void BossLevel_Init() {
 
 	SpawnBossWave();
 	wave1Active = true;
+
+	Debug_Init();
+	DebugContext dbgCtx = {};
+	dbgCtx.player    = &player;
+	dbgCtx.camera    = &camera;
+	dbgCtx.map       = &gameMap;
+	dbgCtx.waves[0]  = &Wave1;
+	dbgCtx.waveCount = 1;
+	dbgCtx.levelName = "Boss Level";
+	Debug_Register(dbgCtx);
 }
 
 void BossLevel_Update(float dt) {
@@ -97,6 +109,7 @@ void BossLevel_Update(float dt) {
 	}
 
 	if (Pause_Update(true)) return;
+	Debug_Update();
 
 	// Player death -> Game Over screen
 	if (!player.GetIsAlive()) { next = GS_GAMEOVER; return; }
@@ -235,7 +248,10 @@ void BossLevel_Draw() {
 		node.drawCall();
 	}
 
+	Debug_DrawWorld(camera.GetX(), camera.GetY());
+
 	Pause_Draw();
+	Debug_DrawHUD();
 
 	AugmentEffects_Draw();
 
@@ -257,4 +273,5 @@ void BossLevel_Unload() {
 	AEGfxMeshFree(RectMesh);  RectMesh  = nullptr;
 	gameMap.Unload();
 	Pause_Unload();
+	Debug_Unload();
 }

@@ -73,6 +73,8 @@ public:
     bool GetParryStatus() const { return m_ParryActive; }
     int GetAttackCharges() const { return m_AttackCharges; }
     void SetAttackCharges(int charges) { m_AttackCharges = charges; }
+    float GetDashCooldown() const { return m_DashCooldown; }
+    float GetSpeed() const { return m_Speed; }
 
     Combat::CombatFlags GetCombatFlag() const { return m_CombatFlags; }
     Combat::CombatStats GetCombatStats() const { return m_CombatStats; }
