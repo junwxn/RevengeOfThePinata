@@ -5,6 +5,7 @@
 #include "MathFunctions.h"
 #include "Utils.h"
 #include "Map.h"
+#include <cmath>
 #include <queue>
 #include <unordered_map>
 #include "Raycast.h"
@@ -309,36 +310,49 @@ void Enemy::ComputePath(AEVec2 const& targetPos) {
 
     if (!m_pMap) return;
 
+    // Compute clearance: how many extra cells around each position must be
+    // walkable for this entity to fit through.  Normal enemies (25) → 0,
+    // Boss (50) → 1.
+    const float halfMin = (std::min)(GRID_W * 0.5f, GRID_H * 0.5f);
+    int clearance = static_cast<int>(std::ceilf(m_size * 0.9f / halfMin)) - 1;
+    if (clearance < 0) clearance = 0.5;
+
     GridPos start = m_pMap->WorldToTMX(m_pos.x, m_pos.y);
     GridPos goal  = m_pMap->WorldToTMX(targetPos.x, targetPos.y);
 
-    // If goal is not walkable, find nearest walkable neighbor
-    if (!m_pMap->IsWalkable(goal.col, goal.row)) {
+    // If goal is not walkable for this entity size, search outward
+    if (!m_pMap->IsWalkableForSize(goal.col, goal.row, clearance)) {
         bool found = false;
-        static const int dc[] = { -1, 0, 1, -1, 1, -1, 0, 1 };
-        static const int dr[] = { -1, -1, -1, 0, 0, 1, 1, 1 };
-        for (int i = 0; i < 8; ++i) {
-            GridPos alt{ goal.col + dc[i], goal.row + dr[i] };
-            if (m_pMap->IsWalkable(alt.col, alt.row)) {
-                goal = alt;
-                found = true;
-                break;
+        int searchRadius = clearance + 1;
+        for (int ring = 1; ring <= searchRadius && !found; ++ring) {
+            for (int dr = -ring; dr <= ring && !found; ++dr) {
+                for (int dc = -ring; dc <= ring && !found; ++dc) {
+                    if (std::abs(dr) != ring && std::abs(dc) != ring) continue;
+                    GridPos alt{ goal.col + dc, goal.row + dr };
+                    if (m_pMap->IsWalkableForSize(alt.col, alt.row, clearance)) {
+                        goal = alt;
+                        found = true;
+                    }
+                }
             }
         }
-        if (!found) return; // no walkable goal
+        if (!found) return;
     }
 
-    // If start is not walkable, find nearest walkable neighbor
-    if (!m_pMap->IsWalkable(start.col, start.row)) {
+    // If start is not walkable for this entity size, search outward
+    if (!m_pMap->IsWalkableForSize(start.col, start.row, clearance)) {
         bool found = false;
-        static const int dc[] = { -1, 0, 1, -1, 1, -1, 0, 1 };
-        static const int dr[] = { -1, -1, -1, 0, 0, 1, 1, 1 };
-        for (int i = 0; i < 8; ++i) {
-            GridPos alt{ start.col + dc[i], start.row + dr[i] };
-            if (m_pMap->IsWalkable(alt.col, alt.row)) {
-                start = alt;
-                found = true;
-                break;
+        int searchRadius = clearance + 1;
+        for (int ring = 1; ring <= searchRadius && !found; ++ring) {
+            for (int dr = -ring; dr <= ring && !found; ++dr) {
+                for (int dc = -ring; dc <= ring && !found; ++dc) {
+                    if (std::abs(dr) != ring && std::abs(dc) != ring) continue;
+                    GridPos alt{ start.col + dc, start.row + dr };
+                    if (m_pMap->IsWalkableForSize(alt.col, alt.row, clearance)) {
+                        start = alt;
+                        found = true;
+                    }
+                }
             }
         }
         if (!found) return;
@@ -384,14 +398,14 @@ void Enemy::ComputePath(AEVec2 const& targetPos) {
         for (int i = 0; i < 8; ++i) {
             GridPos neighbor{ current.pos.col + dc[i], current.pos.row + dr[i] };
 
-            if (!m_pMap->IsWalkable(neighbor.col, neighbor.row))
+            if (!m_pMap->IsWalkableForSize(neighbor.col, neighbor.row, clearance))
                 continue;
 
             // Corner-cutting prevention for diagonals
             bool isDiagonal = (dc[i] != 0 && dr[i] != 0);
             if (isDiagonal) {
-                if (!m_pMap->IsWalkable(current.pos.col + dc[i], current.pos.row) ||
-                    !m_pMap->IsWalkable(current.pos.col, current.pos.row + dr[i]))
+                if (!m_pMap->IsWalkableForSize(current.pos.col + dc[i], current.pos.row, clearance) ||
+                    !m_pMap->IsWalkableForSize(current.pos.col, current.pos.row + dr[i], clearance))
                     continue;
             }
 
@@ -435,13 +449,14 @@ static bool HasLineOfSight(AEVec2 const& from, AEVec2 const& to,
     float dist = AEVec2Length(&diff);
     if (dist < 1.0f) return true;
 
-    const float stepSize = 16.0f; // check every 16 pixels
+    float stepSize = (std::min)(5.0f, radius * 0.5f);
+    float safeRadius = radius + 2.5f;
     int steps = static_cast<int>(dist / stepSize) + 1;
     for (int i = 1; i <= steps; ++i) {
         float t = static_cast<float>(i) / steps;
         float px = from.x + diff.x * t;
         float py = from.y + diff.y * t;
-        if (map.IsPositionBlocked(px, py, radius + 0.1f))
+        if (map.IsPositionBlocked(px, py, safeRadius))
             return false;
     }
     return true;
@@ -452,7 +467,7 @@ AEVec2 Enemy::FollowPath() {
         return { 0.0f, 0.0f };
 
     // Advance past any waypoints we're already close to.
-    constexpr float WAYPOINT_THRESHOLD = 20.0f;
+     float WAYPOINT_THRESHOLD = 1.0f;
     while (m_pathIndex < static_cast<int>(m_path.size())) {
         AEVec2 diff;
         AEVec2Sub(&diff, &m_path[m_pathIndex], &m_pos);
@@ -468,7 +483,7 @@ AEVec2 Enemy::FollowPath() {
     // doesn't try to hit exact tile centers at corners.
     if (m_pMap) {
         int bestIndex = m_pathIndex;
-        int lookAhead = (std::min)(m_pathIndex + 5, static_cast<int>(m_path.size()) - 1);
+        int lookAhead = (std::min)(m_pathIndex + 3, static_cast<int>(m_path.size()) - 1);
         for (int i = lookAhead; i > m_pathIndex; --i) {
             if (HasLineOfSight(m_pos, m_path[i], m_size, *m_pMap)) {
                 bestIndex = i;
@@ -537,10 +552,13 @@ void Enemy::MoveTowardTarget(AEVec2 const& targetPos, f32 dt) {
     ResolveCollision(m_pos.x, m_pos.y, velX, velY, m_size, *m_pMap);
 
     // If fully stuck, try each axis independently to unstick at corners
-    if (m_pos.x == prevX && m_pos.y == prevY) {
+    if (m_pos.x == prevX && velX != 0.0f) {
+        // X was blocked, let Y slide
+        ResolveCollision(m_pos.x, m_pos.y, 0.0f, velY, m_size, *m_pMap);
+    }
+    else if (m_pos.y == prevY && velY != 0.0f) {
+        // Y was blocked, let X slide
         ResolveCollision(m_pos.x, m_pos.y, velX, 0.0f, m_size, *m_pMap);
-        if (m_pos.x == prevX)
-            ResolveCollision(m_pos.x, m_pos.y, 0.0f, velY, m_size, *m_pMap);
     }
 }
 
