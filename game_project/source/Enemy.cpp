@@ -7,6 +7,7 @@
 #include "Map.h"
 #include <queue>
 #include <unordered_map>
+#include "Raycast.h"
 
 //std::ostream& operator<<(std::ostream& os, CombatOutcome outcome) {
 //    if (outcome == CombatOutcome::OUTCOME_HIT) return os << "OUTCOME_HIT";

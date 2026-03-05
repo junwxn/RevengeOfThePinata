@@ -93,6 +93,49 @@ AEGfxVertexList* CreateAttackRangeMesh(f32 attackRange, u32 color) {
     return AEGfxMeshEnd();
 }
 
+AEGfxVertexList* CreateRingMesh(int segments, f32 thickness) {
+    const f32 outer = 1.0f;
+    const f32 inner = outer - thickness;
+
+    AEGfxMeshStart();
+
+    f32 step = (PI * 2.0f) / segments;
+
+    for (int i = 0; i < segments; ++i) {
+        f32 a0 = i * step;
+        f32 a1 = (i + 1) * step;
+
+        f32 x0 = cosf(a0);
+        f32 y0 = sinf(a0);
+        f32 x1 = cosf(a1);
+        f32 y1 = sinf(a1);
+
+        f32 ox0 = x0 * outer;
+        f32 oy0 = y0 * outer;
+        f32 ox1 = x1 * outer;
+        f32 oy1 = y1 * outer;
+
+        f32 ix0 = x0 * inner;
+        f32 iy0 = y0 * inner;
+        f32 ix1 = x1 * inner;
+        f32 iy1 = y1 * inner;
+
+        AEGfxTriAdd(
+            ox0, oy0, 0xFFFFFFFF, 0, 0,
+            ox1, oy1, 0xFFFFFFFF, 0, 0,
+            ix1, iy1, 0xFFFFFFFF, 0, 0
+        );
+
+        AEGfxTriAdd(
+            ox0, oy0, 0xFFFFFFFF, 0, 0,
+            ix1, iy1, 0xFFFFFFFF, 0, 0,
+            ix0, iy0, 0xFFFFFFFF, 0, 0
+        );
+    }
+
+    return AEGfxMeshEnd();
+}
+
 void DrawMesh(AEGfxVertexList* pMesh, float width, float height, float x, float y, float rot, float r, float g, float b, float a) {
     AEGfxSetColorToMultiply(0.0f, 0.0f, 0.0f, 0.0f);
     AEGfxSetColorToAdd(r / 255.0f, g / 255.0f, b / 255.0f, a / 255.0f);

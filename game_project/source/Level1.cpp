@@ -437,7 +437,7 @@ void Level1_Unload() {
 	if (TexBlock)  { AEGfxTextureUnload(TexBlock);  TexBlock  = nullptr; }
 	if (TexBlock2) { AEGfxTextureUnload(TexBlock2); TexBlock2 = nullptr; }
 	AEGfxMeshFree(CircleMesh); CircleMesh = nullptr;
-	AEGfxMeshFree(RectMesh);  RectMesh  = nullptr;
+	AEGfxMeshFree(RectMesh);  RectMesh = nullptr;
 	gameMap.Unload();
 	Pause_Unload();
 	Debug_Unload();

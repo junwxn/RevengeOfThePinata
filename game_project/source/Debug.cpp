@@ -6,6 +6,7 @@
 #include "Map.h"
 #include "Utils.h"
 #include "GameStateManager.h"
+#include "Raycast.h"
 #include <cstdio>
 
 // --- File-scoped statics ---
@@ -13,9 +14,11 @@ static s8  debugFont       = -1;
 static AEGfxVertexList* debugCircleMesh = nullptr;
 static AEGfxVertexList* debugRectMesh   = nullptr;
 static AEGfxVertexList* debugDiamondMesh = nullptr;
+static AEGfxVertexList* debugRingMesh = nullptr;
 
 static bool s_showHUD           = false;   // F1
 static bool s_showCollisionGrid = false;   // F2
+static bool s_showEnemyDebug = false;   // F3
 
 static DebugContext s_ctx = {};
 
@@ -49,8 +52,10 @@ static const char* GameStateStr(int gs) {
 
 void Debug_Load() {
     debugFont       = AEGfxCreateFont("Assets/liberation-mono.ttf", 30);
-    debugCircleMesh = CreateCircleMesh(1.0f, 16, 0xFFFFFFFF);
-    debugRectMesh   = CreateRectMesh(0xFFFFFFFF);
+    debugCircleMesh = CreateCircleMesh(1.0f, 32, 0xFFFFFFFF);
+    debugRectMesh = CreateRectMesh(0xFFFFFFFF);
+    debugRingMesh = CreateRingMesh(32, 0.01f);
+
 
     // Diamond mesh for isometric tile overlay
     AEGfxMeshStart();
@@ -66,6 +71,7 @@ void Debug_Load() {
 void Debug_Init() {
     s_showHUD           = false;
     s_showCollisionGrid = false;
+    s_showEnemyDebug = false;
     s_ctx               = {};
 }
 
@@ -78,17 +84,40 @@ void Debug_Update() {
         s_showHUD = !s_showHUD;
     if (AEInputCheckTriggered(AEVK_F2))
         s_showCollisionGrid = !s_showCollisionGrid;
+    if (AEInputCheckTriggered(AEVK_F3))
+        s_showEnemyDebug = !s_showEnemyDebug;
 }
 
 // -----------------------------------------------------------------
 // World-space overlays (call while camera is still active)
 // -----------------------------------------------------------------
 void Debug_DrawWorld(float camX, float camY) {
-    if (!s_showHUD && !s_showCollisionGrid) return;
+    if (!s_showHUD && !s_showCollisionGrid && !s_showEnemyDebug) return;
 
     AEGfxSetRenderMode(AE_GFX_RM_COLOR);
     AEGfxSetBlendMode(AE_GFX_BM_BLEND);
     AEGfxSetTransparency(1.0f);
+
+    // --- Enemy LOS / Attack Range / Hitbox (F3) ---
+    if (s_showEnemyDebug && s_ctx.player && s_ctx.map) {
+        AEVec2 playerPos{ s_ctx.player->GetX(), s_ctx.player->GetY() };
+
+        for (int w = 0; w < s_ctx.waveCount; ++w) {
+            if (!s_ctx.waves[w]) continue;
+
+            for (auto const& ep : *s_ctx.waves[w]) {
+                if (!ep->GetIsAlive()) continue;
+                AEVec2 enemyPos{ ep->GetX(), ep->GetY() };
+
+                Debug_DrawCircleWorld(enemyPos, ep->GetSize());
+                Debug_DrawAttackRadius(enemyPos, ep->GetAttackRange());
+
+                bool los = HasLineOfSight_Grid(enemyPos, playerPos, *s_ctx.map);
+
+                Debug_DrawLOS(enemyPos, playerPos, los);
+            }
+        }
+    }
 
     // --- Collision grid (F2) ---
     if (s_showCollisionGrid && s_ctx.map) {
@@ -128,9 +157,9 @@ void Debug_DrawWorld(float camX, float camY) {
                         float dx  = path[i].x - path[i - 1].x;
                         float dy  = path[i].y - path[i - 1].y;
                         float len = sqrtf(dx * dx + dy * dy);
-                        float ang = atan2f(dy, dx);
+                        float angle = atan2f(dy, dx);
                         DrawMesh(debugRectMesh, len, 2.0f,
-                                 path[i - 1].x, path[i - 1].y, ang,
+                                 path[i - 1].x, path[i - 1].y, angle,
                                  255, 200, 0, 120);
                     }
 
@@ -268,13 +297,52 @@ void Debug_DrawHUD() {
     }
 
     // Toggle hints (bottom-right)
-    AEGfxPrint(debugFont, "[F1] HUD  [F2] Grid",
-               0.45f, -0.95f, 0.5f, 0.5f, 0.5f, 0.5f, 1.0f);
+    AEGfxPrint(debugFont, "[F1] HUD  [F2] Grid  [F3] Enemy Debug",
+        0.35f, -0.95f, 0.5f, 0.5f, 0.5f, 0.5f, 1.0f);
 }
 
 void Debug_Unload() {
     if (debugCircleMesh) { AEGfxMeshFree(debugCircleMesh); debugCircleMesh = nullptr; }
     if (debugRectMesh)   { AEGfxMeshFree(debugRectMesh);   debugRectMesh   = nullptr; }
-    if (debugDiamondMesh){ AEGfxMeshFree(debugDiamondMesh);debugDiamondMesh= nullptr; }
+    if (debugDiamondMesh) { AEGfxMeshFree(debugDiamondMesh);   debugDiamondMesh = nullptr; }
+    if (debugRingMesh){ AEGfxMeshFree(debugRingMesh); debugRingMesh = nullptr; }
     if (debugFont >= 0)  { AEGfxDestroyFont(debugFont);    debugFont       = -1; }
+}
+
+// Helper fucntions --------------------------------------------------------------------------------
+// -----------------------------------------------------------------
+// Enemy hitbox, for after adding sprite
+// -----------------------------------------------------------------
+void Debug_DrawCircleWorld(AEVec2 pos, f32 radius) {
+    DrawMesh(debugCircleMesh, radius, radius, pos.x, pos.y, 0.0f, 125, 255, 252, 255);
+}
+
+// -----------------------------------------------------------------
+// Enemy attack radius
+// -----------------------------------------------------------------
+void Debug_DrawAttackRadius(AEVec2 pos, f32 radius) {
+    //DrawMesh(debugCircleMesh, radius, radius, pos.x, pos.y, 0.0f, 255, 44, 44, 100); // full circle
+    DrawMesh(debugRingMesh, radius, radius, pos.x, pos.y, 0.0f, 0, 0, 0, 180); // outline circle
+}
+
+// -----------------------------------------------------------------
+// Enemy attack radius
+// -----------------------------------------------------------------
+void Debug_DrawLOS(AEVec2 start, AEVec2 end, bool visible) {
+    const f32 thickness = 3.0f;
+
+    // true = red, false = light gray
+    f32 r = visible ? 255.f : 200.f;
+    f32 g = visible ? 60.f : 200.f;
+    f32 b = visible ? 60.f : 200.f;
+    f32 a = 180.f;
+
+    f32 dx = end.x - start.x;
+    f32 dy = end.y - start.y;
+    f32 len = sqrtf(dx * dx + dy * dy);
+
+    if (len < 0.001f) return;
+
+    f32 angle = atan2f(dy, dx);
+    DrawMesh(debugRectMesh, len, thickness, start.x, start.y, angle, r, g, b, a);
 }
