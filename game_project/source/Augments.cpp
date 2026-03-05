@@ -31,6 +31,8 @@ void Augments::Init() {
 
     choose = false; // is choosing cards?
 
+    // Augments
+
     augmentMesh = CreateCircleMesh(1, 16, 0x000000);
     cardMesh = CreateRectMesh(0x000000);
 }
@@ -98,23 +100,28 @@ void Augments::Update(f32 playerX, f32 playerY, f32 dt, f32 cameraX, f32 cameraY
             << " | cameraY: " << cameraY
             << std::endl;*/
 
+        //std::cout << "distanceX1: " << distanceX1 << std::endl;
+        //std::cout << "distanceX2: " << distanceX2 << std::endl;
 
-        if (IsMouseInside(mouseWX, mouseWY, cards_x1 + (cardWidth * 0.5), cards_y, cardWidth, cardHeight))
-        {
-            std::cout << "Red picked\n";
+        if (distanceX2 < 2 && distanceX1 > -2) { // Only allow picking when cards in place
+                                                 // prevents picking multiple at once
+            if (IsMouseInside(mouseWX, mouseWY, cards_x1 + (cardWidth * 0.5), cards_y, cardWidth, cardHeight))
+            {
+                std::cout << "Red picked\r" << std::endl;
 
-            // Augment double-dash
+                // Augment double-dash
 
-        }
+            }
 
-        if (IsMouseInside(mouseWX, mouseWY, cards_x2 + (cardWidth * 0.5), cards_y, cardWidth, cardHeight))
-        {
-            std::cout << "Blue picked\n";
-        }
+            if (IsMouseInside(mouseWX, mouseWY, cards_x2 + (cardWidth * 0.5), cards_y, cardWidth, cardHeight))
+            {
+                std::cout << "Blue picked\r" << std::endl;;
+            }
 
-        if (IsMouseInside(mouseWX, mouseWY, cards_x3 + (cardWidth * 0.5), cards_y, cardWidth, cardHeight))
-        {
-            std::cout << "Green picked\n";
+            if (IsMouseInside(mouseWX, mouseWY, cards_x3 + (cardWidth * 0.5), cards_y, cardWidth, cardHeight))
+            {
+                std::cout << "Green picked\r" << std::endl;
+            }
         }
 
         //DrawMesh(cardMesh, 400, 600, cards_x1, playerY - cards_y, 0.0f, 255, 0, 0, 255); // Red Card (Left)
@@ -170,7 +177,7 @@ void Augments::Draw() {
         DrawMesh(cardMesh, cardWidth, cardHeight, cards_x1, cards_y, 0.0f, 255, 0, 0, 255); // Red Card (Left)
         DrawMesh(cardMesh, cardWidth, cardHeight, cards_x2, cards_y, 0.0f, 0, 0, 255, 255); // Blue Card (Right)
         DrawMesh(cardMesh, cardWidth, cardHeight, cards_x3, cards_y, 0.0f, 0, 255, 0, 255); // Green Card (Middle)
-      
+        
 
     }
 }

@@ -23,6 +23,23 @@ public:
         return choose;
     }
 
+
+    // types of Augments
+    enum AugmentType {
+        NONE = 0,
+        DOUBLEDASH = 1,
+        SHIELDDASH = 2,
+        PARRYCHARGER = 3
+    };
+
+    void AddAugment(AugmentType type) { // adds chosen augment to end of vector
+        chosenAugment.push_back(type);
+    }
+
+    // returns the entire vector
+    const std::vector<AugmentType>& GetChosenAugments() const { return chosenAugment; }
+
+
 private:
     // Position & Stats
     float augPosX, augPosY;
@@ -40,6 +57,9 @@ private:
     bool choose = false;
 
     bool startingAnimation = true;
+
+    // Current chosen Augment vector
+    std::vector<AugmentType> chosenAugment;
 
     // Visual Assets
     AEGfxVertexList* augmentMesh = nullptr;
