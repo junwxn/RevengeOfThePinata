@@ -7,6 +7,17 @@
 #include <vector>
 #include <cstdint>
 
+struct GridPos {
+    int col, row;
+    bool operator==(GridPos const& o) const { return col == o.col && row == o.row; }
+    bool operator!=(GridPos const& o) const { return !(*this == o); }
+};
+struct GridPosHash {
+    std::size_t operator()(GridPos const& gp) const {
+        return std::hash<int>()(gp.col) ^ (std::hash<int>()(gp.row) << 16);
+    }
+};
+
 struct RenderNode {
     float y;
     std::function<void()> drawCall;
@@ -39,6 +50,10 @@ public:
     // given screen-space radius overlaps any solid tile.  Used by knockback
     // bounce logic where wall-sliding (ResolveCollision) is not wanted.
     bool IsPositionBlocked(float worldX, float worldY, float radius) const;
+
+    GridPos WorldToTMX(float worldX, float worldY) const;
+    AEVec2  TMXToWorld(int col, int row) const;
+    bool    IsWalkable(int col, int row) const;
 
     unsigned GetMapWidth() const;
     unsigned GetMapHeight() const;
