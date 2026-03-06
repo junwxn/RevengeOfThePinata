@@ -9,6 +9,7 @@
 #include "AugmentData.h"
 #include "AugmentEffects.h"
 #include "Utils.h" // GRID_W, GRID_H
+#include "Audio.h"
 
 // Iso ratio for normalizing Y axis in range checks
 static const float ISO_RATIO = GRID_H / GRID_W;
@@ -52,7 +53,6 @@ namespace Combat {
 		//		++stunCurrentFrame;
 		//		stunFrameAccumulator -= ONE_FRAME;
 		//	}
-
 		//	if (stunCurrentFrame >= stunRecoveryFrames) {
 		//		enemy.ResetStunFlag();
 		//		stunCurrentFrame = 0;
@@ -60,6 +60,14 @@ namespace Combat {
 		//	return;
 		//}
 
+		if (!player.GetIsAlive())
+		{
+			gAudio.PlayPlayerSFX(PLAYER_DEATH);
+			gAudio.PlayEnemySFX(ENEMY_LAUGH);
+			gAudio.PlayGeneralSFX(GENERAL_GAMEOVER);
+		}
+			
+		
 		if (enemy.IsGotHit()) 
 		{
 			camera.SetScreenShakeTimer(0.5f);
@@ -109,6 +117,7 @@ namespace Combat {
 				std::cout << "IN PARRY" << std::endl;
 				player.GainAttackCharge();
 				enemy.SetParried(true);
+				gAudio.PlayCombatSFX(COMBAT_PARRY);
 				enemy.MarkAttackResolved();
 				{
 					// Fire ON_PARRY_SUCCESS event for augment effects
@@ -239,6 +248,8 @@ namespace Combat {
 		AEVec2Normalize(&knockbackDir, &knockbackDir);
 		AEVec2Scale(&knockbackDir, &knockbackDir, multiplier);
 		enemy.SetKnockbackVelocity(knockbackDir);
+
+		gAudio.PlayEnemySFX(ENEMY_VOCAL);
 		std::cout << "KNOCKBACK!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl;
 	}
 
@@ -252,6 +263,7 @@ namespace Combat {
 		}
 		player.DeductHealth(ComputeDamage(enemy, player));
 		player.SetHDP(ComputeDamage(enemy, player));
+		gAudio.PlayPlayerSFX(PLAYER_HURT);
 	}
 
 	void System::ApplyDamage(Enemy& enemy, Player& player) {
@@ -262,6 +274,7 @@ namespace Combat {
 		if (enemy.m_marked) {
 			enemy.m_markAccumulatedDamage += dmg;
 		}
+		gAudio.PlayEnemySFX(ENEMY_HURT);
 	}
 	void System::ColorIndicator(Enemy& enemy, f32 r, f32 g, f32 b, f32 a) {
 		f32 isoHeight = enemy.GetSize() * (GRID_H / GRID_W);
@@ -280,12 +293,10 @@ namespace Combat {
 	//			enemy.ResetParryFlag();
 	//			enemy.MarkAttackResolved();
 	//			break;
-
 	//		case CombatOutcome::OUTCOME_BLOCKED:
 	//			ApplyBlockReaction_Enemy(player, enemy);
 	//			enemy.MarkAttackResolved();
 	//			break;
-
 	//		case CombatOutcome::OUTCOME_HIT:
 	//			ApplyDamage(player, enemy);
 	//			enemy.MarkAttackResolved();

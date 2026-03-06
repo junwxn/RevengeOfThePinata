@@ -55,7 +55,7 @@ void MainMenu_Load() {
 	rectMesh  = CreateRectMesh(0xFFFFFFFF);
 	fontTitle = AEGfxCreateFont("Assets/liberation-mono.ttf", 72);
 	fontBody  = AEGfxCreateFont("Assets/liberation-mono.ttf", 36);
-	gAudio.Audio_Init();
+	//gAudio.Audio_Init();
 }
 
 // ========== INIT ==========
@@ -88,7 +88,7 @@ void MainMenu_Init() {
 	//AEAudio bgm = AEAudioLoadMusic("Assets/Audio/BGM/mainMenu.wav");
 	//AEAudioGroup bgmGroup = AEAudioCreateGroup();
 	//AEAudioPlay(bgm, bgmGroup, 1.f, 1.f, -1);
-	gAudio.PlayBGM(1);
+	gAudio.PlayBGM(BGM_MAINMENU);
 }
 
 // ========== UPDATE ==========
@@ -269,4 +269,5 @@ void MainMenu_Unload() {
 		AEGfxDestroyFont(fontBody);
 		fontBody = -1;
 	}
+	AEAudioStopGroup(gAudio.audioGroup.BGM);
 }

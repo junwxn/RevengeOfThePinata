@@ -8,6 +8,7 @@
 #include "Map.h"
 #include "EventSystem.h"
 #include "AugmentData.h"
+#include "Audio.h"
 
 int g_PlayerAttackCharges = 100;
 
@@ -130,6 +131,7 @@ void Player::Update(float dt, Combat::System& combat, std::vector<std::unique_pt
         m_AllowBlock = false;
         if (m_CombatFlags.attackQueued && g_Augments.Has(AugmentID::CHAIN_ATTACK)) StartAttack(m_AttackChain[m_AttackChainIterator], wave);
         else StartAttack(m_AttackBasic, wave);
+        gAudio.PlayCombatSFX(COMBAT_SWING);
 
         //for (auto& enemy : wave) {
         //    if (combatSystem.IsEnemyInRange(*this, *enemy)) {
@@ -286,6 +288,7 @@ void Player::Update(float dt, Combat::System& combat, std::vector<std::unique_pt
                     hitData.damage = Combat::ComputeDamage(*this, *enemy);
                     hitData.targetEnemy = enemy.get();
                     g_Events.Fire(GameEvent::ON_ATTACK_HIT, hitData);
+                    gAudio.PlayCombatSFX(COMBAT_HIT);
                 }
             }
             m_CombatFlags.attackHit = false;

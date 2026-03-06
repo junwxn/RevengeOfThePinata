@@ -10,6 +10,7 @@
 #include "GameStateManager.h"
 #include "Map.h"
 #include "Pause.h"
+#include "Audio.h"
 
 // load variables
 static AEGfxTexture* TexBlock2;
@@ -124,6 +125,8 @@ void Level2_Init() {
 	SpawnWave1_L2();
 	wave1Active = true;
 	wave1Spawned = true;
+
+	gAudio.PlayBGM(BGM_WAVE);
 }
 
 void Level2_Update(float dt) {
