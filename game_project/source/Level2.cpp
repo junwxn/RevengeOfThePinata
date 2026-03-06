@@ -11,6 +11,7 @@
 #include "Map.h"
 #include "Pause.h"
 #include "Audio.h"
+#include "Debug.h"
 
 // load variables
 static AEGfxTexture* TexBlock2;
@@ -49,12 +50,12 @@ static void SpawnWave1_L2() {
 
 	// 3 Walkers + 2 Dashers
 	for (int i = 0; i < 3; ++i) {
-		AEVec2 p = GetRandomSpawnPos(gameMap, playerPos, 200.0f, 40.0f);
-		Wave1.push_back(std::make_unique<Walker>(p, 40.0f, 120.0f, 220.0f));
+		AEVec2 p = GetRandomSpawnPos(gameMap, playerPos, 200.0f, ENEMY_SIZE);
+		Wave1.push_back(std::make_unique<Walker>(p, ENEMY_SIZE, 120.0f, 220.0f));
 	}
 	for (int i = 0; i < 2; ++i) {
-		AEVec2 p = GetRandomSpawnPos(gameMap, playerPos, 200.0f, 40.0f);
-		Wave1.push_back(std::make_unique<Dasher>(p, 40.0f, 100.0f, 250.0f, 0.1f));
+		AEVec2 p = GetRandomSpawnPos(gameMap, playerPos, 200.0f, ENEMY_SIZE);
+		Wave1.push_back(std::make_unique<Dasher>(p, ENEMY_SIZE, 100.0f, 250.0f, 3.0f));
 	}
 
 	for (auto& enemy : Wave1) {
@@ -69,12 +70,12 @@ static void SpawnWave2_L2() {
 
 	// 5 Walkers + 5 Dashers
 	for (int i = 0; i < 5; ++i) {
-		AEVec2 p = GetRandomSpawnPos(gameMap, playerPos, 200.0f, 40.0f);
-		Wave2.push_back(std::make_unique<Walker>(p, 40.0f, 120.0f, 220.0f));
+		AEVec2 p = GetRandomSpawnPos(gameMap, playerPos, 200.0f, ENEMY_SIZE);
+		Wave2.push_back(std::make_unique<Walker>(p, ENEMY_SIZE, 120.0f, 220.0f));
 	}
 	for (int i = 0; i < 5; ++i) {
-		AEVec2 p = GetRandomSpawnPos(gameMap, playerPos, 200.0f, 40.0f);
-		Wave2.push_back(std::make_unique<Dasher>(p, 40.0f, 100.0f, 250.0f, 0.1f));
+		AEVec2 p = GetRandomSpawnPos(gameMap, playerPos, 200.0f, ENEMY_SIZE);
+		Wave2.push_back(std::make_unique<Dasher>(p, ENEMY_SIZE, 100.0f, 250.0f, 3.0f));
 	}
 
 	for (auto& enemy : Wave2) {
@@ -91,6 +92,7 @@ void Level2_Load() {
 	gameMap.Init("Assets/untitled.tmx", "tilesheet_complete", "Assets/tilesheet_complete.png");
 	gameMap.BuildCollisionGrid("Tile Layer 2");
 	Pause_Load();
+	Debug_Load();
 }
 
 void Level2_Init() {
@@ -127,6 +129,16 @@ void Level2_Init() {
 	wave1Spawned = true;
 
 	gAudio.PlayBGM(BGM_WAVE);
+	Debug_Init();
+	DebugContext dbgCtx = {};
+	dbgCtx.player    = &player;
+	dbgCtx.camera    = &camera;
+	dbgCtx.map       = &gameMap;
+	dbgCtx.waves[0]  = &Wave1;
+	dbgCtx.waves[1]  = &Wave2;
+	dbgCtx.waveCount = 2;
+	dbgCtx.levelName = "Level 2";
+	Debug_Register(dbgCtx);
 }
 
 void Level2_Update(float dt) {
@@ -136,6 +148,7 @@ void Level2_Update(float dt) {
 	}
 
 	if (Pause_Update(true)) return;
+	Debug_Update();
 
 	// Player death -> Game Over screen
 	if (!player.GetIsAlive()) { next = GS_GAMEOVER; return; }
@@ -327,7 +340,10 @@ void Level2_Draw() {
 		node.drawCall();
 	}
 
+	Debug_DrawWorld(camera.GetX(), camera.GetY());
+
 	Pause_Draw();
+	Debug_DrawHUD();
 
 	AugmentEffects_Draw();
 
@@ -351,8 +367,9 @@ void Level2_Free() {
 void Level2_Unload() {
 	if (TexBlock)  { AEGfxTextureUnload(TexBlock);  TexBlock  = nullptr; }
 	if (TexBlock2) { AEGfxTextureUnload(TexBlock2); TexBlock2 = nullptr; }
-	AEGfxMeshFree(CircleMesh);
-	AEGfxMeshFree(RectMesh);
+	AEGfxMeshFree(CircleMesh); CircleMesh = nullptr;
+	AEGfxMeshFree(RectMesh);  RectMesh  = nullptr;
 	gameMap.Unload();
 	Pause_Unload();
+	Debug_Unload();
 }

@@ -28,6 +28,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
         while (current == next) {
             fpUpdate(dt);
             fpDraw();
+            dt = (f32)AEFrameRateControllerGetFrameTime();
         }
 
         fpFree();

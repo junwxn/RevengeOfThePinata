@@ -14,6 +14,7 @@ struct Button {
 	float x, y, w, h;
 	const char* label;
 	bool hovered;
+	float hoverT;
 };
 
 // --- File-scoped statics ---
@@ -26,8 +27,13 @@ static Button mainButtons[4];
 static Button backButton;
 static float titleBob;
 static float bgHue;
+static float entranceTimer;
 
-// --- HSV to RGB (h: 0-360, s/v: 0-1, output r/g/b: 0-1) ---
+// --- Helpers ---
+static float Clamp01(float x) { return x < 0.0f ? 0.0f : (x > 1.0f ? 1.0f : x); }
+static float Smoothstep(float t) { t = Clamp01(t); return t * t * (3.0f - 2.0f * t); }
+static float Lerp(float a, float b, float t) { return a + (b - a) * t; }
+
 static void HsvToRgb(float h, float s, float v, float& r, float& g, float& b) {
 	float c  = v * s;
 	float hp = fmodf(h / 60.0f, 6.0f);
@@ -48,6 +54,28 @@ static void HsvToRgb(float h, float s, float v, float& r, float& g, float& b) {
 static bool IsInside(float wx, float wy, const Button& btn) {
 	return wx >= btn.x - btn.w * 0.5f && wx <= btn.x + btn.w * 0.5f &&
 	       wy >= btn.y - btn.h * 0.5f && wy <= btn.y + btn.h * 0.5f;
+}
+
+static void DrawStyledButton(float cx, float cy, float baseW, float baseH, float hT, float alpha) {
+	float w = baseW * (1.0f + 0.05f * hT);
+	float h = baseH * (1.0f + 0.05f * hT);
+	float fr = Lerp(180, 255, hT), fg = Lerp(45, 190, hT), fb = Lerp(110, 50, hT);
+	float br = Lerp(120, 200, hT), bg = Lerp(30, 150, hT), bb = Lerp(75, 30, hT);
+	// Shadow
+	DrawMesh(rectMesh, w, h, cx - w * 0.5f + 3, cy - 3, 0, 0, 0, 0, 60 * alpha);
+	// Border
+	DrawMesh(rectMesh, w + 4, h + 4, cx - (w + 4) * 0.5f, cy, 0, br, bg, bb, 255 * alpha);
+	// Fill
+	DrawMesh(rectMesh, w, h, cx - w * 0.5f, cy, 0, fr, fg, fb, 240 * alpha);
+	// Top highlight
+	DrawMesh(rectMesh, w - 8, 2, cx - (w - 8) * 0.5f, cy + h * 0.5f - 3, 0, 255, 255, 255, (30 + hT * 30) * alpha);
+}
+
+static void DrawPanel(float cx, float cy, float w, float h, float alpha) {
+	// Border
+	DrawMesh(rectMesh, w + 4, h + 4, cx - (w + 4) * 0.5f, cy, 0, 80, 50, 120, 255 * alpha);
+	// Fill
+	DrawMesh(rectMesh, w, h, cx - w * 0.5f, cy, 0, 20, 15, 35, 220 * alpha);
 }
 
 // ========== LOAD ==========
@@ -73,6 +101,7 @@ void MainMenu_Init() {
 		mainButtons[i].h       = 60.0f;
 		mainButtons[i].label   = labels[i];
 		mainButtons[i].hovered = false;
+		mainButtons[i].hoverT  = 0.0f;
 	}
 
 	backButton.x       = 0.0f;
@@ -81,6 +110,7 @@ void MainMenu_Init() {
 	backButton.h       = 55.0f;
 	backButton.label   = "Back";
 	backButton.hovered = false;
+	backButton.hoverT  = 0.0f;
 
 	titleBob = 0.0f;
 	bgHue    = 0.0f;
@@ -89,12 +119,14 @@ void MainMenu_Init() {
 	//AEAudioGroup bgmGroup = AEAudioCreateGroup();
 	//AEAudioPlay(bgm, bgmGroup, 1.f, 1.f, -1);
 	gAudio.PlayBGM(BGM_MAINMENU);
+	entranceTimer = 0.0f;
 }
 
 // ========== UPDATE ==========
 void MainMenu_Update(float dt) {
 	
 	// Mouse → world coords (window is 1600x900, origin at center)
+	// Mouse -> world coords
 	s32 mx, my;
 	AEInputGetCursorPosition(&mx, &my);
 	float worldX = (float)mx - 800.0f;
@@ -111,6 +143,14 @@ void MainMenu_Update(float dt) {
 			mainButtons[i].hovered = false;
 		backButton.hovered = IsInside(worldX, worldY, backButton);
 	}
+
+	// Smooth hover transitions
+	for (int i = 0; i < 4; i++) {
+		mainButtons[i].hoverT += (mainButtons[i].hovered ? 1.0f : -1.0f) * dt * 6.0f;
+		mainButtons[i].hoverT = Clamp01(mainButtons[i].hoverT);
+	}
+	backButton.hoverT += (backButton.hovered ? 1.0f : -1.0f) * dt * 6.0f;
+	backButton.hoverT = Clamp01(backButton.hoverT);
 
 	// Click handling
 	if (AEInputCheckTriggered(AEVK_LBUTTON)) {
@@ -140,50 +180,48 @@ void MainMenu_Update(float dt) {
 	titleBob += dt;
 	bgHue += dt * 20.0f;
 	if (bgHue >= 360.0f) bgHue -= 360.0f;
+	entranceTimer += dt;
 }
 
 // ========== DRAW ==========
 void MainMenu_Draw() {
 	AESysFrameStart();
 
-	// --- Background: slow HSV color cycle ---
+	// Background: slow HSV color cycle
 	float bgR, bgG, bgB;
 	HsvToRgb(bgHue, 0.35f, 0.25f, bgR, bgG, bgB);
 	AEGfxSetBackgroundColor(bgR, bgG, bgB);
 
-	// --- Mesh draws (buttons / panels) ---
 	AEGfxSetRenderMode(AE_GFX_RM_COLOR);
 	AEGfxSetBlendMode(AE_GFX_BM_BLEND);
 
 	if (menuScreen == MENU_MAIN) {
-		// Main buttons: magenta normal, golden hover
+		// Panel behind buttons
+		float panelEase = Smoothstep(entranceTimer * 2.5f);
+		DrawPanel(0, -150, 400, 380, panelEase);
+
+		// Styled buttons with entrance stagger
 		for (int i = 0; i < 4; i++) {
-			float w = mainButtons[i].w;
-			float h = mainButtons[i].h;
-			float cr = 200, cg = 50, cb = 120;
-			if (mainButtons[i].hovered) {
-				w *= 1.05f; h *= 1.05f;
-				cr = 255; cg = 200; cb = 50;
-			}
-			DrawMesh(rectMesh, w, h, mainButtons[i].x - w * 0.5f, mainButtons[i].y, 0, cr, cg, cb, 255);
+			float delay = i * 0.08f;
+			float ease = Smoothstep((entranceTimer - delay) * 2.5f);
+			float yOff = (1.0f - ease) * 30.0f;
+			DrawStyledButton(mainButtons[i].x, mainButtons[i].y - yOff,
+			                 mainButtons[i].w, mainButtons[i].h,
+			                 mainButtons[i].hoverT, ease);
 		}
 	}
 	else {
-		// Dark overlay covering the full screen
+		// Sub-screen: dark overlay + bordered panel
 		DrawMesh(rectMesh, 1600, 900, -800, 0, 0, 0, 0, 0, 180);
+		DrawPanel(0, -50, 500, 450, 1.0f);
 
-		// Back button: green normal, bright green hover
-		float w = backButton.w;
-		float h = backButton.h;
-		float cr = 80, cg = 180, cb = 80;
-		if (backButton.hovered) {
-			w *= 1.05f; h *= 1.05f;
-			cr = 120; cg = 255; cb = 120;
-		}
-		DrawMesh(rectMesh, w, h, backButton.x - w * 0.5f, backButton.y, 0, cr, cg, cb, 255);
+		// Back button (styled)
+		DrawStyledButton(backButton.x, backButton.y,
+		                 backButton.w, backButton.h,
+		                 backButton.hoverT, 1.0f);
 	}
 
-	// --- Text (AEGfxPrint after all mesh draws) ---
+	// --- Text ---
 	AEGfxSetBlendMode(AE_GFX_BM_BLEND);
 
 	// Title: "Revenge of the Pinata" in gold with sine bob
@@ -195,14 +233,26 @@ void MainMenu_Draw() {
 		AEGfxPrint(fontTitle, title, -tw * 0.5f, bobY / 450.0f, 1.0f, 1.0f, 0.85f, 0.0f, 1.0f);
 	}
 
+	// Subtitle (main screen only)
 	if (menuScreen == MENU_MAIN) {
-		// Button labels (white, centered on each button)
+		float subEase = Smoothstep(entranceTimer * 2.0f);
+		const char* sub = "";
+		float tw, th;
+		AEGfxGetPrintSize(fontBody, sub, 0.7f, &tw, &th);
+		AEGfxPrint(fontBody, sub, -tw * 0.5f, 155.0f / 450.0f, 0.7f, 0.6f, 0.5f, 0.7f, subEase);
+	}
+
+	if (menuScreen == MENU_MAIN) {
+		// Button labels with entrance stagger
 		for (int i = 0; i < 4; i++) {
+			float delay = i * 0.08f;
+			float ease = Smoothstep((entranceTimer - delay) * 2.5f);
+			float yOff = (1.0f - ease) * 30.0f;
 			float tw, th;
 			AEGfxGetPrintSize(fontBody, mainButtons[i].label, 1.0f, &tw, &th);
 			float nx = mainButtons[i].x / 800.0f - tw * 0.5f;
-			float ny = mainButtons[i].y / 450.0f - th * 0.5f;
-			AEGfxPrint(fontBody, mainButtons[i].label, nx, ny, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
+			float ny = (mainButtons[i].y - yOff) / 450.0f - th * 0.5f;
+			AEGfxPrint(fontBody, mainButtons[i].label, nx, ny, 1.0f, 1.0f, 1.0f, 1.0f, ease);
 		}
 	}
 	else if (menuScreen == MENU_CONTROLS) {
