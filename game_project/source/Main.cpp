@@ -1,4 +1,5 @@
 #include "pch.h"
+#include "Audio.h"
 #include "GameStateManager.h"
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPWSTR lpCmdLine, _In_ int nCmdShow)
@@ -11,7 +12,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
     AESysSetWindowTitle("Revenge of the Pinata");
 
     f32 dt = (f32)AEFrameRateControllerGetFrameTime();
-
+    gAudio.Audio_Init();
     while (current != GS_QUIT) {
         if (current == GS_RESTART) {
             current = previous;
@@ -39,5 +40,12 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
         previous = current;
         current = next;
     }
+    gAudio.UnloadBGM();
+    gAudio.UnloadCombatSFX();
+    gAudio.UnloadEnemySFX();
+    gAudio.UnloadPlayerSFX();
+    gAudio.UnloadGeneralSFX();
+    gAudio.UnloadFireworksSFX();
+
     AESysExit();
 }

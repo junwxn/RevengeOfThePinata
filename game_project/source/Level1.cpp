@@ -10,6 +10,7 @@
 #include "GameStateManager.h"
 #include "Map.h"
 #include "Pause.h"
+#include "Audio.h"
 #include "Debug.h"
 
 // load variables
@@ -54,6 +55,8 @@ static void SpawnWave1() {
 		enemy->Init();
 		enemy->SetMap(&gameMap);
 	}
+
+	gAudio.PlayGeneralSFX(GENERAL_ANNOUNCEMENT);
 }
 
 static void SpawnWave2() {
@@ -69,6 +72,9 @@ static void SpawnWave2() {
 		enemy->Init();
 		enemy->SetMap(&gameMap);
 	}
+
+	gAudio.PlayGeneralSFX(GENERAL_TRUMPET);
+
 }
 
 void Level1_Load() {
@@ -111,6 +117,7 @@ void Level1_Init() {
 	wave1Active = true;
 	wave1Spawned = true;
 
+	gAudio.PlayBGM(BGM_WAVE);
 	Debug_Init();
 	DebugContext dbgCtx = {};
 	dbgCtx.player    = &player;
@@ -367,5 +374,6 @@ void Level1_Unload() {
 	AEGfxMeshFree(RectMesh);  RectMesh = nullptr;
 	gameMap.Unload();
 	Pause_Unload();
+	AEAudioStopGroup(gAudio.audioGroup.BGM);
 	Debug_Unload();
 }

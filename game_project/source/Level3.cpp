@@ -10,6 +10,7 @@
 #include "GameStateManager.h"
 #include "Map.h"
 #include "Pause.h"
+#include "Audio.h"
 #include "Debug.h"
 
 // load variables
@@ -144,6 +145,7 @@ void Level3_Init() {
 	wave1Active = true;
 	wave1Spawned = true;
 
+	gAudio.PlayBGM(BGM_WAVE);
 	Debug_Init();
 	DebugContext dbgCtx = {};
 	dbgCtx.player    = &player;
