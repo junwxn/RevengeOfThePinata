@@ -104,7 +104,7 @@ void Level3_Load() {
 	TexBlock = AEGfxTextureLoad("Assets/block.png");
 	CircleMesh = CreateCircleMesh(1.0f, 32, 0xFFFFFFFF);
 	RectMesh = CreateRectMesh(0xFFFFFFFF);
-	gameMap.Init("Assets/untitled.tmx", "tilesheet_complete", "Assets/tilesheet_complete.png");
+	gameMap.Init("Assets/level3map.tmx", "tilesheet_complete", "Assets/tilesheet_complete.png");
 	gameMap.BuildCollisionGrid("Tile Layer 2");
 	Pause_Load();
 	Debug_Load();
@@ -326,10 +326,7 @@ void Level3_Update(float dt) {
 
 void Level3_Draw() {
 	AESysFrameStart();
-	AEGfxSetBackgroundColor(0.0f, 0.15f, 0.25f);
-	AEGfxSetRenderMode(AE_GFX_RM_COLOR);
-	AEGfxSetBlendMode(AE_GFX_BM_BLEND);
-	AEGfxSetTransparency(1.0f);
+	AEGfxSetBackgroundColor(0.68f, 0.85f, 0.90f);
 
 	// healthbar
 	DrawMesh(RectMesh, Healthbar.w, Healthbar.h, Healthbar.pos_x, Healthbar.pos_y, 0, 255, 0, 0, 150);

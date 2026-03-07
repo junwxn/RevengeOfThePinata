@@ -59,7 +59,7 @@ void BossLevel_Load() {
 	TexBlock = AEGfxTextureLoad("Assets/block.png");
 	CircleMesh = CreateCircleMesh(1.0f, 32, 0xFFFFFFFF);
 	RectMesh = CreateRectMesh(0xFFFFFFFF);
-	gameMap.Init("Assets/untitled.tmx", "tilesheet_complete", "Assets/tilesheet_complete.png");
+	gameMap.Init("Assets/bossmap.tmx", "tilesheet_complete", "Assets/tilesheet_complete.png");
 	gameMap.BuildCollisionGrid("Tile Layer 2");
 	Pause_Load();
 	Debug_Load();
