@@ -144,7 +144,7 @@ void Victory_Draw() {
 		float tw, th;
 		AEGfxGetPrintSize(fontBody, prompt, 1.0f, &tw, &th);
 		float alpha = (sinf(animTimer * 3.0f) + 1.0f) * 0.5f * promptEase;
-		AEGfxPrint(fontBody, prompt, -tw * 0.5f, -200.0f / 450.0f, 1.0f, 0.8f, 0.8f, 0.8f, alpha);
+		AEGfxPrint(fontBody, prompt, -tw * 0.5f, -100.0f / 450.0f, 1.0f, 0.8f, 0.8f, 0.8f, alpha);
 	}
 
 	AESysFrameEnd();
