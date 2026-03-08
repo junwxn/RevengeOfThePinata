@@ -53,8 +53,12 @@ AEGfxVertexList* CreateCircleMesh(f32 radius, u8 parts, u32 color) {
 AEGfxVertexList* CreateRectMesh(u32 color) {
     AEGfxMeshStart();
     // Isometric Left-Anchored Rectangle
-    AEGfxTriAdd(0.0f, 0.5f, color, 0.0f, 0.0f, 0.0f, -0.5f, color, 0.0f, 1.0f, 1.0f, -0.5f, color, 1.0f, 1.0f);
-    AEGfxTriAdd(0.0f, 0.5f, color, 0.0f, 0.0f, 1.0f, -0.5f, color, 1.0f, 1.0f, 1.0f, 0.5f, color, 1.0f, 0.0f);
+    AEGfxTriAdd(0.0f, 0.5f, color, 0.0f, 0.0f, 
+                0.0f, -0.5f, color, 0.0f, 1.0f, 
+                1.0f, -0.5f, color, 1.0f, 1.0f);
+    AEGfxTriAdd(0.0f, 0.5f, color, 0.0f, 0.0f, 
+                1.0f, -0.5f, color, 1.0f, 1.0f, 
+                1.0f, 0.5f, color, 1.0f, 0.0f);
     return AEGfxMeshEnd();
 }
 
@@ -65,14 +69,14 @@ AEGfxVertexList* CreateSpriteRectMesh(u32 color) {
     AEGfxMeshStart();
 
     AEGfxTriAdd(
-        0.0f, 0.5f, color, 0.0f, 0.0f,
-        0.0f, -0.5f, color, 0.0f, v,
-        1.0f, -0.5f, color, u, v);
+        -0.5f, 0.5f, color, 0.0f, 0.0f,
+        -0.5f, -0.5f, color, 0.0f, v,
+        0.5f, -0.5f, color, u, v);
 
     AEGfxTriAdd(
-        0.0f, 0.5f, color, 0.0f, 0.0f,
-        1.0f, -0.5f, color, u, v,
-        1.0f, 0.5f, color, u, 0.0f);
+        -0.5f, 0.5f, color, 0.0f, 0.0f,
+        0.5f, -0.5f, color, u, v,
+        0.5f, 0.5f, color, u, 0.0f);
 
     return AEGfxMeshEnd();
 }
