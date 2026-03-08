@@ -20,12 +20,12 @@ enum class EnemyState : char
 
 enum class EnemyDirection : char 
 {
-    DIRECTION_UP,
-    DIRECTION_UP_RIGHT,
     DIRECTION_DOWN_RIGHT,
-    DIRECTION_DOWN,
     DIRECTION_DOWN_LEFT,
-    DIRECTION_UP_LEFT
+    DIRECTION_UP_RIGHT,
+    DIRECTION_UP_LEFT,
+    DIRECTION_DOWN,
+    DIRECTION_UP
 };
 
 // ---------------------

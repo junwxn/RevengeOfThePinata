@@ -700,10 +700,10 @@ void Enemy::EvaluateCurrentDirection()
 
     if (angleDegrees > 180) angleDegrees -= 360;
 
-    if (angleDegrees >= -30 && angleDegrees < 30) m_CurrentDirection = EnemyDirection::DIRECTION_UP;
-    else if (angleDegrees >= 30 && angleDegrees < 90) m_CurrentDirection = EnemyDirection::DIRECTION_UP_RIGHT;
-    else if (angleDegrees >= 90 && angleDegrees < 150) m_CurrentDirection = EnemyDirection::DIRECTION_DOWN_RIGHT;
-    else if (angleDegrees >= 150 || angleDegrees < -150) m_CurrentDirection = EnemyDirection::DIRECTION_DOWN;
-    else if (angleDegrees >= -150 && angleDegrees < -90) m_CurrentDirection = EnemyDirection::DIRECTION_DOWN_LEFT;
-    else if (angleDegrees >= -90 && angleDegrees < -30) m_CurrentDirection = EnemyDirection::DIRECTION_UP_LEFT;
+    if (angleDegrees >= -30 && angleDegrees < 30) m_CurrentDirection = EnemyDirection::DIRECTION_DOWN;
+    else if (angleDegrees >= 30 && angleDegrees < 90) m_CurrentDirection = EnemyDirection::DIRECTION_DOWN_RIGHT;
+    else if (angleDegrees >= 90 && angleDegrees < 150) m_CurrentDirection = EnemyDirection::DIRECTION_UP_RIGHT;
+    else if (angleDegrees >= 150 || angleDegrees < -150) m_CurrentDirection = EnemyDirection::DIRECTION_UP;
+    else if (angleDegrees >= -150 && angleDegrees < -90) m_CurrentDirection = EnemyDirection::DIRECTION_UP_LEFT;
+    else if (angleDegrees >= -90 && angleDegrees < -30) m_CurrentDirection = EnemyDirection::DIRECTION_DOWN_LEFT;
 }
