@@ -2,18 +2,30 @@
 #include "Utils.h"
 #include "Combat.h"
 #include "Player.h"
+#include "Sprite.h"
 
 #include "Map.h"
 
 // ----------------
 // | Enemy States |
 // ----------------
-enum class EnemyState {
+enum class EnemyState : char 
+{
     STATE_IDLE,
     STATE_MOVING,
     STATE_ATTACK,
     STATE_PARRY,
     STATE_DEAD
+};
+
+enum class EnemyDirection : char 
+{
+    DIRECTION_UP,
+    DIRECTION_UP_RIGHT,
+    DIRECTION_DOWN_RIGHT,
+    DIRECTION_DOWN,
+    DIRECTION_DOWN_LEFT,
+    DIRECTION_UP_LEFT
 };
 
 // ---------------------
@@ -64,6 +76,8 @@ public:
     Combat::CombatStats GetCombatStats() const { return m_CombatStats; }
     bool GetIsAlive() const { return m_CombatFlags.isAlive; }
 
+    void EvaluateCurrentDirection();
+
     // Setters ------------------------
     void SetPosition(f32 x, f32 y) { m_pos.x = x; m_pos.y = y; }
     void SetAimVector(f32 x, f32 y) { m_AimVector.x = x, m_AimVector.y = y; }
@@ -72,6 +86,7 @@ public:
     void SetKnockbackVelocity(AEVec2 setVelocity) { m_KnockbackVelocity = setVelocity; }
     void SetLastAttackID(int newID) { m_LastAttackID = newID; }
     void SetHDP(f32 dmg) { m_healthDepletionPercentage += dmg; }
+    
 
     // Flag Setters
     void SetParried(bool set) { m_CombatFlags.parried = set; }
@@ -116,6 +131,9 @@ public:
     f32 GetSpeed() const { return m_speed; }
 
 protected:
+    Sprite m_EnemySprite;
+    AEGfxTexture* m_EnemySpriteSheet;
+
     // Enemy stats --------------------
     AEVec2 m_pos{};
     f32 m_hp{ 100.0f }; // to be removed?
@@ -204,7 +222,8 @@ protected:
         m_Damage                 // damage
     };
 
-    // Damage Logic -------------------
+    // Animation
+    EnemyDirection m_CurrentDirection;
 
     // Direction towards player -------
     AEVec2 m_enemyToPlayerDir{};

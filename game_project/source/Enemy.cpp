@@ -9,6 +9,7 @@
 #include <queue>
 #include <unordered_map>
 #include "Raycast.h"
+#include "Sprite.h"
 
 //std::ostream& operator<<(std::ostream& os, CombatOutcome outcome) {
 //    if (outcome == CombatOutcome::OUTCOME_HIT) return os << "OUTCOME_HIT";
@@ -62,6 +63,9 @@ void Enemy::Init() {
     m_enemyMesh = CreateCircleMesh(1.0f, 32, 0x50A655);
     m_enemyHealthBarMesh = CreateRectMesh(0xAEF359);
     m_markMesh = CreateRectMesh(0xFFFFFF);
+
+    m_EnemySprite.Sprite_Init();
+    m_EnemySpriteSheet = m_EnemySprite.GetSpriteSheet();
 }
 
 void Enemy::BaseUpdate(f32 dt, Combat::System& combat, Player const& player) {
@@ -74,6 +78,9 @@ void Enemy::BaseUpdate(f32 dt, Combat::System& combat, Player const& player) {
     AEVec2Scale(&frameMove, &m_KnockbackVelocity, dt);
 
     float knockbackSpeed = AEVec2Length(&m_KnockbackVelocity);
+
+    EvaluateCurrentDirection();
+    m_EnemySprite.Sprite_Update(dt);
 
     if (!m_pMap || knockbackSpeed < 1.0f) {
         // No map or negligible knockback — just apply raw move
@@ -259,6 +266,10 @@ void Enemy::Draw() {
         float daggerY = m_pos.y + (hoverY - m_pos.y) * t;
         DrawMesh(m_markMesh, 14.0f, 20.0f, m_pos.x, daggerY, 0.0f, 255, 80, 80, 255);
     }
+
+    // ENEMY SPRITE DRAWING
+    DrawTexture(m_EnemySprite, static_cast<int>(m_CurrentDirection), m_EnemySprite.GetSpriteMesh(), m_EnemySprite.GetSpriteSheet(), m_EnemySprite.GetPixelScale(),
+                m_EnemySprite.GetPixelScale(), m_pos.x, m_pos.y, 0.0f);
 }
 
 void Enemy::StartAttack(Combat::CombatData::AttackData attackData) {
@@ -676,4 +687,21 @@ void Boss::ChildUpdate(f32 dt, Combat::System& combat, Player const& player) {
                                 m_pos.x, m_pos.y, m_size)) {
         MoveTowardTarget(playerPos, dt);
     }
+}
+
+void Enemy::EvaluateCurrentDirection()
+{
+    float angleDegrees = atan2(m_enemyToPlayerDir.y, m_enemyToPlayerDir.x) * 180.0f / PI;
+
+    // rotate for isometric grid
+    angleDegrees += 45.0f;
+
+    if (angleDegrees > 180) angleDegrees -= 360;
+
+    if (angleDegrees >= -30 && angleDegrees < 30) m_CurrentDirection = EnemyDirection::DIRECTION_UP;
+    else if (angleDegrees >= 30 && angleDegrees < 90) m_CurrentDirection = EnemyDirection::DIRECTION_UP_RIGHT;
+    else if (angleDegrees >= 90 && angleDegrees < 150) m_CurrentDirection = EnemyDirection::DIRECTION_DOWN_RIGHT;
+    else if (angleDegrees >= 150 || angleDegrees < -150) m_CurrentDirection = EnemyDirection::DIRECTION_DOWN;
+    else if (angleDegrees >= -150 && angleDegrees < -90) m_CurrentDirection = EnemyDirection::DIRECTION_DOWN_LEFT;
+    else if (angleDegrees >= -90 && angleDegrees < -30) m_CurrentDirection = EnemyDirection::DIRECTION_UP_LEFT;
 }
