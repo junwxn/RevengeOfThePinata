@@ -62,9 +62,9 @@ AEGfxVertexList* CreateRectMesh(u32 color) {
     return AEGfxMeshEnd();
 }
 
-AEGfxVertexList* CreateSpriteRectMesh(u32 color) {
-    const float u = 1.0f / 8.0f;
-    const float v = 1.0f / 7.0f;
+AEGfxVertexList* CreateSpriteRectMesh(u32 color, float newU, float newV) {
+    const float u = 1.0f / newU;
+    const float v = 1.0f / newV;
 
     AEGfxMeshStart();
 
@@ -186,6 +186,33 @@ void DrawTexture(Sprite& spriteObj, int currentDirection, AEGfxVertexList* pMesh
     spriteObj.SetTextureV(currentDirection);
 
     AEGfxTextureSet(pTexture, spriteObj.GetU(), spriteObj.GetV());
+
+    AEMtx33 scale, rotate, translate, transform;
+    AEMtx33Scale(&scale, width, height);
+    AEMtx33Rot(&rotate, rot);
+    AEMtx33Trans(&translate, x, y);
+
+    AEMtx33Concat(&transform, &rotate, &scale);
+    AEMtx33Concat(&transform, &translate, &transform);
+
+    AEGfxSetTransform(transform.m);
+    AEGfxMeshDraw(pMesh, AE_GFX_MDM_TRIANGLES);
+}
+
+void DrawTexturePlayer(Sprite& spriteObj, int currentDirection,
+    AEGfxVertexList* pMesh, AEGfxTexture* pTexture,
+    float width, float height, float x, float y, float rot)
+{
+    AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
+    AEGfxSetColorToMultiply(1, 1, 1, 1);
+    AEGfxSetColorToAdd(0, 0, 0, 0);
+    AEGfxSetBlendMode(AE_GFX_BM_BLEND);
+    AEGfxSetTransparency(1.0f);
+
+    spriteObj.SetTexturePlayerU();
+    spriteObj.SetTexturePlayerV(currentDirection);
+
+    AEGfxTextureSet(pTexture, spriteObj.GetPlayerU(), spriteObj.GetPlayerV());
 
     AEMtx33 scale, rotate, translate, transform;
     AEMtx33Scale(&scale, width, height);

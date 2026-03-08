@@ -16,13 +16,25 @@ extern int g_PlayerAttackCharges;
 //-----------------------//
 //---- Player States ----//
 //-----------------------//
-enum class PlayerState {
+enum class PlayerState : char {
     STATE_IDLE,
     STATE_MOVING,
     STATE_ATTACK,
     STATE_BLOCK,
     STATE_PARRY,
     STATE_DEAD
+};
+
+enum class PlayerDirection : char
+{
+    DIRECTION_DOWN_LEFT,
+    DIRECTION_LEFT,
+    DIRECTION_UP_LEFT,
+    DIRECTION_UP,
+    DIRECTION_UP_RIGHT,
+    DIRECTION_RIGHT,
+    DIRECTION_DOWN_RIGHT,
+    DIRECTION_DOWN,
 };
 
 class Enemy;
@@ -110,7 +122,13 @@ public:
         return notpreventing;
     }
 
+    void EvaluateCurrentDirection();
+
 private:
+    Sprite m_PlayerSprite;
+    AEGfxTexture* m_PlayerSpriteSheet;
+    PlayerDirection m_CurrentDirection;
+
     Combat::System combatSystem;
 
 

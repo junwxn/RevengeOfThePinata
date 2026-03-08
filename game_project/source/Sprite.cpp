@@ -12,6 +12,15 @@ Sprite::~Sprite()
 		AEGfxTextureUnload(pEnemySpriteSheet);
 		pEnemySpriteSheet = nullptr;
 	}
+
+	if (pPlayerSpriteMesh) {
+		AEGfxMeshFree(pPlayerSpriteMesh);
+		pPlayerSpriteMesh = nullptr;
+	}
+	if (pPlayerSpriteSheet) {
+		AEGfxTextureUnload(pPlayerSpriteSheet);
+		pPlayerSpriteSheet = nullptr;
+	}
 }
 
 void Sprite::Sprite_Load()
@@ -28,6 +37,18 @@ void Sprite::Sprite_Load()
 		std::cout << "ERROR LOADING ENEMY SPRITE SHEET" << std::endl;
 		return;
 	}
+
+	if (pPlayerSpriteSheet) {
+		AEGfxTextureUnload(pPlayerSpriteSheet);
+		pPlayerSpriteSheet = nullptr;
+	}
+
+	pPlayerSpriteSheet = AEGfxTextureLoad("Assets/Sprites/Pinata_Spritesheet.png");
+	if (!pPlayerSpriteSheet)
+	{
+		std::cout << "ERROR LOADING ENEMY SPRITE SHEET" << std::endl;
+		return;
+	}
 }
 
 void Sprite::Sprite_Init()
@@ -37,19 +58,32 @@ void Sprite::Sprite_Init()
 		AEGfxMeshFree(pSpriteMesh);
 		pSpriteMesh = nullptr;
 	}
+	if (pPlayerSpriteMesh) {
+		AEGfxMeshFree(pPlayerSpriteMesh);
+		pPlayerSpriteMesh = nullptr;
+	}
 
 	Sprite_Load();
-	pSpriteMesh = CreateSpriteRectMesh(0xAEF359);
+	pSpriteMesh = CreateSpriteRectMesh(0xAEF359, 8.0f, 7.0f);
+	pPlayerSpriteMesh = CreateSpriteRectMesh(0xAEF359, 10.0f, 8.0f);
 }
 
 void Sprite::Sprite_Update(float dt)
 {
 	frameTimer += dt;
+	pFrameTimer += dt;
 
 	if (frameTimer > frameSpeed)
 	{
 		frame++;
 		frame %= 8;   // 8 frames
 		frameTimer = 0;
+	}
+
+	if (pFrameTimer > pFrameSpeed)
+	{
+		pFrame++;
+		pFrame %= 10;   // 8 frames
+		pFrameTimer = 0;
 	}
 }
