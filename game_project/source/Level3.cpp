@@ -37,12 +37,6 @@ static bool wave1Spawned{};
 static bool wave2Spawned{};
 static bool wave3Spawned{};
 
-// healthbar
-static RectData Healthbar{};
-static f32 Barcount{ 0 };
-static f32 MinibarWidth = 100;
-static u8 CurrentBars{ 0 };
-
 // wave state
 static bool endofwave{};
 static bool preventingmovement{};
@@ -116,15 +110,6 @@ void Level3_Init() {
 	player.SetAttackCharges(g_PlayerAttackCharges);
 	player.SetMap(&gameMap);
 
-	Healthbar.w = 1200;
-	Healthbar.h = 50;
-	Healthbar.pos_x = -Healthbar.w / 2;
-	Healthbar.pos_y = 350;
-	Healthbar.max = Healthbar.pos_x + Healthbar.w;
-	Healthbar.min = Healthbar.pos_x;
-	Healthbar.var = 100;
-	Healthbar.current = (Healthbar.var / 100) * (Healthbar.max - Healthbar.min);
-
 	camera.Init(player.GetX(), player.GetY());
 	Pause_Init();
 	augments.Init();
@@ -188,14 +173,7 @@ void Level3_Update(float dt) {
 			enemy->Update(dt, CombatSystem, player);
 			CombatSystem.Update(player, *enemy, camera, dt);
 		}
-		for (auto& enemy : Wave1) {
-			if (enemy->GetCombatFlag().attackHit) {
-				if (!player.GetCombatFlag().parryOn) {
-					if (player.GetCombatFlag().blockOn) Healthbar.var -= (player.GetCombatStats().attack) / 2;
-					else Healthbar.var -= player.GetCombatStats().attack;
-				}
-			}
-		}
+
 		if (Wave1.empty()) {
 			wave1Active = false;
 			if (!wave2Spawned) {
@@ -217,14 +195,7 @@ void Level3_Update(float dt) {
 			enemy->Update(dt, CombatSystem, player);
 			CombatSystem.Update(player, *enemy, camera, dt);
 		}
-		for (auto& enemy : Wave2) {
-			if (enemy->GetCombatFlag().attackHit) {
-				if (!player.GetCombatFlag().parryOn) {
-					if (player.GetCombatFlag().blockOn) Healthbar.var -= (player.GetCombatStats().attack) / 2;
-					else Healthbar.var -= player.GetCombatStats().attack;
-				}
-			}
-		}
+
 		if (Wave2.empty()) {
 			wave2Active = false;
 			if (!wave3Spawned) {
@@ -246,14 +217,7 @@ void Level3_Update(float dt) {
 			enemy->Update(dt, CombatSystem, player);
 			CombatSystem.Update(player, *enemy, camera, dt);
 		}
-		for (auto& enemy : Wave3) {
-			if (enemy->GetCombatFlag().attackHit) {
-				if (!player.GetCombatFlag().parryOn) {
-					if (player.GetCombatFlag().blockOn) Healthbar.var -= (player.GetCombatStats().attack) / 2;
-					else Healthbar.var -= player.GetCombatStats().attack;
-				}
-			}
-		}
+
 		if (Wave3.empty()) {
 			wave3Active = false;
 			endofwave = true;
@@ -291,11 +255,6 @@ void Level3_Update(float dt) {
 	// Update augment effects
 	AugmentEffects_Update(dt, player, *activeWavePtr);
 
-	if (Healthbar.var < 0) Healthbar.var = 0;
-	if (Healthbar.var > 100) Healthbar.var = 100;
-	Healthbar.current = (Healthbar.var / 100) * (Healthbar.max - Healthbar.min);
-	Barcount = Healthbar.current / (Healthbar.w / 10);
-	CurrentBars = (Barcount >= 1) ? 1 : 0;
 
 	// Augments
 	if (endofwave) {
@@ -334,19 +293,6 @@ void Level3_Draw() {
 	AEGfxSetBlendMode(AE_GFX_BM_BLEND);
 	AEGfxSetTransparency(1.0f);
 
-	// healthbar
-	DrawMesh(RectMesh, Healthbar.w, Healthbar.h, Healthbar.pos_x, Healthbar.pos_y, 0, 255, 0, 0, 150);
-	DrawMesh(RectMesh, Healthbar.current, Healthbar.h, Healthbar.pos_x, Healthbar.pos_y, 0, 255, 0, 0, 255);
-
-	int tempBars = CurrentBars;
-	while (tempBars <= Barcount && tempBars != 0) {
-		float xPos = (tempBars == 1) ? Healthbar.min : Healthbar.min + (tempBars - 1) * ((Healthbar.w / 10) + (((Healthbar.w / 10.0f) - MinibarWidth) / 9.0f));
-		DrawMesh(RectMesh, MinibarWidth, Healthbar.h, xPos, Healthbar.pos_y - 80, 0, 255, 0, 0, 255);
-		tempBars++;
-	}
-	if (Healthbar.var != 0) {
-		DrawMesh(RectMesh, MinibarWidth, Healthbar.h, Healthbar.min, Healthbar.pos_y - 80, 0, 255, 0, 0, 255);
-	}
 
 	// map
 	AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
