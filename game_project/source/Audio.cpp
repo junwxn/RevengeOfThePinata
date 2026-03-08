@@ -219,6 +219,23 @@ void Audio::UnloadGeneralSFX()
 	generalSFX.clear();
 	AEAudioUnloadAudioGroup(audioGroup.general);
 }
+void Audio::ToggleMute()
+{
+	muted = !muted;
+	float vol = muted ? 0.0f : 1.0f;
+	AEAudioSetGroupVolume(audioGroup.combat, vol);
+	AEAudioSetGroupVolume(audioGroup.player, vol);
+	AEAudioSetGroupVolume(audioGroup.enemy, vol);
+	AEAudioSetGroupVolume(audioGroup.fireworks, vol);
+	AEAudioSetGroupVolume(audioGroup.general, vol);
+	AEAudioSetGroupVolume(audioGroup.BGM, vol);
+}
+
+bool Audio::IsMuted() const
+{
+	return muted;
+}
+
 void Audio::UnloadFireworksSFX()
 {
 	AEAudioStopGroup(audioGroup.fireworks);

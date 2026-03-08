@@ -2,6 +2,7 @@
 #include "Pause.h"
 #include "GameStateManager.h"
 #include "Utils.h"
+#include "Audio.h"
 
 // --- Button struct ---
 struct PauseButton {
@@ -17,6 +18,7 @@ static s8 pauseFont = -1;
 static bool paused = false;
 static bool wasPaused = false;
 static PauseButton buttons[3];
+static PauseButton muteButton;
 static float entranceTimer = 0.0f;
 static float pauseAnimTimer = 0.0f;
 
@@ -65,6 +67,14 @@ void Pause_Init() {
 		buttons[i].hovered = false;
 		buttons[i].hoverT  = 0.0f;
 	}
+
+	muteButton.x       = -700.0f;
+	muteButton.y       = -380.0f;
+	muteButton.w       = 160.0f;
+	muteButton.h       = 50.0f;
+	muteButton.label   = gAudio.IsMuted() ? "Unmute" : "Mute";
+	muteButton.hovered = false;
+	muteButton.hoverT  = 0.0f;
 }
 
 bool Pause_Update(bool isPlayerAlive) {
@@ -96,14 +106,21 @@ bool Pause_Update(bool isPlayerAlive) {
 
 	for (int i = 0; i < 3; i++)
 		buttons[i].hovered = IsInside(worldX, worldY, buttons[i]);
+	muteButton.hovered = IsInside(worldX, worldY, muteButton);
 
 	// Smooth hover transitions
 	for (int i = 0; i < 3; i++) {
 		buttons[i].hoverT += (buttons[i].hovered ? 1.0f : -1.0f) * dt * 6.0f;
 		buttons[i].hoverT = Clamp01(buttons[i].hoverT);
 	}
+	muteButton.hoverT += (muteButton.hovered ? 1.0f : -1.0f) * dt * 6.0f;
+	muteButton.hoverT = Clamp01(muteButton.hoverT);
 
 	if (AEInputCheckTriggered(AEVK_LBUTTON)) {
+		if (muteButton.hovered) {
+			gAudio.ToggleMute();
+			muteButton.label = gAudio.IsMuted() ? "Unmute" : "Mute";
+		}
 		if (buttons[0].hovered) paused = false;        // Resume
 		if (buttons[1].hovered) next = GS_MAINMENU;    // Main Menu
 		if (buttons[2].hovered) next = GS_RESTART;     // Restart
@@ -161,6 +178,21 @@ void Pause_Draw() {
 		float nx = buttons[i].x / 800.0f - tw * 0.5f;
 		float ny = (buttons[i].y - yOff) / 450.0f - th * 0.5f;
 		AEGfxPrint(pauseFont, buttons[i].label, nx, ny, 1.0f, 1.0f, 1.0f, 1.0f, ease);
+	}
+
+	// Mute button
+	AEGfxSetRenderMode(AE_GFX_RM_COLOR);
+	AEGfxSetBlendMode(AE_GFX_BM_BLEND);
+	DrawStyledButton(muteButton.x, muteButton.y,
+	                 muteButton.w, muteButton.h,
+	                 muteButton.hoverT, panelEase);
+	{
+		AEGfxSetBlendMode(AE_GFX_BM_BLEND);
+		AEGfxGetPrintSize(pauseFont, muteButton.label, 1.0f, &tw, &th);
+		AEGfxPrint(pauseFont, muteButton.label,
+		           muteButton.x / 800.0f - tw * 0.5f,
+		           muteButton.y / 450.0f - th * 0.5f,
+		           1.0f, 1.0f, 1.0f, 1.0f, panelEase);
 	}
 }
 

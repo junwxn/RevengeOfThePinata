@@ -25,6 +25,7 @@ static s8 fontBody  = -1;
 static MenuScreen menuScreen;
 static Button mainButtons[4];
 static Button backButton;
+static Button muteButton;
 static float titleBob;
 static float bgHue;
 static float entranceTimer;
@@ -112,6 +113,14 @@ void MainMenu_Init() {
 	backButton.hovered = false;
 	backButton.hoverT  = 0.0f;
 
+	muteButton.x       = -700.0f;
+	muteButton.y       = -380.0f;
+	muteButton.w       = 160.0f;
+	muteButton.h       = 50.0f;
+	muteButton.label   = gAudio.IsMuted() ? "Unmute" : "Mute";
+	muteButton.hovered = false;
+	muteButton.hoverT  = 0.0f;
+
 	titleBob = 0.0f;
 	bgHue    = 0.0f;
 
@@ -144,6 +153,9 @@ void MainMenu_Update(float dt) {
 		backButton.hovered = IsInside(worldX, worldY, backButton);
 	}
 
+	// Mute button hover (always active regardless of screen)
+	muteButton.hovered = IsInside(worldX, worldY, muteButton);
+
 	// Smooth hover transitions
 	for (int i = 0; i < 4; i++) {
 		mainButtons[i].hoverT += (mainButtons[i].hovered ? 1.0f : -1.0f) * dt * 6.0f;
@@ -151,9 +163,15 @@ void MainMenu_Update(float dt) {
 	}
 	backButton.hoverT += (backButton.hovered ? 1.0f : -1.0f) * dt * 6.0f;
 	backButton.hoverT = Clamp01(backButton.hoverT);
+	muteButton.hoverT += (muteButton.hovered ? 1.0f : -1.0f) * dt * 6.0f;
+	muteButton.hoverT = Clamp01(muteButton.hoverT);
 
 	// Click handling
 	if (AEInputCheckTriggered(AEVK_LBUTTON)) {
+		if (muteButton.hovered) {
+			gAudio.ToggleMute();
+			muteButton.label = gAudio.IsMuted() ? "Unmute" : "Mute";
+		}
 		if (menuScreen == MENU_MAIN) {
 			if (mainButtons[0].hovered) { g_PlayerAttackCharges = 100; next = GS_LEVEL1; }
 			if (mainButtons[1].hovered) menuScreen = MENU_CONTROLS;
@@ -295,6 +313,22 @@ void MainMenu_Draw() {
 		AEGfxPrint(fontBody, backButton.label,
 		           backButton.x / 800.0f - tw * 0.5f,
 		           backButton.y / 450.0f - th * 0.5f,
+		           1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
+	}
+
+	// Mute button (always visible)
+	AEGfxSetRenderMode(AE_GFX_RM_COLOR);
+	AEGfxSetBlendMode(AE_GFX_BM_BLEND);
+	DrawStyledButton(muteButton.x, muteButton.y,
+	                 muteButton.w, muteButton.h,
+	                 muteButton.hoverT, 1.0f);
+	{
+		float tw, th;
+		AEGfxSetBlendMode(AE_GFX_BM_BLEND);
+		AEGfxGetPrintSize(fontBody, muteButton.label, 1.0f, &tw, &th);
+		AEGfxPrint(fontBody, muteButton.label,
+		           muteButton.x / 800.0f - tw * 0.5f,
+		           muteButton.y / 450.0f - th * 0.5f,
 		           1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
 	}
 

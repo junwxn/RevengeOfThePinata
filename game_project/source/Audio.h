@@ -61,6 +61,9 @@ class Audio
 		void PlayFireworksSFX();
 		void UnloadFireworksSFX();
 
+		void ToggleMute();
+		bool IsMuted() const;
+
 		struct AudioGroups
 		{
 			AEAudioGroup combat;
@@ -82,6 +85,8 @@ class Audio
 		// Enemy Sounds
 		std::vector<AEAudio> enemyVocal_SFX, enemyHurt_SFX, enemyLaugh_SFX;
 		std::vector<AEAudio> playerDeath_SFX, playerHurt_SFX;
+
+		bool muted = false;
 };
 
 extern Audio gAudio;
