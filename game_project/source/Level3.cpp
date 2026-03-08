@@ -330,6 +330,10 @@ void Level3_Draw() {
 	AESysFrameStart();
 	AEGfxSetBackgroundColor(0.68f, 0.85f, 0.90f);
 
+	AEGfxSetRenderMode(AE_GFX_RM_COLOR);
+	AEGfxSetBlendMode(AE_GFX_BM_BLEND);
+	AEGfxSetTransparency(1.0f);
+
 	// healthbar
 	DrawMesh(RectMesh, Healthbar.w, Healthbar.h, Healthbar.pos_x, Healthbar.pos_y, 0, 255, 0, 0, 150);
 	DrawMesh(RectMesh, Healthbar.current, Healthbar.h, Healthbar.pos_x, Healthbar.pos_y, 0, 255, 0, 0, 255);
