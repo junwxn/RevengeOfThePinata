@@ -2,9 +2,26 @@
 #include "Sprite.h"
 #include "Utils.h"
 
+Sprite::~Sprite()
+{
+	if (pSpriteMesh) {
+		AEGfxMeshFree(pSpriteMesh);
+		pSpriteMesh = nullptr;
+	}
+	if (pEnemySpriteSheet) {
+		AEGfxTextureUnload(pEnemySpriteSheet);
+		pEnemySpriteSheet = nullptr;
+	}
+}
+
 void Sprite::Sprite_Load()
 {
-	//pEnemySpriteSheet = AEGfxTextureLoad("Assets/Sprites/Enemy_SpriteSheet.png");
+	// Free existing texture before loading (prevents leak on re-init)
+	if (pEnemySpriteSheet) {
+		AEGfxTextureUnload(pEnemySpriteSheet);
+		pEnemySpriteSheet = nullptr;
+	}
+
 	pEnemySpriteSheet = AEGfxTextureLoad("Assets/Sprites/Enemy_SpriteSheet2.png");
 	if (!pEnemySpriteSheet)
 	{
@@ -15,6 +32,12 @@ void Sprite::Sprite_Load()
 
 void Sprite::Sprite_Init()
 {
+	// Free existing mesh before creating (prevents leak on re-init)
+	if (pSpriteMesh) {
+		AEGfxMeshFree(pSpriteMesh);
+		pSpriteMesh = nullptr;
+	}
+
 	Sprite_Load();
 	pSpriteMesh = CreateSpriteRectMesh(0xAEF359);
 }

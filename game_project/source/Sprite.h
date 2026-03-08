@@ -6,6 +6,7 @@
 class Sprite
 {
 	public:
+		~Sprite();
 		void Sprite_Load();
 		void Sprite_Init();
 		void Sprite_Update(float dt);

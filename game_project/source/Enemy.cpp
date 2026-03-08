@@ -556,6 +556,7 @@ void Enemy::MoveTowardTarget(AEVec2 const& targetPos, f32 dt) {
         // Fallback to direct seek if no valid path
         dir = m_enemyToPlayerDir;
     }
+    m_moveDir = dir;
 
     float velX = dir.x * m_speed * dt;
     float velY = dir.y * m_speed * dt;
@@ -602,6 +603,7 @@ Dasher::Dasher(AEVec2 pos, f32 size, f32 hp, f32 speed, f32 dashCD)
 }
 
 void Dasher::PerformDash(AEVec2 const& direction) {
+    m_moveDir = direction;
     if (!m_pMap) {
         m_pos.x += direction.x * m_dashDistance;
         m_pos.y += direction.y * m_dashDistance;

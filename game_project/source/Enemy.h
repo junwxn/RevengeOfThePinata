@@ -57,6 +57,7 @@ public:
     AEVec2 GetAimVector() const { return m_AimVector; }
     f32 GetAimAngle() const { return m_AimAngle; }
     AEVec2 GetEnemyDirectionVector() const { return m_enemyToPlayerDir; }
+    AEVec2 GetMoveDir() const { return m_moveDir; }
 
     bool IsAttacking() const { return m_AttackActive; }
     bool IsStunned() const { return m_CombatFlags.stunned; }
@@ -227,6 +228,7 @@ protected:
 
     // Direction towards player -------
     AEVec2 m_enemyToPlayerDir{};
+    AEVec2 m_moveDir{};
 
     // Mouse Aiming -------------------
     f32 m_DistMagPE{};
