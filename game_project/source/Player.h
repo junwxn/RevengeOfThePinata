@@ -257,6 +257,23 @@ private:
         b_Recovered         // recovered
     };
 
+    // Movement Logic
+    int m_StartFrames{ 5 };
+    int m_ActiveFrames{ 10 };
+    int m_RecoveryFrames{ 10 };
+    bool m_Recovered{ true };
+    int m_TotalFrames{ m_StartFrames + m_ActiveFrames + m_RecoveryFrames };
+    Combat::CombatData::MovementData m_MovementData
+    {
+        m_StartFrames,
+        m_ActiveFrames,
+        m_RecoveryFrames
+    };
+    Combat::CombatData::MovementState m_MovementState
+    {
+        m_Recovered
+    };
+
     // Attack Visual
     AEGfxVertexList* m_AttackRangeMesh = nullptr;
     AEGfxVertexList* m_BlockRangeMesh = nullptr;

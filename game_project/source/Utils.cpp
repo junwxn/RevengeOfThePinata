@@ -60,7 +60,7 @@ AEGfxVertexList* CreateRectMesh(u32 color) {
 
 AEGfxVertexList* CreateSpriteRectMesh(u32 color) {
     const float u = 1.0f / 8.0f;
-    const float v = 1.0f / 6.0f;
+    const float v = 1.0f / 7.0f;
 
     AEGfxMeshStart();
 
