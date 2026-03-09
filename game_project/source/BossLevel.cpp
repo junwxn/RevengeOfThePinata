@@ -8,6 +8,7 @@
 #include "GameStateManager.h"
 #include "Map.h"
 #include "Pause.h"
+#include "HUD.h"
 #include "Debug.h"
 
 // load variables
@@ -56,6 +57,7 @@ void BossLevel_Load() {
 	gameMap.Init("Assets/bossmap.tmx", "tilesheet_complete", "Assets/tilesheet_complete.png");
 	gameMap.BuildCollisionGrid("Tile Layer 2");
 	Pause_Load();
+	HUD_Load();
 	Debug_Load();
 }
 
@@ -206,10 +208,11 @@ void BossLevel_Draw() {
 
 	Debug_DrawWorld(camera.GetX(), camera.GetY());
 
+	HUD_Draw(&player);
 	Pause_Draw();
 	Debug_DrawHUD();
 
-	AugmentEffects_Draw();
+	AugmentEffects_Draw(camera.GetX(), camera.GetY());
 
 	AESysFrameEnd();
 }
@@ -229,5 +232,6 @@ void BossLevel_Unload() {
 	AEGfxMeshFree(RectMesh);  RectMesh  = nullptr;
 	gameMap.Unload();
 	Pause_Unload();
+	HUD_Unload();
 	Debug_Unload();
 }

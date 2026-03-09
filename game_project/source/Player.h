@@ -84,8 +84,12 @@ public:
     bool GetBlockStatus() const { return m_BlockActive; }
     bool GetParryStatus() const { return m_ParryActive; }
     int GetAttackCharges() const { return m_AttackCharges; }
+    int GetMaxAttackCharge() const { return m_MaxAttackCharge; }
     void SetAttackCharges(int charges) { m_AttackCharges = charges; }
-    float GetDashCooldown() const { return m_DashCooldown; }
+    int   GetDashCharges()       const { return m_DashCharges; }
+    int   GetMaxDashCharges()    const { return m_DashChargesMax; }
+    float GetDashRechargeTimer() const { return m_DashRechargeTimer; }
+    float GetDashRechargeTime()  const { return m_DashRechargeTime; }
     float GetSpeed() const { return m_Speed; }
 
     Combat::CombatFlags GetCombatFlag() const { return m_CombatFlags; }
@@ -140,8 +144,10 @@ private:
     PlayerState m_CurrentState{};
 
     // Dash Logic
-    float m_DashCooldown{};
-    float m_DashCooldown_Default{};
+    int   m_DashCharges{};
+    int   m_DashChargesMax{};
+    float m_DashRechargeTimer{};
+    float m_DashRechargeTime{};
 
     // Visual Assets
     AEGfxVertexList* m_pMesh = nullptr;

@@ -245,8 +245,8 @@ void Debug_DrawHUD() {
         AEGfxPrint(debugFont, buf, textX, textY, scale, 1.0f, 1.0f, 1.0f, 1.0f);
         textY -= lineH;
 
-        snprintf(buf, sizeof(buf), "Charges: %d  DashCD: %.2f",
-                 p.GetAttackCharges(), p.GetDashCooldown());
+        snprintf(buf, sizeof(buf), "Charges: %d  Dash: %d/%d",
+                 p.GetAttackCharges(), p.GetDashCharges(), p.GetMaxDashCharges());
         AEGfxPrint(debugFont, buf, textX, textY, scale, 1.0f, 1.0f, 1.0f, 1.0f);
         textY -= lineH;
 
