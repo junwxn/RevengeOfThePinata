@@ -71,7 +71,7 @@ void Augments::Init() {
     m_cardFont = AEGfxCreateFont("Assets/liberation-mono.ttf", 24);
 }
 
-void Augments::Update(f32 playerX, f32 playerY, f32 dt, f32 cameraX, f32 cameraY) {
+void Augments::Update(f32 playerX, f32 playerY, f32 dt) {
 
     float dx = playerX;
     float dy = playerY;
@@ -235,7 +235,10 @@ void Augments::Update(f32 playerX, f32 playerY, f32 dt, f32 cameraX, f32 cameraY
 
 }
 
-void Augments::Draw(f32 playerX, f32 playerY) {
+void Augments::Draw() {
+
+    // AUGMENT BALL DROPS DOWN FROM THE SKY
+    // AUGMENT SPAWNS AFTER LAST ENEMY DEATH (store enemy last location (wave is a vector) when size of wave = 1)
     // Ensure Color Mode is set
     AEGfxSetRenderMode(AE_GFX_RM_COLOR);
 
@@ -288,14 +291,6 @@ void Augments::Draw(f32 playerX, f32 playerY) {
 
 
     }
-}
-
-void Augments::DrawShadow(f32 dt) {
-    // Ensure Color Mode is set
-    /*AEGfxSetRenderMode(AE_GFX_RM_COLOR);
-
-    hoverTime += dt * hoverSpeed;*/
-
 }
 
 void Augments::Free() {

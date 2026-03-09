@@ -8,9 +8,8 @@ public:
     void SetAugmentSet(AugmentSet set);
 
     void Init();
-    void Update(f32 playerX, f32 playerY, f32 dt, f32 cameraX, f32 cameraY);
-    void Draw(f32 playerX, f32 playerY);
-    void DrawShadow(f32 dt);
+    void Update(f32 playerX, f32 playerY, f32 dt);
+    void Draw();
     void Free();
 
     //// Getters allowing Game.cpp to access position for Camera/Collisions

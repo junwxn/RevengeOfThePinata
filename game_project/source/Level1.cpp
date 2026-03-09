@@ -264,7 +264,7 @@ void Level1_Update(float dt) {
 	}
 
 	if (endofwave) {
-		augments.Update(player.GetX(), player.GetY(), dt, camera.GetX(), camera.GetY());
+		augments.Update(player.GetX(), player.GetY(), dt);
 		if (augments.GetChoose()) {
 			preventingmovement = true;
 		}
@@ -353,7 +353,7 @@ void Level1_Draw() {
 
 	// If end of wave spawn augment ball
 	if (endofwave) {
-		augments.Draw(player.GetX(), player.GetY());
+		augments.Draw();
 	}
 
 	AESysFrameEnd();

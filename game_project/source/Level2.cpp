@@ -221,7 +221,7 @@ void Level2_Update(float dt) {
 
 	// Augments — triggers after all waves cleared
 	if (endofwave) {
-		augments.Update(player.GetX(), player.GetY(), dt, camera.GetX(), camera.GetY());
+		augments.Update(player.GetX(), player.GetY(), dt);
 		if (augments.GetChoose()) {
 			preventingmovement = true;
 		}
@@ -294,7 +294,7 @@ void Level2_Draw() {
 	AugmentEffects_Draw();
 
 	if (endofwave) {
-		augments.Draw(player.GetX(), player.GetY());
+		augments.Draw();
 	}
 
 	AESysFrameEnd();
