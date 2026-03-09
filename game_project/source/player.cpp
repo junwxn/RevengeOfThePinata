@@ -20,6 +20,7 @@ std::ostream& operator<<(std::ostream& os, PlayerState const& ps)
     else if (ps == PlayerState::STATE_BLOCK) return os << "STATE_BLOCK";
     else if (ps == PlayerState::STATE_PARRY) return os << "STATE_PARRY";
     else if (ps == PlayerState::STATE_DEAD) return os << "STATE_DEAD";
+    else if (ps == PlayerState::STATE_DASH) return os << "STATE_DASH";
     return os << "ERROR";
 }
 
@@ -63,7 +64,6 @@ void Player::Init()
 
 void Player::Update(float dt, Combat::System& combat, std::vector<std::unique_ptr<Enemy>> const& wave, f32 camX, f32 camY, bool preventing_movement)
 {
-
     EvaluateCurrentDirection();
     m_PlayerSprite.Sprite_Update(dt);
 
@@ -494,7 +494,7 @@ void Player::Update(float dt, Combat::System& combat, std::vector<std::unique_pt
 
             std::cout << "DASH: " << m_DashActive << std::endl;
             // --- 4. Dash Logic ---
-            if (AEInputCheckTriggered(AEVK_SPACE) && m_DashCharges > 0)
+            if (AEInputCheckTriggered(AEVK_SPACE) && m_DashCharges > 0 && !m_DashActive)
             {
                 //// Store pre-dash position for poison trail
                 //float preDashX = m_PosX;
