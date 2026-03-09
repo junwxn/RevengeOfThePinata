@@ -54,6 +54,10 @@ void Augments::Init() {
     choose = false; // is choosing cards?
     augmentSelected = false;
     startingAnimation = true;
+    cardsInPosition = false;
+
+    choiceCameraX = 0;
+    choiceCameraY = 0;
 
     augmentMesh = CreateCircleMesh(1, 16, 0x000000);
     cardMesh = CreateRectMesh(0x000000);
@@ -93,29 +97,32 @@ void Augments::Update(f32 playerX, f32 playerY, f32 dt, f32 cameraX, f32 cameraY
         if (AEInputCheckTriggered(AEVK_X)) {
             printf("CHOOSE ONCE\n");
             // setting the cards OG positions
-            cards_y = 1000;
-            cards_x1 = playerX - 200;
-            cards_x2 = playerX - 200;
-            cards_x3 = playerX - 200;
+            choiceCameraX = cameraX;
+            choiceCameraY = cameraY;
+
+            cards_y = choiceCameraY - 1000;
+            cards_x1 = choiceCameraX - 200;
+            cards_x2 = choiceCameraX - 200;
+            cards_x3 = choiceCameraX - 200;
             choose = true;
         }
     }
     else if (choose) {
 
-        windowTintX = playerX - 1600;
-        windowTintY = playerY;
+        windowTintX = choiceCameraX - 1600;
+        windowTintY = choiceCameraY;
 
-        distanceY = playerY - cards_y;
+        distanceY = choiceCameraY - cards_y;
 
-        float distanceX1 = (playerX - 700) - cards_x1;
-        float distanceX2 = (playerX + 300) - cards_x2;
+        float distanceX1 = (choiceCameraX - 700) - cards_x1;
+        float distanceX2 = (choiceCameraX + 300) - cards_x2;
         //printf("Choosing...\n");
         // tie rand seed to THE CURRENT TIME (so that each choice is unique)
         // choices of cards, pick and display
         // clickbox for the cards, once picked set choose = false
 
         //std::cout << "mouseWX: " << mouseWX << std::endl;
-        std::cout << "mouseWY: " << mouseWY << std::endl;
+        //std::cout << "mouseWY: " << mouseWY << std::endl;
 
         //std::cout << "cards_x1: " << cards_x1 << std::endl;
 
@@ -128,33 +135,51 @@ void Augments::Update(f32 playerX, f32 playerY, f32 dt, f32 cameraX, f32 cameraY
             std::cout << "Green picked" << std::endl;
         }*/
 
-        if (AEInputCheckTriggered(AEVK_LBUTTON)) {
-            if (IsMouseInside(mouseWX, mouseWY, cards_x1 + (cardWidth * 0.5), distanceY, cardWidth, cardHeight))
-            {
-                std::cout << "Red picked\n";
-                g_Augments.Choose(m_currentSet, m_cardIDs[0]);
-                std::cout << "Augment chosen: " << static_cast<int>(m_cardIDs[0]) << std::endl;
-                augmentSelected = true;
-                choose = false;
-            }
+        if (cardsInPosition) {
+            // prevents picking all 3 at once
+            if (AEInputCheckTriggered(AEVK_LBUTTON)) {
+                if (IsMouseInside(mouseWX, mouseWY, cards_x1 + (cardWidth * 0.5), cards_y, cardWidth, cardHeight))
+                {
+                    std::cout << "Red picked\n";
+                    g_Augments.Choose(m_currentSet, m_cardIDs[0]);
+                    std::cout << "Augment chosen: " << static_cast<int>(m_cardIDs[0]) << std::endl;
+                    augmentSelected = true;
+                    choose = false;
+                }
 
-            if (IsMouseInside(mouseWX, mouseWY, cards_x2 + (cardWidth * 0.5), distanceY, cardWidth, cardHeight))
-            {
-                std::cout << "Blue picked\n";
-                g_Augments.Choose(m_currentSet, m_cardIDs[1]);
-                std::cout << "Augment chosen: " << static_cast<int>(m_cardIDs[1]) << std::endl;
-                augmentSelected = true;
-                choose = false;
-            }
+                if (IsMouseInside(mouseWX, mouseWY, cards_x2 + (cardWidth * 0.5), cards_y, cardWidth, cardHeight))
+                {
+                    std::cout << "Blue picked\n";
+                    g_Augments.Choose(m_currentSet, m_cardIDs[1]);
+                    std::cout << "Augment chosen: " << static_cast<int>(m_cardIDs[1]) << std::endl;
+                    augmentSelected = true;
+                    choose = false;
+                }
 
-            if (IsMouseInside(mouseWX, mouseWY, cards_x3 + (cardWidth * 0.5), distanceY, cardWidth, cardHeight))
-            {
-                std::cout << "Green picked\n";
-                g_Augments.Choose(m_currentSet, m_cardIDs[2]);
-                std::cout << "Augment chosen: " << static_cast<int>(m_cardIDs[2]) << std::endl;
-                augmentSelected = true;
-                choose = false;
+                if (IsMouseInside(mouseWX, mouseWY, cards_x3 + (cardWidth * 0.5), cards_y, cardWidth, cardHeight))
+                {
+                    std::cout << "Green picked\n";
+                    g_Augments.Choose(m_currentSet, m_cardIDs[2]);
+                    std::cout << "Augment chosen: " << static_cast<int>(m_cardIDs[2]) << std::endl;
+                    augmentSelected = true;
+                    choose = false;
+                }
             }
+        }
+
+        if (IsMouseInside(mouseWX, mouseWY, cards_x1 + (cardWidth * 0.5), cards_y, cardWidth, cardHeight))
+        {
+            std::cout << "Red picked\n";
+        }
+
+        if (IsMouseInside(mouseWX, mouseWY, cards_x2 + (cardWidth * 0.5), cards_y, cardWidth, cardHeight))
+        {
+            std::cout << "Blue picked\n";
+        }
+
+        if (IsMouseInside(mouseWX, mouseWY, cards_x3 + (cardWidth * 0.5), cards_y, cardWidth, cardHeight))
+        {
+            std::cout << "Green picked\n";
         }
 
         //DrawMesh(cardMesh, 400, 600, cards_x1, playerY - cards_y, 0.0f, 255, 0, 0, 255); // Red Card (Left)
@@ -182,6 +207,11 @@ void Augments::Update(f32 playerX, f32 playerY, f32 dt, f32 cameraX, f32 cameraY
                 cards_x2 += distanceX2 * 8.0f * deltaTime;
             }
         }
+
+        //std::cout << fabs((cameraX + 300) - cards_x2) << std::endl;
+        cardsInPosition = fabs(distanceY) <= 2.f
+            && fabs((cameraX - 700) - cards_x1) <= 2.f
+            && fabs((cameraX + 300) - cards_x2) <= 2.f;
     }
 
 }
@@ -202,14 +232,11 @@ void Augments::Draw(f32 playerX, f32 playerY) {
         DrawMesh(cardMesh, 3200, 1800, windowTintX, windowTintY, 0.0f, 0, 0, 0, 100); // Tinted Window
 
         // drawing the cards and moving them to their picking positions
-        DrawMesh(cardMesh, cardWidth, cardHeight, cards_x1, distanceY, 0.0f, 255, 0, 0, 255); // Red Card (Left)
-        DrawMesh(cardMesh, cardWidth, cardHeight, cards_x2, distanceY, 0.0f, 0, 0, 255, 255); // Blue Card (Right)
-        DrawMesh(cardMesh, cardWidth, cardHeight, cards_x3, distanceY, 0.0f, 0, 255, 0, 255); // Green Card (Middle)
+        DrawMesh(cardMesh, cardWidth, cardHeight, cards_x1, cards_y, 0.0f, 255, 0, 0, 255); // Red Card (Left)
+        DrawMesh(cardMesh, cardWidth, cardHeight, cards_x2, cards_y, 0.0f, 0, 0, 255, 255); // Blue Card (Right)
+        DrawMesh(cardMesh, cardWidth, cardHeight, cards_x3, cards_y, 0.0f, 0, 255, 0, 255); // Green Card (Middle)
 
         // Draw augment text only after cards have settled into position
-        bool cardsInPosition = fabs(distanceY) <= 2.f
-            && fabs((playerX - 700) - cards_x1) <= 2.f
-            && fabs((playerX + 300) - cards_x2) <= 2.f;
         if (m_cardFont != -1 && cardsInPosition) {
             float cardCentersX[3] = {
                 cards_x1 + cardWidth * 0.5f,
@@ -221,8 +248,8 @@ void Augments::Draw(f32 playerX, f32 playerY) {
                 const AugmentInfo& info = GetAugmentInfo(m_cardIDs[i]);
 
                 // Convert world position to screen-normalized coords (-1 to 1)
-                float screenX = cardCentersX[i] - playerX;
-                float screenY = distanceY - playerY;
+                float screenX = cardCentersX[i];
+                float screenY = cards_y;
 
                 float tw, th;
 
@@ -239,6 +266,7 @@ void Augments::Draw(f32 playerX, f32 playerY) {
                 AEGfxPrint(m_cardFont, info.description, descNX, descNY, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
             }
         }
+
 
     }
 }

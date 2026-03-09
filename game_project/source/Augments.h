@@ -47,10 +47,14 @@ private:
     float windowTintX, windowTintY;
     float cardWidth, cardHeight;
     float cards_y, cards_x1, cards_x2, cards_x3, distanceY;
+    float choiceCameraX;
+    float choiceCameraY;
 
     bool choose = false;
 
     bool startingAnimation = true;
+
+    bool cardsInPosition = false;
 
     AugmentSet m_currentSet = AugmentSet::SET_DASH;
     AugmentID m_cardIDs[3] = { AugmentID::NONE, AugmentID::NONE, AugmentID::NONE };
