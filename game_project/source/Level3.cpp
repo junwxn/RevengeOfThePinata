@@ -270,7 +270,7 @@ void Level3_Update(float dt) {
 		preventingmovement = false;
 	}
 
-	if (AEInputCheckTriggered(AEVK_ESCAPE) || 0 == AESysDoesWindowExist()) {
+	if (0 == AESysDoesWindowExist()) {
 		next = GS_QUIT;
 	}
 

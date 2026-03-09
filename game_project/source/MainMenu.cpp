@@ -183,11 +183,9 @@ void MainMenu_Update(float dt) {
 		}
 	}
 
-	// ESC: quit from main, back from sub-screens
+	// ESC: back from sub-screens
 	if (AEInputCheckTriggered(AEVK_ESCAPE)) {
-		if (menuScreen == MENU_MAIN)
-			next = GS_QUIT;
-		else
+		if (menuScreen != MENU_MAIN)
 			menuScreen = MENU_MAIN;
 	}
 

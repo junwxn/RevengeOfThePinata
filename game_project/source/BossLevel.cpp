@@ -156,7 +156,7 @@ void BossLevel_Update(float dt) {
 	// Update augment effects (previous augments still active)
 	AugmentEffects_Update(dt, player, Wave1);
 
-	if (AEInputCheckTriggered(AEVK_ESCAPE) || 0 == AESysDoesWindowExist()) {
+	if (0 == AESysDoesWindowExist()) {
 		next = GS_QUIT;
 	}
 	if (AEInputCheckTriggered(AEVK_K)) {
