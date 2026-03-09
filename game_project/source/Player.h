@@ -193,7 +193,7 @@ private:
     bool  m_AttackActive = false;
     bool  m_AllowAttack = true;
 
-    int m_AttackCharges { 100 };
+    int m_AttackCharges { 5 };
     int m_MaxAttackCharge { 5 };
 
     float m_AttackDuration{ 0.15f };
