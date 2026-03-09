@@ -10,6 +10,8 @@
 #include "GameStateManager.h"
 #include "Map.h"
 #include "Pause.h"
+#include "Audio.h"
+#include "Debug.h"
 
 // load variables
 static AEGfxTexture* TexBlock2;
@@ -19,9 +21,6 @@ static AEGfxVertexList* RectMesh;
 
 // init variables
 static Player player{};
-static Circle HealCircle{};
-static Circle DMGCircle{};
-static RectData Healthbar{};
 static Camera camera{};
 static MapSystem gameMap;
 static Augments augments{};
@@ -46,16 +45,18 @@ static void SpawnWave1() {
 	Wave1.clear();
 	AEVec2 playerPos = { player.GetX(), player.GetY() };
 
-	AEVec2 p1 = GetRandomSpawnPos(gameMap, playerPos, 200.0f, 40.0f);
-	Wave1.push_back(std::make_unique<Walker>(p1, 40.0f, 100.0f, 200.0f));
+	AEVec2 p1 = GetRandomSpawnPos(gameMap, playerPos, 200.0f, ENEMY_SIZE);
+	Wave1.push_back(std::make_unique<Walker>(p1, ENEMY_SIZE, 100.0f, 200.0f));
 
-	AEVec2 p2 = GetRandomSpawnPos(gameMap, playerPos, 200.0f, 40.0f);
-	Wave1.push_back(std::make_unique<Dasher>(p2, 40.0f, 100.0f, 200.0f, 0.1f));
+	AEVec2 p2 = GetRandomSpawnPos(gameMap, playerPos, 200.0f, ENEMY_SIZE);
+	Wave1.push_back(std::make_unique<Dasher>(p2, ENEMY_SIZE, 100.0f, 200.0f, 3.0f));
 
 	for (auto& enemy : Wave1) {
 		enemy->Init();
 		enemy->SetMap(&gameMap);
 	}
+
+	gAudio.PlayGeneralSFX(GENERAL_ANNOUNCEMENT);
 }
 
 static void SpawnWave2() {
@@ -63,14 +64,17 @@ static void SpawnWave2() {
 	AEVec2 playerPos = { player.GetX(), player.GetY() };
 
 	for (int i = 0; i < 10; ++i) {
-		AEVec2 spawnPos = GetRandomSpawnPos(gameMap, playerPos, 200.0f, 40.0f);
-		Wave2.push_back(std::make_unique<Walker>(spawnPos, 40.0f, 100.0f, 200.0f));
+		AEVec2 spawnPos = GetRandomSpawnPos(gameMap, playerPos, 200.0f, ENEMY_SIZE);
+		Wave2.push_back(std::make_unique<Walker>(spawnPos, ENEMY_SIZE, 100.0f, 200.0f));
 	}
 
 	for (auto& enemy : Wave2) {
 		enemy->Init();
 		enemy->SetMap(&gameMap);
 	}
+
+	gAudio.PlayGeneralSFX(GENERAL_TRUMPET);
+
 }
 
 void Level1_Load() {
@@ -78,32 +82,19 @@ void Level1_Load() {
 	TexBlock	= AEGfxTextureLoad("Assets/block.png");
 	CircleMesh	= CreateCircleMesh(1.0f, 32, 0xFFFFFFFF);
 	RectMesh	= CreateRectMesh(0xFFFFFFFF);
-	gameMap.Init("Assets/untitled.tmx", "tilesheet_complete", "Assets/tilesheet_complete.png");
+	gameMap.Init("Assets/level1map.tmx", "tilesheet_complete", "Assets/tilesheet_complete.png");
 
 	// Build the binary collision grid from the wall layer.
 	gameMap.BuildCollisionGrid("Tile Layer 2");
 
 	Pause_Load();
+	Debug_Load();
 }
 void Level1_Init() {
 
 	player.Init();
 	player.SetAttackCharges(g_PlayerAttackCharges);
 	player.SetMap(&gameMap); // Enable player-map collision
-
-	// logic objects
-	HealCircle = { -400.0f, 0.0f, 150.0f };
-	DMGCircle = { 400.0f, 0.0f, 150.0f };
-
-	// healthbar Init
-	Healthbar.w = 1200;
-	Healthbar.h = 50;
-	Healthbar.pos_x = -Healthbar.w / 2;
-	Healthbar.pos_y = 350;
-	Healthbar.max = Healthbar.pos_x + Healthbar.w;
-	Healthbar.min = Healthbar.pos_x;
-	Healthbar.var = 100;
-	Healthbar.current = (Healthbar.var / 100) * (Healthbar.max - Healthbar.min);
 
 	// camera init
 	camera.Init(player.GetX(), player.GetY());
@@ -125,6 +116,18 @@ void Level1_Init() {
 	SpawnWave1();
 	wave1Active = true;
 	wave1Spawned = true;
+
+	gAudio.PlayBGM(BGM_WAVE);
+	Debug_Init();
+	DebugContext dbgCtx = {};
+	dbgCtx.player    = &player;
+	dbgCtx.camera    = &camera;
+	dbgCtx.map       = &gameMap;
+	dbgCtx.waves[0]  = &Wave1;
+	dbgCtx.waves[1]  = &Wave2;
+	dbgCtx.waveCount = 2;
+	dbgCtx.levelName = "Level 1";
+	Debug_Register(dbgCtx);
 }
 void Level1_Update(float dt) {
 	if (!AESysDoesWindowExist()) {
@@ -134,6 +137,7 @@ void Level1_Update(float dt) {
 
 	// Pause handles ESC toggle + menu input; returns true if paused
 	if (Pause_Update(true)) return;
+	Debug_Update();
 
 	// Player death -> Game Over screen
 	if (!player.GetIsAlive()) { next = GS_GAMEOVER; return; }
@@ -177,14 +181,6 @@ void Level1_Update(float dt) {
 			CombatSystem.Update(player, *enemy, camera, dt);
 		}
 
-		for (auto& enemy : Wave1) {
-			if (enemy->GetCombatFlag().attackHit) {
-				if (!player.GetCombatFlag().parryOn) {
-					if (player.GetCombatFlag().blockOn) Healthbar.var -= (player.GetCombatStats().attack) / 2;
-					else Healthbar.var -= player.GetCombatStats().attack;
-				}
-			}
-		}
 
 		if (Wave1.empty()) {
 			wave1Active = false;
@@ -213,14 +209,6 @@ void Level1_Update(float dt) {
 			CombatSystem.Update(player, *enemy, camera, dt);
 		}
 
-		for (auto& enemy : Wave2) {
-			if (enemy->GetCombatFlag().attackHit) {
-				if (!player.GetCombatFlag().parryOn) {
-					if (player.GetCombatFlag().blockOn) Healthbar.var -= (player.GetCombatStats().attack) / 2;
-					else Healthbar.var -= player.GetCombatStats().attack;
-				}
-			}
-		}
 
 		if (Wave2.empty()) {
 			wave2Active = false;
@@ -269,24 +257,6 @@ void Level1_Update(float dt) {
 	// Update augment effects
 	AugmentEffects_Update(dt, player, wave1Active ? Wave1 : Wave2);
 
-	if (AreCirclesIntersecting(HealCircle.pos_x, HealCircle.pos_y, HealCircle.r, player.GetX(), player.GetY(), player.GetSize())) {
-		Healthbar.var += 15 * dt;
-	}
-	if (AreCirclesIntersecting(DMGCircle.pos_x, DMGCircle.pos_y, DMGCircle.r, player.GetX(), player.GetY(), player.GetSize())) {
-		Healthbar.var -= 15 * dt;
-	}
-
-	if (player.GetCombatFlag().attackHit) {
-		Healthbar.var -= player.GetCombatStats().attack;
-	}
-
-	if (Healthbar.var < 0) Healthbar.var = 0;
-	if (Healthbar.var > 100) Healthbar.var = 100;
-
-	Healthbar.current = (Healthbar.var / 100) * (Healthbar.max - Healthbar.min);
-	Barcount = Healthbar.current / (Healthbar.w / 10);
-	CurrentBars = (Barcount >= 1) ? 1 : 0;
-
 	// Debug augment trigger (O key still works)
 	if (AEInputCheckTriggered(AEVK_O)) {
 		std::cout << "AUGMENTS TRIGGERED" << std::endl;
@@ -325,29 +295,7 @@ void Level1_Update(float dt) {
 }
 void Level1_Draw() {
 	AESysFrameStart();
-	AEGfxSetBackgroundColor(0.0f, 0.23f, 0.34f);
-	AEGfxSetRenderMode(AE_GFX_RM_COLOR);
-	AEGfxSetBlendMode(AE_GFX_BM_BLEND);
-	AEGfxSetTransparency(1.0f);
-
-	//draw heal/dmg circles
-	DrawMesh(CircleMesh, HealCircle.r, HealCircle.r, HealCircle.pos_x, HealCircle.pos_y, 0, 0, 255, 0, 255);
-	DrawMesh(CircleMesh, DMGCircle.r, DMGCircle.r, DMGCircle.pos_x, DMGCircle.pos_y, 0, 255, 0, 0, 255);
-
-	//draw healthbar
-	DrawMesh(RectMesh, Healthbar.w, Healthbar.h, Healthbar.pos_x, Healthbar.pos_y, 0, 255, 0, 0, 150);
-	DrawMesh(RectMesh, Healthbar.current, Healthbar.h, Healthbar.pos_x, Healthbar.pos_y, 0, 255, 0, 0, 255);
-
-	//draw minibar
-	int tempBars = CurrentBars;
-	while (tempBars <= Barcount && tempBars != 0) {
-		float xPos = (tempBars == 1) ? Healthbar.min : Healthbar.min + (tempBars - 1) * ((Healthbar.w / 10) + (((Healthbar.w / 10.0f) - MinibarWidth) / 9.0f));
-		DrawMesh(RectMesh, MinibarWidth, Healthbar.h, xPos, Healthbar.pos_y - 80, 0, 255, 0, 0, 255);
-		tempBars++;
-	}
-	if (Healthbar.var != 0) {
-		DrawMesh(RectMesh, MinibarWidth, Healthbar.h, Healthbar.min, Healthbar.pos_y - 80, 0, 255, 0, 0, 255);
-	}
+	AEGfxSetBackgroundColor(0.68f, 0.85f, 0.90f);
 
 	//draw map
 	AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
@@ -395,7 +343,10 @@ void Level1_Draw() {
 		node.drawCall();
 	}
 
+	Debug_DrawWorld(camera.GetX(), camera.GetY());
+
 	Pause_Draw();
+	Debug_DrawHUD();
 
 	// Draw augment effects (poison clouds, etc.)
 	AugmentEffects_Draw();
@@ -419,8 +370,10 @@ void Level1_Free() {
 void Level1_Unload() {
 	if (TexBlock)  { AEGfxTextureUnload(TexBlock);  TexBlock  = nullptr; }
 	if (TexBlock2) { AEGfxTextureUnload(TexBlock2); TexBlock2 = nullptr; }
-	AEGfxMeshFree(CircleMesh);
-	AEGfxMeshFree(RectMesh);
+	AEGfxMeshFree(CircleMesh); CircleMesh = nullptr;
+	AEGfxMeshFree(RectMesh);  RectMesh = nullptr;
 	gameMap.Unload();
 	Pause_Unload();
+	AEAudioStopGroup(gAudio.audioGroup.BGM);
+	Debug_Unload();
 }

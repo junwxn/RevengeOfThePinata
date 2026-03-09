@@ -8,6 +8,7 @@
 #include "GameStateManager.h"
 #include "Map.h"
 #include "Pause.h"
+#include "Debug.h"
 
 // load variables
 static AEGfxTexture* TexBlock2;
@@ -25,12 +26,6 @@ static Combat::System CombatSystem;
 static std::vector<std::unique_ptr<Enemy>> Wave1{};
 static bool wave1Active{};
 
-// healthbar
-static RectData Healthbar{};
-static f32 Barcount{ 0 };
-static f32 MinibarWidth = 100;
-static u8 CurrentBars{ 0 };
-
 // wave state
 static bool bossDefeated{};
 static bool preventingmovement{};
@@ -40,11 +35,11 @@ static void SpawnBossWave() {
 	AEVec2 playerPos = { player.GetX(), player.GetY() };
 
 	// 1 Boss (spawned on a valid tile) + 3 Walkers
-	AEVec2 bossPos = GetRandomSpawnPos(gameMap, playerPos, 200.0f, 80.0f);
-	Wave1.push_back(std::make_unique<Boss>(bossPos, 80.0f, 500.0f, 150.0f));
+	AEVec2 bossPos = GetRandomSpawnPos(gameMap, playerPos, 200.0f, BOSS_SIZE);
+	Wave1.push_back(std::make_unique<Boss>(bossPos, BOSS_SIZE, 500.0f, 150.0f));
 	for (int i = 0; i < 3; ++i) {
-		AEVec2 p = GetRandomSpawnPos(gameMap, playerPos, 200.0f, 40.0f);
-		Wave1.push_back(std::make_unique<Walker>(p, 40.0f, 100.0f, 200.0f));
+		AEVec2 p = GetRandomSpawnPos(gameMap, playerPos, 200.0f, ENEMY_SIZE);
+		Wave1.push_back(std::make_unique<Walker>(p, ENEMY_SIZE, 100.0f, 200.0f));
 	}
 
 	for (auto& enemy : Wave1) {
@@ -58,24 +53,16 @@ void BossLevel_Load() {
 	TexBlock = AEGfxTextureLoad("Assets/block.png");
 	CircleMesh = CreateCircleMesh(1.0f, 32, 0xFFFFFFFF);
 	RectMesh = CreateRectMesh(0xFFFFFFFF);
-	gameMap.Init("Assets/untitled.tmx", "tilesheet_complete", "Assets/tilesheet_complete.png");
+	gameMap.Init("Assets/bossmap.tmx", "tilesheet_complete", "Assets/tilesheet_complete.png");
 	gameMap.BuildCollisionGrid("Tile Layer 2");
 	Pause_Load();
+	Debug_Load();
 }
 
 void BossLevel_Init() {
 	player.Init();
 	player.SetAttackCharges(g_PlayerAttackCharges);
 	player.SetMap(&gameMap);
-
-	Healthbar.w = 1200;
-	Healthbar.h = 50;
-	Healthbar.pos_x = -Healthbar.w / 2;
-	Healthbar.pos_y = 350;
-	Healthbar.max = Healthbar.pos_x + Healthbar.w;
-	Healthbar.min = Healthbar.pos_x;
-	Healthbar.var = 100;
-	Healthbar.current = (Healthbar.var / 100) * (Healthbar.max - Healthbar.min);
 
 	camera.Init(player.GetX(), player.GetY());
 	Pause_Init();
@@ -88,6 +75,16 @@ void BossLevel_Init() {
 
 	SpawnBossWave();
 	wave1Active = true;
+
+	Debug_Init();
+	DebugContext dbgCtx = {};
+	dbgCtx.player    = &player;
+	dbgCtx.camera    = &camera;
+	dbgCtx.map       = &gameMap;
+	dbgCtx.waves[0]  = &Wave1;
+	dbgCtx.waveCount = 1;
+	dbgCtx.levelName = "Boss Level";
+	Debug_Register(dbgCtx);
 }
 
 void BossLevel_Update(float dt) {
@@ -97,6 +94,7 @@ void BossLevel_Update(float dt) {
 	}
 
 	if (Pause_Update(true)) return;
+	Debug_Update();
 
 	// Player death -> Game Over screen
 	if (!player.GetIsAlive()) { next = GS_GAMEOVER; return; }
@@ -114,15 +112,6 @@ void BossLevel_Update(float dt) {
 		for (auto& enemy : Wave1) {
 			enemy->Update(dt, CombatSystem, player);
 			CombatSystem.Update(player, *enemy, camera, dt);
-		}
-
-		for (auto& enemy : Wave1) {
-			if (enemy->GetCombatFlag().attackHit) {
-				if (!player.GetCombatFlag().parryOn) {
-					if (player.GetCombatFlag().blockOn) Healthbar.var -= (player.GetCombatStats().attack) / 2;
-					else Healthbar.var -= player.GetCombatStats().attack;
-				}
-			}
 		}
 
 		if (Wave1.empty()) {
@@ -167,12 +156,6 @@ void BossLevel_Update(float dt) {
 	// Update augment effects (previous augments still active)
 	AugmentEffects_Update(dt, player, Wave1);
 
-	if (Healthbar.var < 0) Healthbar.var = 0;
-	if (Healthbar.var > 100) Healthbar.var = 100;
-	Healthbar.current = (Healthbar.var / 100) * (Healthbar.max - Healthbar.min);
-	Barcount = Healthbar.current / (Healthbar.w / 10);
-	CurrentBars = (Barcount >= 1) ? 1 : 0;
-
 	if (AEInputCheckTriggered(AEVK_ESCAPE) || 0 == AESysDoesWindowExist()) {
 		next = GS_QUIT;
 	}
@@ -187,24 +170,10 @@ void BossLevel_Update(float dt) {
 
 void BossLevel_Draw() {
 	AESysFrameStart();
-	AEGfxSetBackgroundColor(0.1f, 0.05f, 0.15f);
+	AEGfxSetBackgroundColor(0.68f, 0.85f, 0.90f);
 	AEGfxSetRenderMode(AE_GFX_RM_COLOR);
 	AEGfxSetBlendMode(AE_GFX_BM_BLEND);
 	AEGfxSetTransparency(1.0f);
-
-	// healthbar
-	DrawMesh(RectMesh, Healthbar.w, Healthbar.h, Healthbar.pos_x, Healthbar.pos_y, 0, 255, 0, 0, 150);
-	DrawMesh(RectMesh, Healthbar.current, Healthbar.h, Healthbar.pos_x, Healthbar.pos_y, 0, 255, 0, 0, 255);
-
-	int tempBars = CurrentBars;
-	while (tempBars <= Barcount && tempBars != 0) {
-		float xPos = (tempBars == 1) ? Healthbar.min : Healthbar.min + (tempBars - 1) * ((Healthbar.w / 10) + (((Healthbar.w / 10.0f) - MinibarWidth) / 9.0f));
-		DrawMesh(RectMesh, MinibarWidth, Healthbar.h, xPos, Healthbar.pos_y - 80, 0, 255, 0, 0, 255);
-		tempBars++;
-	}
-	if (Healthbar.var != 0) {
-		DrawMesh(RectMesh, MinibarWidth, Healthbar.h, Healthbar.min, Healthbar.pos_y - 80, 0, 255, 0, 0, 255);
-	}
 
 	// map
 	AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
@@ -235,7 +204,10 @@ void BossLevel_Draw() {
 		node.drawCall();
 	}
 
+	Debug_DrawWorld(camera.GetX(), camera.GetY());
+
 	Pause_Draw();
+	Debug_DrawHUD();
 
 	AugmentEffects_Draw();
 
@@ -253,8 +225,9 @@ void BossLevel_Free() {
 void BossLevel_Unload() {
 	if (TexBlock)  { AEGfxTextureUnload(TexBlock);  TexBlock  = nullptr; }
 	if (TexBlock2) { AEGfxTextureUnload(TexBlock2); TexBlock2 = nullptr; }
-	AEGfxMeshFree(CircleMesh);
-	AEGfxMeshFree(RectMesh);
+	AEGfxMeshFree(CircleMesh); CircleMesh = nullptr;
+	AEGfxMeshFree(RectMesh);  RectMesh  = nullptr;
 	gameMap.Unload();
 	Pause_Unload();
+	Debug_Unload();
 }

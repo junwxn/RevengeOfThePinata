@@ -8,6 +8,7 @@
 #include "Map.h"
 #include "EventSystem.h"
 #include "AugmentData.h"
+#include "Audio.h"
 
 int g_PlayerAttackCharges = 100;
 
@@ -28,7 +29,7 @@ void Player::Init()
     m_PosX = 0.0f;
     m_PosY = 0.0f;
     m_Speed = 300.0f;
-    m_Size = 40.0f;
+    m_Size = PLAYER_SIZE;
     m_DashCooldown_Default = 0.1f;
     m_DashCooldown = 0.1f;
 
@@ -42,16 +43,27 @@ void Player::Init()
     // --- Attack setup ---
     m_ConeThreshold = cos(AEDegToRad(m_ConeHalfAngleDeg));
 
+    // Free any existing meshes before creating new ones (prevents leaks on restart)
+    if (m_AttackRangeMesh) { AEGfxMeshFree(m_AttackRangeMesh); m_AttackRangeMesh = nullptr; }
+    if (m_BlockRangeMesh)  { AEGfxMeshFree(m_BlockRangeMesh);  m_BlockRangeMesh  = nullptr; }
+    if (m_pMesh)           { AEGfxMeshFree(m_pMesh);           m_pMesh           = nullptr; }
+    if (m_playerHealthBarMesh) { AEGfxMeshFree(m_playerHealthBarMesh); m_playerHealthBarMesh = nullptr; }
+
     m_AttackRangeMesh = CreateLineMesh(m_AttackRange, Colors::bananaYellow);
     m_BlockRangeMesh = CreateLineMesh(m_AttackRange, Colors::red);
-    // Create a local mesh for the player
-    // (Assuming CreateCircleMesh is defined in Utils.h/cpp)
     m_pMesh = CreateCircleMesh(1.0f, 32, 0x50A655);
     m_playerHealthBarMesh = CreateRectMesh(0xFF0000);
+
+    m_PlayerSprite.Sprite_Init();
+    m_PlayerSpriteSheet = m_PlayerSprite.GetPlayerSpriteSheet();
 }
 
 void Player::Update(float dt, Combat::System& combat, std::vector<std::unique_ptr<Enemy>> const& wave, f32 camX, f32 camY, bool preventing_movement)
 {
+
+    EvaluateCurrentDirection();
+    m_PlayerSprite.Sprite_Update(dt);
+
     if (m_CombatStats.health <= 0) m_CombatFlags.isAlive = false;
     // Attack / Combat Logic
     // Mouse input
@@ -130,6 +142,7 @@ void Player::Update(float dt, Combat::System& combat, std::vector<std::unique_pt
         m_AllowBlock = false;
         if (m_CombatFlags.attackQueued && g_Augments.Has(AugmentID::CHAIN_ATTACK)) StartAttack(m_AttackChain[m_AttackChainIterator], wave);
         else StartAttack(m_AttackBasic, wave);
+        gAudio.PlayCombatSFX(COMBAT_SWING);
 
         //for (auto& enemy : wave) {
         //    if (combatSystem.IsEnemyInRange(*this, *enemy)) {
@@ -286,6 +299,7 @@ void Player::Update(float dt, Combat::System& combat, std::vector<std::unique_pt
                     hitData.damage = Combat::ComputeDamage(*this, *enemy);
                     hitData.targetEnemy = enemy.get();
                     g_Events.Fire(GameEvent::ON_ATTACK_HIT, hitData);
+                    gAudio.PlayCombatSFX(COMBAT_HIT);
                 }
             }
             m_CombatFlags.attackHit = false;
@@ -563,6 +577,9 @@ void Player::Draw()
         DrawMesh(m_playerHealthBarMesh, dbarWidth, barHeight, m_PosX - m_Size, m_PosY + m_Size + barHeight / 2.0f + 5.0f, 0.0f, 255, 0, 0, 255); // Depleting bar
         DrawMesh(m_playerHealthBarMesh, barWidth, barHeight, m_PosX - m_Size, m_PosY + m_Size + barHeight / 2.0f + 5.0f, 0.0f, 80, 200, 120, 255); // Instant bar
     }
+
+    DrawTexturePlayer(m_PlayerSprite, static_cast<int>(m_CurrentDirection), m_PlayerSprite.GetPlayerSpriteMesh(), m_PlayerSprite.GetPlayerSpriteSheet(), m_PlayerSprite.GetPixelScale(),
+        m_PlayerSprite.GetPixelScale(), m_PosX, m_PosY, 0.0f);
 }
 
 void Player::Free()
@@ -656,4 +673,36 @@ void Player::ResetCombatVariables()
     {
         m_AttackChainIterator = 0;
     }
+}
+
+void Player::EvaluateCurrentDirection()
+{
+    float angleDegrees = AERadToDeg(m_AimAngle);
+
+    // rotate for isometric grid
+    //angleDegrees += 45.0f;
+
+    // normalize angle to 0 - 360
+    if (angleDegrees < 0)
+        angleDegrees += 360.0f;
+
+    if (angleDegrees >= 360)
+        angleDegrees -= 360.0f;
+
+    if (angleDegrees >= 0 && angleDegrees < 45)
+        m_CurrentDirection = PlayerDirection::DIRECTION_RIGHT;
+    else if (angleDegrees >= 45 && angleDegrees < 90)
+        m_CurrentDirection = PlayerDirection::DIRECTION_UP_RIGHT;
+    else if (angleDegrees >= 90 && angleDegrees < 135)
+        m_CurrentDirection = PlayerDirection::DIRECTION_UP;
+    else if (angleDegrees >= 135 && angleDegrees < 180)
+        m_CurrentDirection = PlayerDirection::DIRECTION_UP_LEFT;
+    else if (angleDegrees >= 180 && angleDegrees < 225)
+        m_CurrentDirection = PlayerDirection::DIRECTION_LEFT;
+    else if (angleDegrees >= 225 && angleDegrees < 270)
+        m_CurrentDirection = PlayerDirection::DIRECTION_DOWN_LEFT;
+    else if (angleDegrees >= 270 && angleDegrees < 315)
+        m_CurrentDirection = PlayerDirection::DIRECTION_DOWN;
+    else
+        m_CurrentDirection = PlayerDirection::DIRECTION_DOWN_RIGHT;
 }

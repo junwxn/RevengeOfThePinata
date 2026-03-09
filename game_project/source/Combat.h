@@ -88,6 +88,17 @@ namespace Combat {
             bool recovered;
         };
 
+        struct MovementData
+        {
+            int startUp;
+            int active;
+            int recovery;
+        };
+        struct MovementState
+        {
+            bool recovered;
+        };
+
         struct StunData
         {
             int recovery;

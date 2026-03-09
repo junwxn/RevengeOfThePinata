@@ -48,6 +48,9 @@
     <ClCompile Include="source\Combat.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="source\Debug.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="source\GameStateManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -93,7 +96,16 @@
     <ClCompile Include="source\Victory.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="source\Audio.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="source\GameOver.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Raycast.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Sprite.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -129,6 +141,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="source\Combat.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Debug.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="source\GameStateList.h">
@@ -179,7 +194,16 @@
     <ClInclude Include="source\Victory.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="source\Audio.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="source\GameOver.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Raycast.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Sprite.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

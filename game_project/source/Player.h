@@ -16,13 +16,25 @@ extern int g_PlayerAttackCharges;
 //-----------------------//
 //---- Player States ----//
 //-----------------------//
-enum class PlayerState {
+enum class PlayerState : char {
     STATE_IDLE,
     STATE_MOVING,
     STATE_ATTACK,
     STATE_BLOCK,
     STATE_PARRY,
     STATE_DEAD
+};
+
+enum class PlayerDirection : char
+{
+    DIRECTION_DOWN_LEFT,
+    DIRECTION_LEFT,
+    DIRECTION_UP_LEFT,
+    DIRECTION_UP,
+    DIRECTION_UP_RIGHT,
+    DIRECTION_RIGHT,
+    DIRECTION_DOWN_RIGHT,
+    DIRECTION_DOWN,
 };
 
 class Enemy;
@@ -73,6 +85,8 @@ public:
     bool GetParryStatus() const { return m_ParryActive; }
     int GetAttackCharges() const { return m_AttackCharges; }
     void SetAttackCharges(int charges) { m_AttackCharges = charges; }
+    float GetDashCooldown() const { return m_DashCooldown; }
+    float GetSpeed() const { return m_Speed; }
 
     Combat::CombatFlags GetCombatFlag() const { return m_CombatFlags; }
     Combat::CombatStats GetCombatStats() const { return m_CombatStats; }
@@ -108,7 +122,13 @@ public:
         return notpreventing;
     }
 
+    void EvaluateCurrentDirection();
+
 private:
+    Sprite m_PlayerSprite;
+    AEGfxTexture* m_PlayerSpriteSheet;
+    PlayerDirection m_CurrentDirection;
+
     Combat::System combatSystem;
 
 
@@ -253,6 +273,23 @@ private:
     {
         b_Held,             // held
         b_Recovered         // recovered
+    };
+
+    // Movement Logic
+    int m_StartFrames{ 5 };
+    int m_ActiveFrames{ 10 };
+    int m_RecoveryFrames{ 10 };
+    bool m_Recovered{ true };
+    int m_TotalFrames{ m_StartFrames + m_ActiveFrames + m_RecoveryFrames };
+    Combat::CombatData::MovementData m_MovementData
+    {
+        m_StartFrames,
+        m_ActiveFrames,
+        m_RecoveryFrames
+    };
+    Combat::CombatData::MovementState m_MovementState
+    {
+        m_Recovered
     };
 
     // Attack Visual

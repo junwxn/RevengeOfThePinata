@@ -2,18 +2,30 @@
 #include "Utils.h"
 #include "Combat.h"
 #include "Player.h"
+#include "Sprite.h"
 
-class MapSystem; // Forward-declare to avoid a circular header chain
+#include "Map.h"
 
 // ----------------
 // | Enemy States |
 // ----------------
-enum class EnemyState {
+enum class EnemyState : char 
+{
     STATE_IDLE,
     STATE_MOVING,
     STATE_ATTACK,
     STATE_PARRY,
     STATE_DEAD
+};
+
+enum class EnemyDirection : char 
+{
+    DIRECTION_DOWN_RIGHT,
+    DIRECTION_DOWN_LEFT,
+    DIRECTION_UP_RIGHT,
+    DIRECTION_UP_LEFT,
+    DIRECTION_DOWN,
+    DIRECTION_UP
 };
 
 // ---------------------
@@ -45,6 +57,7 @@ public:
     AEVec2 GetAimVector() const { return m_AimVector; }
     f32 GetAimAngle() const { return m_AimAngle; }
     AEVec2 GetEnemyDirectionVector() const { return m_enemyToPlayerDir; }
+    AEVec2 GetMoveDir() const { return m_moveDir; }
 
     bool IsAttacking() const { return m_AttackActive; }
     bool IsStunned() const { return m_CombatFlags.stunned; }
@@ -64,6 +77,8 @@ public:
     Combat::CombatStats GetCombatStats() const { return m_CombatStats; }
     bool GetIsAlive() const { return m_CombatFlags.isAlive; }
 
+    void EvaluateCurrentDirection();
+
     // Setters ------------------------
     void SetPosition(f32 x, f32 y) { m_pos.x = x; m_pos.y = y; }
     void SetAimVector(f32 x, f32 y) { m_AimVector.x = x, m_AimVector.y = y; }
@@ -72,6 +87,7 @@ public:
     void SetKnockbackVelocity(AEVec2 setVelocity) { m_KnockbackVelocity = setVelocity; }
     void SetLastAttackID(int newID) { m_LastAttackID = newID; }
     void SetHDP(f32 dmg) { m_healthDepletionPercentage += dmg; }
+    
 
     // Flag Setters
     void SetParried(bool set) { m_CombatFlags.parried = set; }
@@ -108,12 +124,22 @@ public:
     // Call once after the map is loaded so enemies can self-resolve wall collisions.
     void SetMap(const MapSystem* map) { m_pMap = map; }
 
+    // Debug overlay getters
+    const std::vector<AEVec2>& GetPath() const { return m_path; }
+    int GetPathIndex() const { return m_pathIndex; }
+    bool GetHasValidPath() const { return m_hasValidPath; }
+    bool IsWindingUp() const { return m_WindingUp; }
+    f32 GetSpeed() const { return m_speed; }
+
 protected:
+    Sprite m_EnemySprite;
+    AEGfxTexture* m_EnemySpriteSheet;
+
     // Enemy stats --------------------
     AEVec2 m_pos{};
     f32 m_hp{ 100.0f }; // to be removed?
     f32 m_speed{ 300.0f };
-    f32 m_size{ 40.0f };
+    f32 m_size{ ENEMY_SIZE };
     f32 m_healthDepletionPercentage{};
     // Meshes -------------------------
     AEGfxVertexList* m_enemyMesh{ nullptr };
@@ -197,10 +223,12 @@ protected:
         m_Damage                 // damage
     };
 
-    // Damage Logic -------------------
+    // Animation
+    EnemyDirection m_CurrentDirection;
 
     // Direction towards player -------
     AEVec2 m_enemyToPlayerDir{};
+    AEVec2 m_moveDir{};
 
     // Mouse Aiming -------------------
     f32 m_DistMagPE{};
@@ -210,6 +238,25 @@ protected:
 
     // Non-owning pointer to the active map; set via SetMap().
     const MapSystem* m_pMap = nullptr;
+
+    // A* pathfinding
+    std::vector<AEVec2> m_path;
+    int   m_pathIndex{0};
+    float m_pathTimer{0.0f};
+    float m_pathRecalcInterval{0.5f};
+    AEVec2 m_lastTargetPos{};
+    bool  m_hasValidPath{false};
+
+    // Stuck detection
+    AEVec2 m_lastPos{};
+    float  m_stuckTimer{0.0f};
+    static constexpr float STUCK_TIME_THRESHOLD = 0.3f;
+    static constexpr float STUCK_DIST_THRESHOLD = 2.0f;
+
+    void   ComputePath(AEVec2 const& targetPos);
+    AEVec2 FollowPath();
+    bool   NeedsPathRecalc(AEVec2 const& targetPos, f32 dt);
+    void   MoveTowardTarget(AEVec2 const& targetPos, f32 dt);
 
     void BaseUpdate(f32 dt, Combat::System& combat, Player const& player);
     virtual void ChildUpdate(f32 dt, Combat::System& combat, Player const& player) = 0;
@@ -237,8 +284,13 @@ public:
     Dasher(AEVec2 pos, f32 size, f32 hp, f32 speed, f32 dashCD); // Child constructor
 
 protected:
-    f32 m_dashCD{ 0.1f };
+    f32 m_dashCD{ 3.0f };          // cooldown duration (seconds)
+    f32 m_dashTimer{ 0.0f };       // countdown; dash ready when <= 0
+    f32 m_dashRange{ 400.0f };     // trigger dash within this distance
+    f32 m_dashMinRange{ 80.0f };   // don't dash if already this close
+    f32 m_dashDistance{ 200.0f };   // world-space pixels (~2 tiles)
 
+    void PerformDash(AEVec2 const& direction);
     void ChildUpdate(f32 dt, Combat::System& combat, Player const& player) override;
 };
 

@@ -59,6 +59,11 @@ void Augments::Init() {
     choiceCameraX = 0;
     choiceCameraY = 0;
 
+    // Free any existing resources before creating new ones (prevents leaks on restart)
+    if (augmentMesh) { AEGfxMeshFree(augmentMesh); augmentMesh = nullptr; }
+    if (cardMesh)    { AEGfxMeshFree(cardMesh);    cardMesh    = nullptr; }
+    if (m_cardFont != -1) { AEGfxDestroyFont(m_cardFont); m_cardFont = -1; }
+
     augmentMesh = CreateCircleMesh(1, 16, 0x000000);
     cardMesh = CreateRectMesh(0x000000);
     m_cardFont = AEGfxCreateFont("Assets/liberation-mono.ttf", 24);

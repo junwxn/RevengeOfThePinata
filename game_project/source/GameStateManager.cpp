@@ -17,6 +17,7 @@ void (*fpUpdate)(float) = nullptr;
 void GSM_Initialize(int startingState) {
 	current = previous = next = startingState;
 	//std::cout << "GSM:Initialize" << std::endl;
+
 }
 
 void GSM_Update() {
