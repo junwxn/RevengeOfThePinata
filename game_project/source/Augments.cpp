@@ -235,7 +235,7 @@ void Augments::Update(f32 playerX, f32 playerY, f32 dt) {
 
 }
 
-void Augments::Draw() {
+void Augments::Draw(float camX, float camY) {
 
     // AUGMENT BALL DROPS DOWN FROM THE SKY
     // AUGMENT SPAWNS AFTER LAST ENEMY DEATH (store enemy last location (wave is a vector) when size of wave = 1)
@@ -243,35 +243,35 @@ void Augments::Draw() {
     AEGfxSetRenderMode(AE_GFX_RM_COLOR);
 
 
-    DrawMesh(augmentMesh, (augSize - 20) - sinf(hoverTime) * hoverPower, (isoHeight - 10) - (sinf(hoverTime) * hoverPower), augPosX, augPosY - 65, 0.0f, 44, 50, 150, 128);
+    DrawMesh(augmentMesh, (augSize - 20) - sinf(hoverTime) * hoverPower, (isoHeight - 10) - (sinf(hoverTime) * hoverPower), augPosX - camX, (augPosY - 65) - camY, 0.0f, 44, 50, 150, 128);
 
     // Draw using Utils helper
     // Color: Black (0,0,0) with full alpha (255)
-    DrawMesh(augmentMesh, augSize, augSize, augPosX, hoverPosY + sinf(hoverTime) * hoverPower, 0.0f, 44, 50, 150, 255);
+    DrawMesh(augmentMesh, augSize, augSize, augPosX - camX, (hoverPosY + sinf(hoverTime) * hoverPower) - camY, 0.0f, 44, 50, 150, 255);
 
     if (choose == true) {
 
-        DrawMesh(cardMesh, 3200, 1800, windowTintX, windowTintY, 0.0f, 0, 0, 0, 100); // Tinted Window
+        DrawMesh(cardMesh, 3200, 1800, windowTintX - camX, windowTintY - camY, 0.0f, 0, 0, 0, 100); // Tinted Window
 
         // drawing the cards and moving them to their picking positions
-        DrawMesh(cardMesh, cardWidth, cardHeight, cards_x1, cards_y, 0.0f, 255, 0, 0, 255); // Red Card (Left)
-        DrawMesh(cardMesh, cardWidth, cardHeight, cards_x2, cards_y, 0.0f, 0, 0, 255, 255); // Blue Card (Right)
-        DrawMesh(cardMesh, cardWidth, cardHeight, cards_x3, cards_y, 0.0f, 0, 255, 0, 255); // Green Card (Middle)
+        DrawMesh(cardMesh, cardWidth, cardHeight, cards_x1 - camX, cards_y - camY, 0.0f, 255, 0, 0, 255); // Red Card (Left)
+        DrawMesh(cardMesh, cardWidth, cardHeight, cards_x2 - camX, cards_y - camY, 0.0f, 0, 0, 255, 255); // Blue Card (Right)
+        DrawMesh(cardMesh, cardWidth, cardHeight, cards_x3 - camX, cards_y - camY, 0.0f, 0, 255, 0, 255); // Green Card (Middle)
 
         // Draw augment text only after cards have settled into position
         if (m_cardFont != -1 && cardsInPosition) {
             float cardCentersX[3] = {
-                cards_x1 + cardWidth * 0.5f,
-                cards_x2 + cardWidth * 0.5f,
-                cards_x3 + cardWidth * 0.5f
+                (cards_x1 - camX) + cardWidth * 0.5f,
+                (cards_x2 - camX) + cardWidth * 0.5f,
+                (cards_x3 - camX) + cardWidth * 0.5f
             };
 
             for (int i = 0; i < 3; ++i) {
                 const AugmentInfo& info = GetAugmentInfo(m_cardIDs[i]);
 
-                // Convert world position to screen-normalized coords (-1 to 1)
+                // Convert screen position to normalized coords (-1 to 1)
                 float screenX = cardCentersX[i];
-                float screenY = cards_y;
+                float screenY = cards_y - camY;
 
                 float tw, th;
 

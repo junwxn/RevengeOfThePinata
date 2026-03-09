@@ -224,14 +224,14 @@ void AugmentEffects_Update(float dt, Player& player, std::vector<std::unique_ptr
 }
 
 // ---- Draw ----
-void AugmentEffects_Draw() {
+void AugmentEffects_Draw(float camX, float camY) {
     AEGfxSetRenderMode(AE_GFX_RM_COLOR);
     AEGfxSetBlendMode(AE_GFX_BM_BLEND);
 
     // Draw poison clouds
     for (auto& cloud : g_poisonClouds) {
         float alpha = (cloud.lifetime / 3.0f) * 150.0f;
-        DrawMesh(s_poisonMesh, 30.0f, 30.0f, cloud.x, cloud.y, 0.0f, 0, 200, 50, (int)alpha);
+        DrawMesh(s_poisonMesh, 30.0f, 30.0f, cloud.x - camX, cloud.y - camY, 0.0f, 0, 200, 50, (int)alpha);
     }
 
     // Draw mark indicators on enemies (small red diamond above marked enemies)

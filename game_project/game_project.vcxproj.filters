@@ -81,6 +81,9 @@
     <ClCompile Include="source\TMXLoader\TMXTileSet.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="source\HUD.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="source\Pause.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -177,6 +180,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="source\TMXLoader\TMXTileSet.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="source\HUD.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="source\Pause.h">
