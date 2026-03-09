@@ -10,7 +10,7 @@
 #include "AugmentData.h"
 #include "Audio.h"
 
-int g_PlayerAttackCharges = 100;
+int g_PlayerAttackCharges = 5;
 
 std::ostream& operator<<(std::ostream& os, PlayerState const& ps)
 {
