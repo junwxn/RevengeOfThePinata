@@ -39,8 +39,10 @@ void Augments::Init() {
 
     // initializing these card positions
     isoHeight = 0;
+
     cardWidth = 400;
     cardHeight = 600;
+
 
     windowTintX = 0;
     windowTintY = 0;
@@ -81,9 +83,10 @@ void Augments::Update(f32 playerX, f32 playerY, f32 dt, f32 cameraX, f32 cameraY
     float mouseWX = mouseX - AEGfxGetWindowWidth() * 0.5f;
     float mouseWY = AEGfxGetWindowHeight() * 0.5f - mouseY;
 
-    mouseWX += cameraX;
-    mouseWY += cameraY;
+    mouseWX += playerX;
+    mouseWY += playerY;
 
+    // distance between ball and player
     float playerballdist = sqrt(((dx - augPosX) * (dx - augPosX)) + ((dy - (augPosY - 65)) * (dy - (augPosY - 65))));
 
     //printf("Player x: %f\n", dx);
@@ -96,14 +99,22 @@ void Augments::Update(f32 playerX, f32 playerY, f32 dt, f32 cameraX, f32 cameraY
     // Calculate isometric squashed height for drawing
     isoHeight = augSize * (GRID_H / GRID_W);
 
+    if (AEInputCheckTriggered(AEVK_0)) {
+        std::cout << "mouseWX: " << mouseWX << std::endl;
+        std::cout << "mouseWY: " << mouseWY << std::endl;
+    }
+
     if (playerballdist < interactRange && !choose) {
         //printf("PRESS X TO INTERACT\n");
 
         if (AEInputCheckTriggered(AEVK_X)) {
             printf("CHOOSE ONCE\n");
             // setting the cards OG positions
-            choiceCameraX = cameraX;
-            choiceCameraY = cameraY;
+            choiceCameraX = playerX;
+            choiceCameraY = playerY;
+
+            std::cout << "choiceCameraX: " << choiceCameraX << std::endl;
+            std::cout << "choiceCameraY: " << choiceCameraY << std::endl;
 
             cards_y = choiceCameraY - 1000;
             cards_x1 = choiceCameraX - 200;
@@ -121,6 +132,7 @@ void Augments::Update(f32 playerX, f32 playerY, f32 dt, f32 cameraX, f32 cameraY
 
         float distanceX1 = (choiceCameraX - 700) - cards_x1;
         float distanceX2 = (choiceCameraX + 300) - cards_x2;
+        
         //printf("Choosing...\n");
         // tie rand seed to THE CURRENT TIME (so that each choice is unique)
         // choices of cards, pick and display
@@ -141,7 +153,8 @@ void Augments::Update(f32 playerX, f32 playerY, f32 dt, f32 cameraX, f32 cameraY
         }*/
 
         if (cardsInPosition) {
-            // prevents picking all 3 at once
+            // cardsInPosition prevents picking all 3 at once
+
             if (AEInputCheckTriggered(AEVK_LBUTTON)) {
                 if (IsMouseInside(mouseWX, mouseWY, cards_x1 + (cardWidth * 0.5), cards_y, cardWidth, cardHeight))
                 {
@@ -172,6 +185,7 @@ void Augments::Update(f32 playerX, f32 playerY, f32 dt, f32 cameraX, f32 cameraY
             }
         }
 
+        // temp
         if (IsMouseInside(mouseWX, mouseWY, cards_x1 + (cardWidth * 0.5), cards_y, cardWidth, cardHeight))
         {
             std::cout << "Red picked\n";
@@ -215,8 +229,8 @@ void Augments::Update(f32 playerX, f32 playerY, f32 dt, f32 cameraX, f32 cameraY
 
         //std::cout << fabs((cameraX + 300) - cards_x2) << std::endl;
         cardsInPosition = fabs(distanceY) <= 2.f
-            && fabs((cameraX - 700) - cards_x1) <= 2.f
-            && fabs((cameraX + 300) - cards_x2) <= 2.f;
+            && fabs((playerX - 700) - cards_x1) <= 2.f
+            && fabs((playerX + 300) - cards_x2) <= 2.f;
     }
 
 }
