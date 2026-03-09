@@ -173,7 +173,7 @@ void MainMenu_Update(float dt) {
 			muteButton.label = gAudio.IsMuted() ? "Unmute" : "Mute";
 		}
 		if (menuScreen == MENU_MAIN) {
-			if (mainButtons[0].hovered) { g_PlayerAttackCharges = 100; next = GS_LEVEL1; }
+			if (mainButtons[0].hovered) { g_PlayerAttackCharges = 5; next = GS_LEVEL1; }
 			if (mainButtons[1].hovered) menuScreen = MENU_CONTROLS;
 			if (mainButtons[2].hovered) menuScreen = MENU_CREDITS;
 			if (mainButtons[3].hovered) next = GS_QUIT;
@@ -183,11 +183,9 @@ void MainMenu_Update(float dt) {
 		}
 	}
 
-	// ESC: quit from main, back from sub-screens
+	// ESC: back from sub-screens
 	if (AEInputCheckTriggered(AEVK_ESCAPE)) {
-		if (menuScreen == MENU_MAIN)
-			next = GS_QUIT;
-		else
+		if (menuScreen != MENU_MAIN)
 			menuScreen = MENU_MAIN;
 	}
 

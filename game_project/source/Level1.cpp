@@ -10,6 +10,7 @@
 #include "GameStateManager.h"
 #include "Map.h"
 #include "Pause.h"
+#include "HUD.h"
 #include "Audio.h"
 #include "Debug.h"
 
@@ -88,6 +89,7 @@ void Level1_Load() {
 	gameMap.BuildCollisionGrid("Tile Layer 2");
 
 	Pause_Load();
+	HUD_Load();
 	Debug_Load();
 }
 void Level1_Init() {
@@ -213,6 +215,7 @@ void Level1_Update(float dt) {
 		if (Wave2.empty()) {
 			wave2Active = false;
 			endofwave = true;
+			augments.SetPosition(player.GetX(), player.GetY());
 		}
 	}
 
@@ -261,10 +264,11 @@ void Level1_Update(float dt) {
 	if (AEInputCheckTriggered(AEVK_O)) {
 		std::cout << "AUGMENTS TRIGGERED" << std::endl;
 		endofwave = true;
+		augments.SetPosition(player.GetX(), player.GetY());
 	}
 
 	if (endofwave) {
-		augments.Update(player.GetX(), player.GetY(), dt, camera.GetX(), camera.GetY());
+		augments.Update(player.GetX(), player.GetY(), dt);
 		if (augments.GetChoose()) {
 			preventingmovement = true;
 		}
@@ -280,7 +284,7 @@ void Level1_Update(float dt) {
 		preventingmovement = false;
 	}
 
-	if (AEInputCheckTriggered(AEVK_ESCAPE) || 0 == AESysDoesWindowExist()) {
+	if (0 == AESysDoesWindowExist()) {
 		next = GS_QUIT;
 	}
 
@@ -345,15 +349,13 @@ void Level1_Draw() {
 
 	Debug_DrawWorld(camera.GetX(), camera.GetY());
 
+	HUD_Draw(&player);
 	Pause_Draw();
 	Debug_DrawHUD();
 
-	// Draw augment effects (poison clouds, etc.)
-	AugmentEffects_Draw();
-
-	// If end of wave spawn augment ball
+	AugmentEffects_Draw(camera.GetX(), camera.GetY());
 	if (endofwave) {
-		augments.Draw(player.GetX(), player.GetY());
+		augments.Draw(camera.GetX(), camera.GetY());
 	}
 
 	AESysFrameEnd();
@@ -374,6 +376,7 @@ void Level1_Unload() {
 	AEGfxMeshFree(RectMesh);  RectMesh = nullptr;
 	gameMap.Unload();
 	Pause_Unload();
+	HUD_Unload();
 	AEAudioStopGroup(gAudio.audioGroup.BGM);
 	Debug_Unload();
 }

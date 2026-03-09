@@ -89,8 +89,12 @@ public:
     bool GetBlockStatus() const { return m_BlockActive; }
     bool GetParryStatus() const { return m_ParryActive; }
     int GetAttackCharges() const { return m_AttackCharges; }
+    int GetMaxAttackCharge() const { return m_MaxAttackCharge; }
     void SetAttackCharges(int charges) { m_AttackCharges = charges; }
-    float GetDashCooldown() const { return m_DashCooldown; }
+    int   GetDashCharges()       const { return m_DashCharges; }
+    int   GetMaxDashCharges()    const { return m_DashChargesMax; }
+    float GetDashRechargeTimer() const { return m_DashRechargeTimer; }
+    float GetDashRechargeTime()  const { return m_DashRechargeTime; }
     float GetSpeed() const { return m_Speed; }
 
     Combat::CombatFlags GetCombatFlag() const { return m_CombatFlags; }
@@ -145,6 +149,12 @@ private:
     f32 m_healthDepletionPercentage{};
     PlayerState m_CurrentState{};
 
+    // Dash Logic
+    int   m_DashCharges{};
+    int   m_DashChargesMax{};
+    float m_DashRechargeTimer{};
+    float m_DashRechargeTime{};
+
     // Visual Assets
     AEGfxVertexList* m_pMesh = nullptr;
     AEGfxVertexList* m_playerHealthBarMesh{ nullptr };
@@ -191,7 +201,7 @@ private:
     bool  m_AttackActive = false;
     bool  m_AllowAttack = true;
 
-    int m_AttackCharges { 100 };
+    int m_AttackCharges { 5 };
     int m_MaxAttackCharge { 5 };
 
     float m_AttackDuration{ 0.15f };

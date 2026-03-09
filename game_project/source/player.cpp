@@ -10,7 +10,7 @@
 #include "AugmentData.h"
 #include "Audio.h"
 
-int g_PlayerAttackCharges = 100;
+int g_PlayerAttackCharges = 5;
 
 std::ostream& operator<<(std::ostream& os, PlayerState const& ps)
 {
@@ -30,8 +30,10 @@ void Player::Init()
     m_PosY = 0.0f;
     m_Speed = 300.0f;
     m_Size = PLAYER_SIZE;
-    m_DashCooldown_Default = 0.1f;
-    m_DashCooldown = 0.1f;
+    m_DashChargesMax    = 3;
+    m_DashCharges       = 3;
+    m_DashRechargeTime  = 5.0f / 3.0f;  // ~1.67s per charge
+    m_DashRechargeTimer = 0.0f;
 
     m_CurrentState = PlayerState::STATE_IDLE;
 
@@ -422,8 +424,16 @@ void Player::Update(float dt, Combat::System& combat, std::vector<std::unique_pt
 
 
     // --- 1. Update Timers ---
-    if (m_DashCooldown > 0.0f)
-        m_DashCooldown -= dt;
+    if (m_DashCharges < m_DashChargesMax) {
+        m_DashRechargeTimer -= dt;
+        if (m_DashRechargeTimer <= 0.0f) {
+            m_DashCharges++;
+            if (m_DashCharges < m_DashChargesMax)
+                m_DashRechargeTimer = m_DashRechargeTime;
+            else
+                m_DashRechargeTimer = 0.0f;
+        }
+    }
 
     // --- 2. Gather Input ---
     s8 moveX = 0;
@@ -484,7 +494,7 @@ void Player::Update(float dt, Combat::System& combat, std::vector<std::unique_pt
 
             std::cout << "DASH: " << m_DashActive << std::endl;
             // --- 4. Dash Logic ---
-            if (AEInputCheckTriggered(AEVK_SPACE) && m_DashCooldown <= 0.0f)
+            if (AEInputCheckTriggered(AEVK_SPACE) && m_DashCharges > 0)
             {
                 //// Store pre-dash position for poison trail
                 //float preDashX = m_PosX;
@@ -773,6 +783,14 @@ void Player::StartDash(float moveX, float moveY, float dirX, float dirY)
     // Divide steps by active frames
     m_DashStepX = dashVelX / m_MovementData.active;
     m_DashStepY = dashVelY / m_MovementData.active;
+
+    // NEW
+    m_DashCharges--;
+
+    if (m_DashCharges < m_DashChargesMax && m_DashRechargeTimer <= 0.0f)
+    {
+        m_DashRechargeTimer = m_DashRechargeTime;
+    }
 }
 
 void Player::ApplyDashStep()
