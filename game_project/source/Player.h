@@ -22,7 +22,8 @@ enum class PlayerState : char {
     STATE_ATTACK,
     STATE_BLOCK,
     STATE_PARRY,
-    STATE_DEAD
+    STATE_DEAD,
+    STATE_DASH
 };
 
 enum class PlayerDirection : char
@@ -52,6 +53,10 @@ public:
 
     bool IsBlocking() const { return m_BlockActive; }
     void StartBlock(Combat::CombatData::BlockData&, std::vector<std::unique_ptr<Enemy>> const&);
+
+    bool IsDashing() const { return m_DashActive; }
+    void StartDash(float moveX, float moveY, float dirX, float dirY);
+    void ApplyDashStep();
 
     void GainAttackCharge() {
         ++m_AttackCharges;
@@ -127,6 +132,7 @@ public:
 private:
     Sprite m_PlayerSprite;
     AEGfxTexture* m_PlayerSpriteSheet;
+    AEGfxTexture* m_PlayerCombatSpriteSheet;
     PlayerDirection m_CurrentDirection;
 
     Combat::System combatSystem;
@@ -138,10 +144,6 @@ private:
     float m_Size{};
     f32 m_healthDepletionPercentage{};
     PlayerState m_CurrentState{};
-
-    // Dash Logic
-    float m_DashCooldown{};
-    float m_DashCooldown_Default{};
 
     // Visual Assets
     AEGfxVertexList* m_pMesh = nullptr;
@@ -163,7 +165,7 @@ private:
     };
 
     Combat::CombatFlags m_CombatFlags
-    { 
+    {
         true, // isAlive
         false, // attackHit
         false, // blockOn
@@ -171,11 +173,13 @@ private:
         false, // blocked
         false, // parried
         false, // stunned
-         //true,  // recovered
-        true,  // attackResolved
-         true,  // parryResolved
-        true,  // blockedResolved
-        false  // attackQueued
+        //true,  // recovered
+       true,  // attackResolved
+        true,  // parryResolved
+       true,  // blockedResolved
+       false,  // attackQueued
+       false,
+       true
     };
     int m_AttackStopFrames{};
     int m_ParryStopFrames{};
@@ -211,7 +215,7 @@ private:
     f32 a_EndDegree{ 30.0f };
     bool a_Recovered{ true };
     int a_StartUpFrames{ 7 };
-    int a_ActiveFrames{ 15 };
+    int a_ActiveFrames{ 10 };
     int a_RecoveryFrames{ 15 };
     int a_TotalFrames{ a_StartUpFrames + a_ActiveFrames + a_RecoveryFrames };
     int a_Damage{ 20 };
@@ -276,16 +280,34 @@ private:
     };
 
     // Movement Logic
-    int m_StartFrames{ 5 };
-    int m_ActiveFrames{ 10 };
-    int m_RecoveryFrames{ 10 };
+    // Dash Logic
+    float m_DashDirX = 0.0f;
+    float m_DashDirY = 0.0f;
+
+    float m_DashCooldown{};
+    float m_DashCooldown_Default{};
+
+    float m_DashStepX{};
+    float m_DashStepY{};
+
+    float m_DashDuration{ 0.15f };
+
+    bool m_AllowDash{ true };
+    float m_DashFrameAccumulator{};
+    int m_DashCurrentFrame{};
+
+    bool m_DashActive{ false };
+    int m_StartFrames{ 0 };
+    int m_ActiveFrames{ 4 };
+    int m_RecoveryFrames{ 5 };
     bool m_Recovered{ true };
     int m_TotalFrames{ m_StartFrames + m_ActiveFrames + m_RecoveryFrames };
     Combat::CombatData::MovementData m_MovementData
     {
         m_StartFrames,
         m_ActiveFrames,
-        m_RecoveryFrames
+        m_RecoveryFrames,
+        m_TotalFrames
     };
     Combat::CombatData::MovementState m_MovementState
     {

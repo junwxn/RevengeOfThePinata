@@ -41,6 +41,8 @@ namespace Combat {
         bool attackQueued;
 
         bool gotHit;
+
+        bool dashResolved;
     };
 
     struct CombatData {
@@ -93,6 +95,7 @@ namespace Combat {
             int startUp;
             int active;
             int recovery;
+            int total{ startUp + active + recovery };
         };
         struct MovementState
         {

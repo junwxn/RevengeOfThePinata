@@ -16,6 +16,9 @@ class Sprite
 
 		AEGfxTexture* GetPlayerSpriteSheet() { return pPlayerSpriteSheet; }
 		AEGfxVertexList* GetPlayerSpriteMesh() { return pPlayerSpriteMesh; }
+
+		AEGfxTexture* GetPlayerCombatSpriteSheet() { return pPlayerCombatSpriteSheet; }
+		AEGfxVertexList* GetPlayerCombatSpriteMesh() { return pPlayerCombatSpriteMesh; }
 		float GetPixelScale() const { return pixelScale; }
 
 		float GetU() const { return u0; }
@@ -41,6 +44,9 @@ class Sprite
 
 		AEGfxTexture* pPlayerSpriteSheet{ nullptr };
 		AEGfxVertexList* pPlayerSpriteMesh{ nullptr };
+
+		AEGfxTexture* pPlayerCombatSpriteSheet{ nullptr };
+		AEGfxVertexList* pPlayerCombatSpriteMesh{ nullptr };
 
 		float pixelScale{ 64.0f };
 

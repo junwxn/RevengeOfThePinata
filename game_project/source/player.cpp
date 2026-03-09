@@ -56,6 +56,7 @@ void Player::Init()
 
     m_PlayerSprite.Sprite_Init();
     m_PlayerSpriteSheet = m_PlayerSprite.GetPlayerSpriteSheet();
+    m_PlayerCombatSpriteSheet = m_PlayerSprite.GetPlayerCombatSpriteSheet();
 }
 
 void Player::Update(float dt, Combat::System& combat, std::vector<std::unique_ptr<Enemy>> const& wave, f32 camX, f32 camY, bool preventing_movement)
@@ -467,71 +468,132 @@ void Player::Update(float dt, Combat::System& combat, std::vector<std::unique_pt
                 dirY = (float)moveY;
             }
 
+            // --- 5. Apply Velocity with isometric wall-sliding collision ---
+            if (!m_DashActive)
+            {
+                float velX = dirX * m_Speed * m_SpeedMultiplier * dt;
+                float velY = dirY * m_Speed * m_SpeedMultiplier * dt;
+                if (m_pMap) {
+                    ResolveCollision(m_PosX, m_PosY, velX, velY, m_Size, *m_pMap);
+                }
+                else {
+                    m_PosX += velX;
+                    m_PosY += velY;
+                }
+            }
+
+            std::cout << "DASH: " << m_DashActive << std::endl;
             // --- 4. Dash Logic ---
             if (AEInputCheckTriggered(AEVK_SPACE) && m_DashCooldown <= 0.0f)
             {
-                // Store pre-dash position for poison trail
-                float preDashX = m_PosX;
-                float preDashY = m_PosY;
+                //// Store pre-dash position for poison trail
+                //float preDashX = m_PosX;
+                //float preDashY = m_PosY;
 
-                float blinkDist = 0.0f;
+                //float blinkDist = 0.0f;
 
-                if (moveX != 0 && moveY != 0)
+                //if (moveX != 0 && moveY != 0)
+                //{
+                //    // Diagonal: Move Hypotenuse of one tile
+                //    float halfW = GRID_W * 0.5f;
+                //    float halfH = GRID_H * 0.5f;
+                //    blinkDist = sqrt(halfW * halfW + halfH * halfH);
+                //}
+                //else
+                //{
+                //    // Orthogonal: Move Width or Height
+                //    blinkDist = (moveX != 0) ? GRID_W : GRID_H;
+                //}
+
+                //// Dash uses the same collision resolution as walking, stepped in
+                //// small increments along the path so the player can't tunnel
+                //// through thin walls.  If a step is blocked the player stops at
+                //// the last clear position (wall-sliding still applies per step).
+                //float dashVelX = dirX * blinkDist;
+                //float dashVelY = dirY * blinkDist;
+                //if (m_pMap) {
+                //    const int steps = (int)(blinkDist / 16.0f) + 1;
+                //    float stepVelX = dashVelX / steps;
+                //    float stepVelY = dashVelY / steps;
+                //    for (int i = 0; i < steps; ++i) 
+                //    {
+                //        float prevX = m_PosX, prevY = m_PosY;
+                //        ResolveCollision(m_PosX, m_PosY, stepVelX, stepVelY, m_Size, *m_pMap);
+                //        // If this step made no progress, stop early.
+                //        if (m_PosX == prevX && m_PosY == prevY) break;
+                //    }
+                //}
+                //else {
+                //    m_PosX += dashVelX;
+                //    m_PosY += dashVelY;
+                //}
+
+                //m_DashCooldown = m_DashCooldown_Default;
+
+                //// Fire ON_DASH event for augment effects
+                //EventData dashData;
+                //dashData.playerX = m_PosX;
+                //dashData.playerY = m_PosY;
+                //dashData.dirX = dirX;
+                //dashData.dirY = dirY;
+                //g_Events.Fire(GameEvent::ON_DASH, dashData);
+
+                //// --- 5. Apply Velocity with isometric wall-sliding collision ---
+                //float velX = dirX * m_Speed * m_SpeedMultiplier * dt;
+                //float velY = dirY * m_Speed * m_SpeedMultiplier * dt;
+                //if (m_pMap) {
+                //    ResolveCollision(m_PosX, m_PosY, velX, velY, m_Size, *m_pMap);
+                //}
+                //else {
+                //    m_PosX += velX;
+                //    m_PosY += velY;
+                //}
+                StartDash(moveX, moveY, dirX, dirY);
+            }
+        }
+
+        // Update dash
+        if (m_DashActive)
+        {
+            m_CurrentState = PlayerState::STATE_DASH;
+            m_DashFrameAccumulator += dt;
+
+            while (m_DashFrameAccumulator >= combatSystem.GetOneFPS() && m_DashCurrentFrame <= m_MovementData.total) {
+                ++m_DashCurrentFrame;
+
+                if (m_DashCurrentFrame > m_MovementData.total)
+                    m_DashCurrentFrame = m_MovementData.total;
+
+                m_DashFrameAccumulator -= combatSystem.GetOneFPS();
+
+                if (m_DashCurrentFrame >= m_MovementData.startUp
+                    && m_DashCurrentFrame < m_MovementData.startUp + m_MovementData.active)
                 {
-                    // Diagonal: Move Hypotenuse of one tile
-                    float halfW = GRID_W * 0.5f;
-                    float halfH = GRID_H * 0.5f;
-                    blinkDist = sqrt(halfW * halfW + halfH * halfH);
+                    ApplyDashStep();
                 }
-                else
-                {
-                    // Orthogonal: Move Width or Height
-                    blinkDist = (moveX != 0) ? GRID_W : GRID_H;
-                }
-
-                // Dash uses the same collision resolution as walking, stepped in
-                // small increments along the path so the player can't tunnel
-                // through thin walls.  If a step is blocked the player stops at
-                // the last clear position (wall-sliding still applies per step).
-                float dashVelX = dirX * blinkDist;
-                float dashVelY = dirY * blinkDist;
-                if (m_pMap) {
-                    const int steps = (int)(blinkDist / 16.0f) + 1;
-                    float stepVelX = dashVelX / steps;
-                    float stepVelY = dashVelY / steps;
-                    for (int i = 0; i < steps; ++i) {
-                        float prevX = m_PosX, prevY = m_PosY;
-                        ResolveCollision(m_PosX, m_PosY, stepVelX, stepVelY, m_Size, *m_pMap);
-                        // If this step made no progress, stop early.
-                        if (m_PosX == prevX && m_PosY == prevY) break;
-                    }
-                }
-                else {
-                    m_PosX += dashVelX;
-                    m_PosY += dashVelY;
-                }
-
-                m_DashCooldown = m_DashCooldown_Default;
-
-                // Fire ON_DASH event for augment effects
+            }
+            if (!m_CombatFlags.dashResolved && m_DashCurrentFrame > m_MovementData.startUp + m_MovementData.active)
+            {
                 EventData dashData;
                 dashData.playerX = m_PosX;
                 dashData.playerY = m_PosY;
-                dashData.dirX = dirX;
-                dashData.dirY = dirY;
+                dashData.dirX = m_DashDirX;
+                dashData.dirY = m_DashDirY;
+
                 g_Events.Fire(GameEvent::ON_DASH, dashData);
+                m_CombatFlags.dashResolved = true;
+            }
+            if (m_DashCurrentFrame >= m_MovementData.total)
+            {
+                m_DashActive = false;
+                m_DashCurrentFrame = 0;
+                m_DashFrameAccumulator = 0.0f;
+                m_DashCooldown = m_DashCooldown_Default;
+
+                ResetCombatVariables();
             }
 
-            // --- 5. Apply Velocity with isometric wall-sliding collision ---
-            float velX = dirX * m_Speed * m_SpeedMultiplier * dt;
-            float velY = dirY * m_Speed * m_SpeedMultiplier * dt;
-            if (m_pMap) {
-                ResolveCollision(m_PosX, m_PosY, velX, velY, m_Size, *m_pMap);
-            }
-            else {
-                m_PosX += velX;
-                m_PosY += velY;
-            }
+            std::cout << "DASH OVER" << std::endl;
         }
     }
 }
@@ -578,8 +640,16 @@ void Player::Draw()
         DrawMesh(m_playerHealthBarMesh, barWidth, barHeight, m_PosX - m_Size, m_PosY + m_Size + barHeight / 2.0f + 5.0f, 0.0f, 80, 200, 120, 255); // Instant bar
     }
 
-    DrawTexturePlayer(m_PlayerSprite, static_cast<int>(m_CurrentDirection), m_PlayerSprite.GetPlayerSpriteMesh(), m_PlayerSprite.GetPlayerSpriteSheet(), m_PlayerSprite.GetPixelScale(),
-        m_PlayerSprite.GetPixelScale(), m_PosX, m_PosY, 0.0f);
+    if (!m_AttackActive)
+    {
+        DrawTexturePlayer(m_PlayerSprite, static_cast<int>(m_CurrentDirection), m_PlayerSprite.GetPlayerSpriteMesh(), m_PlayerSprite.GetPlayerSpriteSheet(), m_PlayerSprite.GetPixelScale(),
+            m_PlayerSprite.GetPixelScale(), m_PosX, m_PosY, 0.0f);
+    }
+    else
+    {
+        DrawTexturePlayer(m_PlayerSprite, static_cast<int>(m_CurrentDirection), m_PlayerSprite.GetPlayerCombatSpriteMesh(), m_PlayerSprite.GetPlayerCombatSpriteSheet(), m_PlayerSprite.GetPixelScale(),
+            m_PlayerSprite.GetPixelScale(), m_PosX, m_PosY, 0.0f);
+    }
 }
 
 void Player::Free()
@@ -654,6 +724,87 @@ void Player::StartBlock(Combat::CombatData::BlockData& blockData, std::vector<st
     m_EndAngle = m_AimAngle - AEDegToRad(blockData.endAngle);
 }
 
+void Player::StartDash(float moveX, float moveY, float dirX, float dirY)
+{
+    m_DashActive = true;
+    m_AllowDash = false;
+    m_MovementState.recovered = false;
+    m_DashFrameAccumulator = 0.0f;
+    m_DashCurrentFrame = 0;
+
+    m_DashDirX = dirX;
+    m_DashDirY = dirY;
+
+    // Store pre-dash position for poison trail
+    float preDashX = m_PosX;
+    float preDashY = m_PosY;
+
+    float blinkDist = 0.0f;
+
+    if (moveX != 0 && moveY != 0)
+    {
+        // Diagonal: Move Hypotenuse of one tile
+        float halfW = GRID_W * 0.5f;
+        float halfH = GRID_H * 0.5f;
+        //blinkDist = sqrt(halfW * halfW + halfH * halfH);
+        
+        blinkDist = sqrt(halfW * halfW + halfH * halfH) * 1.75f;
+    }
+    else
+    {
+        // Orthogonal: Move Width or Height
+        //blinkDist = (moveX != 0) ? GRID_W : GRID_H;
+
+        // Extra dash length test
+        blinkDist = (moveX != 0) ? GRID_W * 1.75f : GRID_H * 1.75f;
+    }
+
+    // Dash uses the same collision resolution as walking, stepped in
+    // small increments along the path so the player can't tunnel
+    // through thin walls.  If a step is blocked the player stops at
+    // the last clear position (wall-sliding still applies per step).
+
+    // Increase multiplier for smoother dash
+    float dashSpeedMultiplier = 1.8f;
+
+    float dashVelX = dirX * blinkDist * dashSpeedMultiplier;
+    float dashVelY = dirY * blinkDist * dashSpeedMultiplier;
+
+    // Divide steps by active frames
+    m_DashStepX = dashVelX / m_MovementData.active;
+    m_DashStepY = dashVelY / m_MovementData.active;
+}
+
+void Player::ApplyDashStep()
+{
+    float dashVelX = m_DashStepX;
+    float dashVelY = m_DashStepY;
+
+    if (m_pMap)
+    {
+        const int steps = 2;
+
+        float stepVelX = m_DashStepX / steps;
+        float stepVelY = m_DashStepY / steps;
+
+        for (int i = 0; i < steps; ++i)
+        {
+            float prevX = m_PosX;
+            float prevY = m_PosY;
+
+            ResolveCollision(m_PosX, m_PosY, stepVelX, stepVelY, m_Size, *m_pMap);
+
+            if (m_PosX == prevX && m_PosY == prevY)
+                break;
+        }
+    }
+    else
+    {
+        m_PosX += dashVelX;
+        m_PosY += dashVelY;
+    }
+}
+
 void Player::ResetCombatVariables()
 {
     std::cout << "RESETTING" << std::endl;
@@ -664,6 +815,9 @@ void Player::ResetCombatVariables()
 
     m_BlockActive = false;
     m_AllowBlock = true;
+
+    m_DashActive = false;
+    m_AllowDash = true;
 
     if (m_CombatFlags.attackQueued)
     {
