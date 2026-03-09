@@ -10,6 +10,7 @@
 #include "GameStateManager.h"
 #include "Map.h"
 #include "Pause.h"
+#include "HUD.h"
 #include "Audio.h"
 #include "Debug.h"
 
@@ -87,6 +88,7 @@ void Level2_Load() {
 	gameMap.Init("Assets/level2map.tmx", "tilesheet_complete", "Assets/tilesheet_complete.png");
 	gameMap.BuildCollisionGrid("Tile Layer 2");
 	Pause_Load();
+	HUD_Load();
 	Debug_Load();
 }
 
@@ -184,6 +186,7 @@ void Level2_Update(float dt) {
 		if (Wave2.empty()) {
 			wave2Active = false;
 			endofwave = true;
+			augments.SetPosition(player.GetX(), player.GetY());
 		}
 	}
 
@@ -288,13 +291,13 @@ void Level2_Draw() {
 
 	Debug_DrawWorld(camera.GetX(), camera.GetY());
 
+	HUD_Draw(&player);
 	Pause_Draw();
 	Debug_DrawHUD();
 
-	AugmentEffects_Draw();
-
+	AugmentEffects_Draw(camera.GetX(), camera.GetY());
 	if (endofwave) {
-		augments.Draw();
+		augments.Draw(camera.GetX(), camera.GetY());
 	}
 
 	AESysFrameEnd();
@@ -317,5 +320,6 @@ void Level2_Unload() {
 	AEGfxMeshFree(RectMesh);  RectMesh  = nullptr;
 	gameMap.Unload();
 	Pause_Unload();
+	HUD_Unload();
 	Debug_Unload();
 }

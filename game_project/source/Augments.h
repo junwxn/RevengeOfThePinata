@@ -9,7 +9,7 @@ public:
 
     void Init();
     void Update(f32 playerX, f32 playerY, f32 dt);
-    void Draw();
+    void Draw(float camX, float camY);
     void Free();
 
     //// Getters allowing Game.cpp to access position for Camera/Collisions
@@ -17,8 +17,8 @@ public:
     //float GetY() const { return m_PosY; }
     //float GetSize() const { return m_Size; }
 
-    //// Setters if you need to teleport the player (e.g. respawning)
-    //void SetPosition(float x, float y) { m_PosX = x; m_PosY = y; }
+    // Set the world position where the augment sphere spawns
+    void SetPosition(float x, float y) { augPosX = x; augPosY = y; hoverPosY = y; }
 
 
     // takes choose from private

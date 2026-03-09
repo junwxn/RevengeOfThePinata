@@ -138,7 +138,7 @@ protected:
     // Enemy stats --------------------
     AEVec2 m_pos{};
     f32 m_hp{ 100.0f }; // to be removed?
-    f32 m_speed{ 300.0f };
+    f32 m_speed{ 270.0f };
     f32 m_size{ ENEMY_SIZE };
     f32 m_healthDepletionPercentage{};
     // Meshes -------------------------
