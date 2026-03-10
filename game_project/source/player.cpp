@@ -599,6 +599,7 @@ void Player::Update(float dt, Combat::System& combat, std::vector<std::unique_pt
                 m_DashCurrentFrame = 0;
                 m_DashFrameAccumulator = 0.0f;
                 m_DashCooldown = m_DashCooldown_Default;
+                m_CombatFlags.dashResolved = false;
 
                 ResetCombatVariables();
             }

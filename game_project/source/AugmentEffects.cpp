@@ -218,9 +218,11 @@ void AugmentEffects_Update(float dt, Player& player, std::vector<std::unique_ptr
         }
     }
 
-    // Store pre-dash position for next frame's poison trail
-    s_preDashX = player.GetX();
-    s_preDashY = player.GetY();
+    // Store pre-dash position for poison trail (freeze during dash so ON_DASH gets the real start)
+    if (!player.IsDashing()) {
+        s_preDashX = player.GetX();
+        s_preDashY = player.GetY();
+    }
 }
 
 // ---- Draw ----
