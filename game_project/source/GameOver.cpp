@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "GameOver.h"
 #include "GameStateManager.h"
+#include "Player.h"
 #include "Utils.h"
 
 static AEGfxVertexList* rectMesh = nullptr;
@@ -52,6 +53,7 @@ void GameOver_Load() {
 }
 
 void GameOver_Init() {
+	g_PlayerAttackCharges = DEFAULT_ATTACK_CHARGES;  // Reset charges on death
 	AEGfxSetCamPosition(0.0f, 0.0f);
 	animTimer = 0.0f;
 	entranceTimer = 0.0f;
@@ -93,7 +95,7 @@ void GameOver_Update(float dt) {
 	}
 
 	if (AEInputCheckTriggered(AEVK_LBUTTON)) {
-		if (buttons[0].hovered) next = GS_MAINMENU;  // Retry -> back to menu to start fresh
+		if (buttons[0].hovered) next = previous;
 		if (buttons[1].hovered) next = GS_MAINMENU;
 	}
 

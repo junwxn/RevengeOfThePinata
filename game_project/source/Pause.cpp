@@ -3,6 +3,7 @@
 #include "GameStateManager.h"
 #include "Utils.h"
 #include "Audio.h"
+#include "Player.h"
 
 // --- Button struct ---
 struct PauseButton {
@@ -123,7 +124,7 @@ bool Pause_Update(bool isPlayerAlive) {
 		}
 		if (buttons[0].hovered) paused = false;        // Resume
 		if (buttons[1].hovered) next = GS_MAINMENU;    // Main Menu
-		if (buttons[2].hovered) next = GS_RESTART;     // Restart
+		if (buttons[2].hovered) { g_PlayerAttackCharges = DEFAULT_ATTACK_CHARGES; next = GS_RESTART; }     // Restart
 	}
 
 	return true;

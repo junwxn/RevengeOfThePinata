@@ -13,6 +13,7 @@
 #include "HUD.h"
 #include "Audio.h"
 #include "Debug.h"
+#include "Shadow.h"
 
 // load variables
 static AEGfxTexture* TexBlock2;
@@ -105,6 +106,7 @@ void Level3_Load() {
 	Pause_Load();
 	HUD_Load();
 	Debug_Load();
+	Shadow_Init();
 }
 
 void Level3_Init() {
@@ -353,7 +355,7 @@ void Level3_Draw() {
 }
 
 void Level3_Free() {
-	g_PlayerAttackCharges = player.GetAttackCharges();
+	if (next != GS_RESTART) g_PlayerAttackCharges = player.GetAttackCharges();
 	Wave1.clear();
 	Wave2.clear();
 	Wave3.clear();
@@ -364,6 +366,7 @@ void Level3_Free() {
 }
 
 void Level3_Unload() {
+	Shadow_Free();
 	if (TexBlock)  { AEGfxTextureUnload(TexBlock);  TexBlock  = nullptr; }
 	if (TexBlock2) { AEGfxTextureUnload(TexBlock2); TexBlock2 = nullptr; }
 	AEGfxMeshFree(CircleMesh); CircleMesh = nullptr;

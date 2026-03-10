@@ -9,8 +9,9 @@
 #include "EventSystem.h"
 #include "AugmentData.h"
 #include "Audio.h"
+#include "Shadow.h"
 
-int g_PlayerAttackCharges = 5;
+int g_PlayerAttackCharges = DEFAULT_ATTACK_CHARGES;
 
 std::ostream& operator<<(std::ostream& os, PlayerState const& ps)
 {
@@ -612,6 +613,8 @@ void Player::Update(float dt, Combat::System& combat, std::vector<std::unique_pt
 void Player::Draw()
 {
     f32 dt = (f32)AEFrameRateControllerGetFrameTime();
+
+    Shadow_Draw(m_PosX, m_PosY, m_Size);
 
     // Ensure Color Mode is set
     AEGfxSetRenderMode(AE_GFX_RM_COLOR);

@@ -10,6 +10,7 @@
 #include <unordered_map>
 #include "Raycast.h"
 #include "Sprite.h"
+#include "Shadow.h"
 
 //std::ostream& operator<<(std::ostream& os, CombatOutcome outcome) {
 //    if (outcome == CombatOutcome::OUTCOME_HIT) return os << "OUTCOME_HIT";
@@ -211,6 +212,8 @@ void Enemy::BaseUpdate(f32 dt, Combat::System& combat, Player const& player) {
 
 void Enemy::Draw() {
     f32 dt = (f32)AEFrameRateControllerGetFrameTime();
+    Shadow_Draw(m_pos.x, m_pos.y, m_size);
+
     // Ensure Color Mode is set
     AEGfxSetRenderMode(AE_GFX_RM_COLOR);
 

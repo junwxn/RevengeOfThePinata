@@ -10,6 +10,7 @@
 #include "Pause.h"
 #include "HUD.h"
 #include "Debug.h"
+#include "Shadow.h"
 
 // load variables
 static AEGfxTexture* TexBlock2;
@@ -59,6 +60,7 @@ void BossLevel_Load() {
 	Pause_Load();
 	HUD_Load();
 	Debug_Load();
+	Shadow_Init();
 }
 
 void BossLevel_Init() {
@@ -218,7 +220,7 @@ void BossLevel_Draw() {
 }
 
 void BossLevel_Free() {
-	g_PlayerAttackCharges = player.GetAttackCharges();
+	if (next != GS_RESTART) g_PlayerAttackCharges = player.GetAttackCharges();
 	Wave1.clear();
 	player.Free();
 	AugmentEffects_Free();
@@ -226,6 +228,7 @@ void BossLevel_Free() {
 }
 
 void BossLevel_Unload() {
+	Shadow_Free();
 	if (TexBlock)  { AEGfxTextureUnload(TexBlock);  TexBlock  = nullptr; }
 	if (TexBlock2) { AEGfxTextureUnload(TexBlock2); TexBlock2 = nullptr; }
 	AEGfxMeshFree(CircleMesh); CircleMesh = nullptr;
