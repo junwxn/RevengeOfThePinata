@@ -302,6 +302,7 @@ void Level1_Update(float dt) {
 void Level1_Draw() {
 	AESysFrameStart();
 	AEGfxSetBackgroundColor(0.68f, 0.85f, 0.90f);
+	AEGfxSetCamPosition(camera.GetX(), camera.GetY());
 
 	//draw map
 	AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
@@ -352,7 +353,7 @@ void Level1_Draw() {
 	Debug_DrawWorld(camera.GetX(), camera.GetY());
 
 	HUD_Draw(&player, camera.GetX(), camera.GetY());
-	Pause_Draw();
+	Pause_Draw(camera.GetX(), camera.GetY());
 	Debug_DrawHUD();
 
 	AugmentEffects_Draw(camera.GetX(), camera.GetY());

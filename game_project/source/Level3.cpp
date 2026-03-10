@@ -293,6 +293,7 @@ void Level3_Update(float dt) {
 void Level3_Draw() {
 	AESysFrameStart();
 	AEGfxSetBackgroundColor(0.68f, 0.85f, 0.90f);
+	AEGfxSetCamPosition(camera.GetX(), camera.GetY());
 
 	AEGfxSetRenderMode(AE_GFX_RM_COLOR);
 	AEGfxSetBlendMode(AE_GFX_BM_BLEND);
@@ -343,7 +344,7 @@ void Level3_Draw() {
 	Debug_DrawWorld(camera.GetX(), camera.GetY());
 
 	HUD_Draw(&player, camera.GetX(), camera.GetY());
-	Pause_Draw();
+	Pause_Draw(camera.GetX(), camera.GetY());
 	Debug_DrawHUD();
 
 	AugmentEffects_Draw(camera.GetX(), camera.GetY());

@@ -33,19 +33,19 @@ static bool IsInside(float wx, float wy, const PauseButton& b) {
 	       wy >= b.y - b.h * 0.5f && wy <= b.y + b.h * 0.5f;
 }
 
-static void DrawStyledButton(float cx, float cy, float baseW, float baseH, float hT, float alpha) {
+static void DrawStyledButton(float cx, float cy, float baseW, float baseH, float hT, float alpha, float camX, float camY) {
 	float w = baseW * (1.0f + 0.05f * hT);
 	float h = baseH * (1.0f + 0.05f * hT);
 	float fr = Lerp(180, 255, hT), fg = Lerp(45, 190, hT), fb = Lerp(110, 50, hT);
 	float br = Lerp(120, 200, hT), bg = Lerp(30, 150, hT), bb = Lerp(75, 30, hT);
 	// Shadow
-	DrawMesh(rectMesh, w, h, cx - w * 0.5f + 3, cy - 3, 0, 0, 0, 0, 60 * alpha);
+	DrawMesh(rectMesh, w, h, cx - w * 0.5f + 3 + camX, cy - 3 + camY, 0, 0, 0, 0, 60 * alpha);
 	// Border
-	DrawMesh(rectMesh, w + 4, h + 4, cx - (w + 4) * 0.5f, cy, 0, br, bg, bb, 255 * alpha);
+	DrawMesh(rectMesh, w + 4, h + 4, cx - (w + 4) * 0.5f + camX, cy + camY, 0, br, bg, bb, 255 * alpha);
 	// Fill
-	DrawMesh(rectMesh, w, h, cx - w * 0.5f, cy, 0, fr, fg, fb, 240 * alpha);
+	DrawMesh(rectMesh, w, h, cx - w * 0.5f + camX, cy + camY, 0, fr, fg, fb, 240 * alpha);
 	// Top highlight
-	DrawMesh(rectMesh, w - 8, 2, cx - (w - 8) * 0.5f, cy + h * 0.5f - 3, 0, 255, 255, 255, (30 + hT * 30) * alpha);
+	DrawMesh(rectMesh, w - 8, 2, cx - (w - 8) * 0.5f + camX, cy + h * 0.5f - 3 + camY, 0, 255, 255, 255, (30 + hT * 30) * alpha);
 }
 
 void Pause_Load() {
@@ -130,25 +130,28 @@ bool Pause_Update(bool isPlayerAlive) {
 	return true;
 }
 
-void Pause_Draw() {
+void Pause_Draw(float camX, float camY) {
 	if (!paused) return;
 
-	// Reset camera to origin so UI draws in screen space
-	AEGfxSetCamPosition(0.0f, 0.0f);
 	AEGfxSetRenderMode(AE_GFX_RM_COLOR);
 	AEGfxSetBlendMode(AE_GFX_BM_BLEND);
+
+	// Helper: draw mesh at screen-space position, offset by camera so it stays fixed
+	auto drawPause = [&](float w, float h, float x, float y, float rot, float r, float g, float b, float a) {
+		DrawMesh(rectMesh, w, h, x + camX, y + camY, rot, r, g, b, a);
+	};
 
 	float panelEase = Smoothstep(entranceTimer * 3.0f);
 
 	// Dark overlay (slightly darker than before)
-	DrawMesh(rectMesh, 1600, 900, -800, 0, 0, 0, 0, 0, 190 * panelEase);
+	drawPause(1600, 900, -800, 0, 0, 0, 0, 0, 190 * panelEase);
 
 	// Card panel behind buttons
 	float panelW = 420.0f, panelH = 380.0f;
 	// Panel border
-	DrawMesh(rectMesh, panelW + 4, panelH + 4, -(panelW + 4) * 0.5f, -30, 0, 80, 50, 120, 255 * panelEase);
+	drawPause(panelW + 4, panelH + 4, -(panelW + 4) * 0.5f, -30, 0, 80, 50, 120, 255 * panelEase);
 	// Panel fill
-	DrawMesh(rectMesh, panelW, panelH, -panelW * 0.5f, -30, 0, 20, 15, 35, 220 * panelEase);
+	drawPause(panelW, panelH, -panelW * 0.5f, -30, 0, 20, 15, 35, 220 * panelEase);
 
 	// Styled buttons with entrance stagger
 	for (int i = 0; i < 3; i++) {
@@ -157,7 +160,7 @@ void Pause_Draw() {
 		float yOff = (1.0f - ease) * 30.0f;
 		DrawStyledButton(buttons[i].x, buttons[i].y - yOff,
 		                 buttons[i].w, buttons[i].h,
-		                 buttons[i].hoverT, ease);
+		                 buttons[i].hoverT, ease, camX, camY);
 	}
 
 	// Text
@@ -186,7 +189,7 @@ void Pause_Draw() {
 	AEGfxSetBlendMode(AE_GFX_BM_BLEND);
 	DrawStyledButton(muteButton.x, muteButton.y,
 	                 muteButton.w, muteButton.h,
-	                 muteButton.hoverT, panelEase);
+	                 muteButton.hoverT, panelEase, camX, camY);
 	{
 		AEGfxSetBlendMode(AE_GFX_BM_BLEND);
 		AEGfxGetPrintSize(pauseFont, muteButton.label, 1.0f, &tw, &th);
@@ -195,6 +198,7 @@ void Pause_Draw() {
 		           muteButton.y / 450.0f - th * 0.5f,
 		           1.0f, 1.0f, 1.0f, 1.0f, panelEase);
 	}
+
 }
 
 void Pause_Unload() {
