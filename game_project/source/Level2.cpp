@@ -291,7 +291,7 @@ void Level2_Draw() {
 
 	Debug_DrawWorld(camera.GetX(), camera.GetY());
 
-	HUD_Draw(&player);
+	HUD_Draw(&player, camera.GetX(), camera.GetY());
 	Pause_Draw();
 	Debug_DrawHUD();
 

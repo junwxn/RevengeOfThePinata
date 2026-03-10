@@ -19,20 +19,23 @@ void HUD_Load() {
 void HUD_Init() {
 }
 
-void HUD_Draw(const Player* player) {
+void HUD_Draw(const Player* player, float camX, float camY) {
 	if (!player) return;
 
-	// Switch to screen space
-	AEGfxSetCamPosition(0.0f, 0.0f);
 	AEGfxSetRenderMode(AE_GFX_RM_COLOR);
 	AEGfxSetBlendMode(AE_GFX_BM_BLEND);
+
+	// Helper: draw mesh at screen-space position, offset by camera so it stays fixed
+	auto drawHUD = [&](float w, float h, float x, float y, float rot, float r, float g, float b, float a) {
+		DrawMesh(s_rectMesh, w, h, x + camX, y + camY, rot, r, g, b, a);
+	};
 
 	// === Background strip ===
 	float stripY = -400.0f; // center of strip
 	float stripH = 100.0f;
-	DrawMesh(s_rectMesh, 1600, stripH, -800, stripY, 0, 10, 10, 15, 200);
+	drawHUD(1600, stripH, -800, stripY, 0, 10, 10, 15, 200);
 	// Top accent border
-	DrawMesh(s_rectMesh, 1600, 2, -800, stripY + stripH * 0.5f, 0, 180, 140, 60, 220);
+	drawHUD(1600, 2, -800, stripY + stripH * 0.5f, 0, 180, 140, 60, 220);
 
 	// ============================================
 	// HEALTH SECTION (left region: -780 to -280)
@@ -61,10 +64,10 @@ void HUD_Draw(const Player* player) {
 	AEGfxSetBlendMode(AE_GFX_BM_BLEND);
 
 	// Bar border (drawn first, behind)
-	DrawMesh(s_rectMesh, barW + 4, barH + 4, barX - 2, barY, 0, 80, 80, 80, 180);
+	drawHUD(barW + 4, barH + 4, barX - 2, barY, 0, 80, 80, 80, 180);
 
 	// Bar background (dark)
-	DrawMesh(s_rectMesh, barW, barH, barX, barY, 0, 30, 30, 30, 220);
+	drawHUD(barW, barH, barX, barY, 0, 30, 30, 30, 220);
 
 	// Bar fill (green to red gradient based on ratio)
 	float fillW = barW * ratio;
@@ -72,7 +75,7 @@ void HUD_Draw(const Player* player) {
 		float r = (1.0f - ratio) * 220.0f + 30.0f;
 		float g = ratio * 200.0f + 30.0f;
 		float b = 30.0f;
-		DrawMesh(s_rectMesh, fillW, barH, barX, barY, 0, r, g, b, 240);
+		drawHUD(fillW, barH, barX, barY, 0, r, g, b, 240);
 	}
 
 	// HP numeric text centered over bar
@@ -101,15 +104,15 @@ void HUD_Draw(const Player* player) {
 		float by = stripY;
 
 		// Border
-		DrawMesh(s_rectMesh, boxSize + 4, boxSize + 4, bx - 2, by, 0, 80, 70, 40, 200);
+		drawHUD(boxSize + 4, boxSize + 4, bx - 2, by, 0, 80, 70, 40, 200);
 
 		if (i < charges) {
 			// Filled — gold
-			DrawMesh(s_rectMesh, boxSize, boxSize, bx, by, 0, 220, 180, 40, 240);
+			drawHUD(boxSize, boxSize, bx, by, 0, 220, 180, 40, 240);
 		}
 		else {
 			// Empty — dark
-			DrawMesh(s_rectMesh, boxSize, boxSize, bx, by, 0, 35, 30, 25, 200);
+			drawHUD(boxSize, boxSize, bx, by, 0, 35, 30, 25, 200);
 		}
 	}
 
@@ -139,11 +142,11 @@ void HUD_Draw(const Player* player) {
 		float dy = stripY;
 
 		// Border (cyan tint)
-		DrawMesh(s_rectMesh, dashBoxSize + 4, dashBoxSize + 4, dx - 2, dy, 0, 0, 140, 160, 200);
+		drawHUD(dashBoxSize + 4, dashBoxSize + 4, dx - 2, dy, 0, 0, 140, 160, 200);
 
 		if (i < dashCharges) {
 			// Filled — cyan
-			DrawMesh(s_rectMesh, dashBoxSize, dashBoxSize, dx, dy, 0, 0, 200, 220, 240);
+			drawHUD(dashBoxSize, dashBoxSize, dx, dy, 0, 0, 200, 220, 240);
 		}
 		else if (i == dashCharges && dashCharges < maxDash) {
 			// Recharging — show progress bar
@@ -154,15 +157,15 @@ void HUD_Draw(const Player* player) {
 			if (progress > 1.0f) progress = 1.0f;
 
 			// Dark background
-			DrawMesh(s_rectMesh, dashBoxSize, dashBoxSize, dx, dy, 0, 15, 25, 30, 200);
+			drawHUD(dashBoxSize, dashBoxSize, dx, dy, 0, 15, 25, 30, 200);
 			// Fill from bottom
 			float fillH = dashBoxSize * progress;
 			if (fillH > 0.0f)
-				DrawMesh(s_rectMesh, dashBoxSize, fillH, dx, dy - (dashBoxSize - fillH) * 0.5f, 0, 0, 140, 160, 200);
+				drawHUD(dashBoxSize, fillH, dx, dy - (dashBoxSize - fillH) * 0.5f, 0, 0, 140, 160, 200);
 		}
 		else {
 			// Empty — dark
-			DrawMesh(s_rectMesh, dashBoxSize, dashBoxSize, dx, dy, 0, 15, 25, 30, 200);
+			drawHUD(dashBoxSize, dashBoxSize, dx, dy, 0, 15, 25, 30, 200);
 		}
 	}
 
@@ -201,9 +204,9 @@ void HUD_Draw(const Player* player) {
 		float cb = slotColors[i][2];
 
 		// Slot border (colored)
-		DrawMesh(s_rectMesh, slotW + 4, slotH + 4, sx - 2, sy, 0, cr, cg, cb, 200);
+		drawHUD(slotW + 4, slotH + 4, sx - 2, sy, 0, cr, cg, cb, 200);
 		// Slot fill (dark)
-		DrawMesh(s_rectMesh, slotW, slotH, sx, sy, 0, 20, 18, 25, 220);
+		drawHUD(slotW, slotH, sx, sy, 0, 20, 18, 25, 220);
 
 		// Augment name or "---"
 		AugmentID id = g_Augments.chosen[i];
