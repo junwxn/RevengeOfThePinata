@@ -182,8 +182,7 @@ void Debug_DrawWorld(float camX, float camY) {
 void Debug_DrawHUD() {
     if (!s_showHUD) return;
 
-    // Get camera position — draw the panel in world space offset by camera
-    // so it appears fixed on screen
+    // Camera position needed for enemy label coordinate conversion
     float camX = s_ctx.camera ? s_ctx.camera->GetX() : 0.0f;
     float camY = s_ctx.camera ? s_ctx.camera->GetY() : 0.0f;
 
@@ -191,7 +190,7 @@ void Debug_DrawHUD() {
     AEGfxSetBlendMode(AE_GFX_BM_BLEND);
     AEGfxSetTransparency(1.0f);
 
-    // Dark background panel (top-left of screen, anchored to camera)
+    // Dark background panel (top-left of screen, offset by camera to stay fixed)
     DrawMesh(debugRectMesh, 600, 450, camX - 800, camY + 270, 0.0f, 0, 0, 0, 160);
 
     char buf[256];

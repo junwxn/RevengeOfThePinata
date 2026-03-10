@@ -11,6 +11,7 @@ class MapSystem; // Forward-declare to avoid a circular header chain
 
 // Persistent attack charges across levels
 extern int g_PlayerAttackCharges;
+inline constexpr int DEFAULT_ATTACK_CHARGES = 5;
 
 
 //-----------------------//
@@ -201,8 +202,8 @@ private:
     bool  m_AttackActive = false;
     bool  m_AllowAttack = true;
 
-    int m_AttackCharges { 5 };
-    int m_MaxAttackCharge { 5 };
+    int m_AttackCharges { DEFAULT_ATTACK_CHARGES };
+    int m_MaxAttackCharge { DEFAULT_ATTACK_CHARGES };
 
     float m_AttackDuration{ 0.15f };
 

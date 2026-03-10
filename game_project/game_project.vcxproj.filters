@@ -112,6 +112,7 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="source\Projectile.cpp">
+    <ClCompile Include="source\Shadow.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -216,6 +217,7 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="source\Projectile.h">
+    <ClInclude Include="source\Shadow.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
