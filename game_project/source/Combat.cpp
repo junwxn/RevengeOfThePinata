@@ -283,6 +283,31 @@ namespace Combat {
 		DrawMesh(enemy.GetEnemyMesh(), enemy.GetSize(), isoHeight, enemy.GetX(), enemy.GetY(), 0.0f, r, g, b, a);
 	}
 
+	void System::ApplyProjectileDamage(Player& player, Enemy& enemy, f32 damage)
+	{
+		// Shield Dash augment: if shield is active, reflect projectile damage instead
+		if (g_Augments.Has(AugmentID::SHIELD_DASH) && AugmentEffects_IsShieldActive()) {
+			enemy.DeductHealth(damage);
+			enemy.SetHDP(damage);
+			return;
+		}
+
+		f32 finalDamage = damage;
+
+		if (player.GetCombatFlag().blockOn) {
+			finalDamage *= 0.5f;
+		}
+
+		finalDamage -= player.GetCombatStats().defense;
+
+		if (finalDamage < 1.0f) {
+			finalDamage = 1.0f;
+		}
+
+		player.DeductHealth(finalDamage);
+		player.SetHDP(finalDamage);
+		gAudio.PlayPlayerSFX(PLAYER_HURT);
+	}
 
 	//void System::Resolve(Player& player, Enemy& enemy, CombatOutcome outcome) {
 	//	switch (outcome) 

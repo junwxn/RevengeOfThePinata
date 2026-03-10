@@ -68,7 +68,7 @@ void Enemy::Init() {
     m_EnemySpriteSheet = m_EnemySprite.GetSpriteSheet();
 }
 
-void Enemy::BaseUpdate(f32 dt, Combat::System& combat, Player const& player) {
+void Enemy::BaseUpdate(f32 dt, Combat::System& combat, Player& player) {
 
     if (m_CombatStats.health <= 0) m_CombatFlags.isAlive = false;
     //std::cout << "BASE RUNNING" << std::endl;
@@ -577,7 +577,7 @@ void Enemy::MoveTowardTarget(AEVec2 const& targetPos, f32 dt) {
 //------------------------
  //| Child Class: Walker |
  //-----------------------
-void Walker::ChildUpdate(f32 dt, Combat::System& combat, Player const& player) {
+void Walker::ChildUpdate(f32 dt, Combat::System& combat, Player& player) {
     AEVec2 playerPos{ player.GetX(), player.GetY() };
     AEVec2Sub(&m_enemyToPlayerDir, &playerPos, &m_pos);
     AEVec2Normalize(&m_enemyToPlayerDir, &m_enemyToPlayerDir);
@@ -621,7 +621,7 @@ void Dasher::PerformDash(AEVec2 const& direction) {
     }
 }
 
-void Dasher::ChildUpdate(f32 dt, Combat::System& combat, Player const& player) {
+void Dasher::ChildUpdate(f32 dt, Combat::System& combat, Player& player) {
     AEVec2 playerPos{ player.GetX(), player.GetY() };
     AEVec2Sub(&m_enemyToPlayerDir, &playerPos, &m_pos);
     f32 dist = AEVec2Length(&m_enemyToPlayerDir);
@@ -676,7 +676,7 @@ Boss::Boss(AEVec2 pos, f32 size, f32 hp, f32 speed)
     m_WindUpDuration = 1.0f; // Boss winds up longer
 }
 
-void Boss::ChildUpdate(f32 dt, Combat::System& combat, Player const& player) {
+void Boss::ChildUpdate(f32 dt, Combat::System& combat, Player& player) {
     AEVec2 playerPos{ player.GetX(), player.GetY() };
     AEVec2Sub(&m_enemyToPlayerDir, &playerPos, &m_pos);
     AEVec2Normalize(&m_enemyToPlayerDir, &m_enemyToPlayerDir);
@@ -706,4 +706,110 @@ void Enemy::EvaluateCurrentDirection()
     else if (angleDegrees >= 150 || angleDegrees < -150) m_CurrentDirection = EnemyDirection::DIRECTION_UP;
     else if (angleDegrees >= -150 && angleDegrees < -90) m_CurrentDirection = EnemyDirection::DIRECTION_UP_LEFT;
     else if (angleDegrees >= -90 && angleDegrees < -30) m_CurrentDirection = EnemyDirection::DIRECTION_DOWN_LEFT;
+}
+
+// ------------------------
+// | Child Class: Thrower |
+// ------------------------
+Thrower::Thrower(AEVec2 pos, f32 size, f32 hp, f32 speed) :
+    Enemy(pos, size, hp, speed)
+{
+    m_CombatStats.health = hp;
+    m_CombatStats.maxHealth = hp;
+    m_CombatStats.attack = 0.0f;
+    m_CombatStats.defense = 0.0f;
+}
+
+void Thrower::Draw() {
+    Enemy::Draw();
+
+    for (Projectile const& projectile : m_projectiles) {
+        projectile.Draw();
+    }
+}
+
+void Thrower::ChildUpdate(f32 dt, Combat::System& combat, Player& player) {
+    // Update direction vector, get dist bw enemy and player
+    AEVec2 playerPos{ player.GetX(), player.GetY() };
+    AEVec2Sub(&m_enemyToPlayerDir, &playerPos, &m_pos);
+    f32 dist = AEVec2Length(&m_enemyToPlayerDir);
+    if (dist > 0.001f) AEVec2Normalize(&m_enemyToPlayerDir, &m_enemyToPlayerDir);
+   
+    // Angle to draw gun/projectile
+    m_AimAngle = atan2(-m_enemyToPlayerDir.y, -m_enemyToPlayerDir.x);
+
+    // Check projectile collision / projectile movement
+    UpdateProjectiles(dt, combat, player);
+    // Remove inactive projectiles (eg hit wall, hit player, lifetime 0)
+    CleanupProjectiles();
+
+    if (m_CombatFlags.stunned) {
+        return;
+    }
+
+    m_throwTimer -= dt;
+
+    bool hasLOS = true;
+    if (m_pMap) hasLOS = HasLineOfSight_Grid(m_pos, playerPos, *m_pMap);
+
+    if (dist > m_maxThrowRange) {
+        MoveTowardTarget(playerPos, dt);
+        return;
+    }
+
+    if (dist >= m_minThrowRange && hasLOS && m_throwTimer <= 0.0f) {
+        ThrowProjectile(playerPos);
+        m_throwTimer = m_throwCooldown;
+    }
+}
+
+// Start of projectile lifetime
+void Thrower::ThrowProjectile(AEVec2 const& targetPos) {
+    AEVec2 dir;
+    AEVec2 target = targetPos;
+    AEVec2Sub(&dir, &target, &m_pos);
+
+    if (AEVec2Length(&dir) <= 0.001f) {
+        return;
+    }
+
+    m_projectiles.emplace_back(
+        m_pos,
+        dir,
+        m_projectileSpeed,
+        m_projectileRadius,
+        m_projectileDamage,
+        m_projectileLifetime
+    );
+
+    m_projectiles.back().Init();
+}
+
+// Projectile collision check
+void Thrower::UpdateProjectiles(f32 dt, Combat::System& combat, Player& player) {
+    for (Projectile& projectile : m_projectiles) {
+        projectile.Update(dt, m_pMap);
+
+        if (!projectile.IsActive()) {
+            continue;
+        }
+
+        AEVec2 projectilePos = projectile.GetPosition();
+
+        if (AreCirclesIntersecting(projectilePos.x, projectilePos.y, projectile.GetRadius(),
+            player.GetX(), player.GetY(), player.GetSize())) {
+            combat.ApplyProjectileDamage(player, *this, projectile.GetDamage());
+            projectile.Destroy();
+        }
+    }
+}
+
+// Remove inactive projectile from container
+void Thrower::CleanupProjectiles() {
+    m_projectiles.erase(
+        std::remove_if(m_projectiles.begin(), m_projectiles.end(),
+            [](Projectile const& projectile) {
+                return !projectile.IsActive();
+            }),
+        m_projectiles.end());
 }

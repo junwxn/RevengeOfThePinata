@@ -3,13 +3,13 @@
 #include "Combat.h"
 #include "Player.h"
 #include "Sprite.h"
-
 #include "Map.h"
+#include "Projectile.h"
 
 // ----------------
 // | Enemy States |
 // ----------------
-enum class EnemyState : char 
+enum class EnemyState : char
 {
     STATE_IDLE,
     STATE_MOVING,
@@ -18,7 +18,7 @@ enum class EnemyState : char
     STATE_DEAD
 };
 
-enum class EnemyDirection : char 
+enum class EnemyDirection : char
 {
     DIRECTION_DOWN_RIGHT,
     DIRECTION_DOWN_LEFT,
@@ -31,17 +31,18 @@ enum class EnemyDirection : char
 // ---------------------
 // | Base Class: Enemy |
 // ---------------------
-class Enemy {
+class Enemy
+{
 public:
-    Enemy(AEVec2 pos, f32 size, f32 hp, f32 speed); // Base constructor
-    virtual ~Enemy(); // Base destructor
+    Enemy(AEVec2 pos, f32 size, f32 hp, f32 speed);
+    virtual ~Enemy();
 
     void Init();
-    void Update(f32 dt, Combat::System& combat, Player const& player) {
+    void Update(f32 dt, Combat::System& combat, Player& player) {
         BaseUpdate(dt, combat, player);
         ChildUpdate(dt, combat, player);
     }
-    void Draw();
+    virtual void Draw();
 
     void StartAttack(Combat::CombatData::AttackData);
     void DamageInfo();
@@ -87,7 +88,6 @@ public:
     void SetKnockbackVelocity(AEVec2 setVelocity) { m_KnockbackVelocity = setVelocity; }
     void SetLastAttackID(int newID) { m_LastAttackID = newID; }
     void SetHDP(f32 dmg) { m_healthDepletionPercentage += dmg; }
-    
 
     // Flag Setters
     void SetParried(bool set) { m_CombatFlags.parried = set; }
@@ -96,7 +96,7 @@ public:
     void ResetParryFlag() { m_CombatFlags.parried = false; }
     void ResetStunFlag() { m_CombatFlags.stunned = false; }
     void ResetGotHitFlag() { m_CombatFlags.gotHit = false; }
-    
+
     void MarkAttackResolved() {
         m_CombatFlags.attackResolved = true;
         m_CombatFlags.parryResolved = true;
@@ -121,7 +121,6 @@ public:
     float m_amplifyTimer = 0.0f;
     float m_damageMultiplier = 1.0f;
 
-    // Call once after the map is loaded so enemies can self-resolve wall collisions.
     void SetMap(const MapSystem* map) { m_pMap = map; }
 
     // Debug overlay getters
@@ -137,10 +136,11 @@ protected:
 
     // Enemy stats --------------------
     AEVec2 m_pos{};
-    f32 m_hp{ 100.0f }; // to be removed?
+    f32 m_hp{ 100.0f };
     f32 m_speed{ 270.0f };
     f32 m_size{ ENEMY_SIZE };
     f32 m_healthDepletionPercentage{};
+
     // Meshes -------------------------
     AEGfxVertexList* m_enemyMesh{ nullptr };
     AEGfxVertexList* m_AttackRangeMesh{ nullptr };
@@ -148,8 +148,8 @@ protected:
 
     // Attack Logic -------------------
     int m_LastAttackID{ -1 };
-    bool  m_AttackActive{ false };
-    bool  m_AllowAttack{ true };
+    bool m_AttackActive{ false };
+    bool m_AllowAttack{ true };
 
     AEVec2 m_KnockbackVelocity{};
 
@@ -166,39 +166,37 @@ protected:
     f32 m_attackProgress{};
 
     Combat::System m_CombatSystem;
-    //Combat::CombatStats m_CombatStats{ 10.0f, 5.0f };
     Combat::CombatFlags m_CombatFlags
-    { 
-        true,   // isAlive
-        false,  // attackHit
-        false,  // blockOn
-        false,  // parryOn
-        false,  // blocked
-        false,  // parried
-        false,  // stunned
-        false,  // attackResolved
-        false,  // parryResolved
-        false,  // blockedResolved
-        false   // attackQueued
+    {
+        true,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
     };
 
     int m_AttackStopFrames{};
     int m_DefendStopFrames{};
     Combat::CombatStats m_CombatStats
     {
-        100.0f, // health
-        30.0f, // attack
-        5.0f, // defense
-        0.0f, // crit chance
-        0.0f, // crit multiplier
-        0.0f, // attack multiplier
-        100.0f // max health
+        100.0f,
+        30.0f,
+        5.0f,
+        0.0f,
+        0.0f,
+        0.0f,
+        100.0f
     };
-    // Combat::CombatFlags m_CombatFlags{ false, false, false, false, false, false, false, false, false };
-    
+
     float m_AttackFrameAccumulator{};
     int m_AttackCurrentFrame{};
-    
+
     float m_StartDegree{ 30.0f };
     float m_EndDegree{ 30.0f };
     bool m_Recovered{ true };
@@ -206,7 +204,7 @@ protected:
     // Attack wind-up
     bool  m_WindingUp{ false };
     float m_WindUpTimer{ 0.0f };
-    float m_WindUpDuration{ 0.6f }; // seconds to charge before swinging
+    float m_WindUpDuration{ 0.6f };
     int m_AttackStartUpFrames{ 7 };
     int m_AttackActiveFrames{ 15 };
     int m_AttackRecoveryFrames{ 15 };
@@ -214,13 +212,13 @@ protected:
     int m_Damage{ 20 };
     Combat::CombatData::AttackData m_AttackData
     {
-        m_StartDegree,           // startAngle
-        m_EndDegree,             // endAngle
-        m_AttackStartUpFrames,   // startUp
-        m_AttackActiveFrames,    // active
-        m_AttackRecoveryFrames,  // recovery
-        m_AttackTotalFrames,     // total
-        m_Damage                 // damage
+        m_StartDegree,
+        m_EndDegree,
+        m_AttackStartUpFrames,
+        m_AttackActiveFrames,
+        m_AttackRecoveryFrames,
+        m_AttackTotalFrames,
+        m_Damage
     };
 
     // Animation
@@ -236,71 +234,96 @@ protected:
     AEVec2 m_AimVector{};
     f32 m_AimAngle{};
 
-    // Non-owning pointer to the active map; set via SetMap().
     const MapSystem* m_pMap = nullptr;
 
     // A* pathfinding
     std::vector<AEVec2> m_path;
-    int   m_pathIndex{0};
-    float m_pathTimer{0.0f};
-    float m_pathRecalcInterval{0.5f};
+    int m_pathIndex{ 0 };
+    float m_pathTimer{ 0.0f };
+    float m_pathRecalcInterval{ 0.5f };
     AEVec2 m_lastTargetPos{};
-    bool  m_hasValidPath{false};
+    bool m_hasValidPath{ false };
 
     // Stuck detection
     AEVec2 m_lastPos{};
-    float  m_stuckTimer{0.0f};
+    float m_stuckTimer{ 0.0f };
     static constexpr float STUCK_TIME_THRESHOLD = 0.3f;
     static constexpr float STUCK_DIST_THRESHOLD = 2.0f;
 
-    void   ComputePath(AEVec2 const& targetPos);
+    void ComputePath(AEVec2 const& targetPos);
     AEVec2 FollowPath();
-    bool   NeedsPathRecalc(AEVec2 const& targetPos, f32 dt);
-    void   MoveTowardTarget(AEVec2 const& targetPos, f32 dt);
+    bool NeedsPathRecalc(AEVec2 const& targetPos, f32 dt);
+    void MoveTowardTarget(AEVec2 const& targetPos, f32 dt);
 
-    void BaseUpdate(f32 dt, Combat::System& combat, Player const& player);
-    virtual void ChildUpdate(f32 dt, Combat::System& combat, Player const& player) = 0;
+    void BaseUpdate(f32 dt, Combat::System& combat, Player& player);
+    virtual void ChildUpdate(f32 dt, Combat::System& combat, Player& player) = 0;
 };
 
- //-----------------------
- //| Child Class: Walker |
- //-----------------------
-class Walker : public Enemy {
+// -----------------------
+// | Child Class: Walker |
+// -----------------------
+class Walker : public Enemy
+{
 public:
-    using Enemy::Enemy; // Inherit base constructor
-
-
+    using Enemy::Enemy;
 
 protected:
-    void ChildUpdate(f32 dt, Combat::System& combat, Player const& player) override;
+    void ChildUpdate(f32 dt, Combat::System& combat, Player& player) override;
 };
-
 
 // -----------------------
 // | Child Class: Dasher |
 // -----------------------
-class Dasher : public Enemy {
+class Dasher : public Enemy
+{
 public:
-    Dasher(AEVec2 pos, f32 size, f32 hp, f32 speed, f32 dashCD); // Child constructor
+    Dasher(AEVec2 pos, f32 size, f32 hp, f32 speed, f32 dashCD);
 
 protected:
-    f32 m_dashCD{ 3.0f };          // cooldown duration (seconds)
-    f32 m_dashTimer{ 0.0f };       // countdown; dash ready when <= 0
-    f32 m_dashRange{ 400.0f };     // trigger dash within this distance
-    f32 m_dashMinRange{ 80.0f };   // don't dash if already this close
-    f32 m_dashDistance{ 200.0f };   // world-space pixels (~2 tiles)
+    f32 m_dashCD{ 3.0f };
+    f32 m_dashTimer{ 0.0f };
+    f32 m_dashRange{ 400.0f };
+    f32 m_dashMinRange{ 80.0f };
+    f32 m_dashDistance{ 200.0f };
 
     void PerformDash(AEVec2 const& direction);
-    void ChildUpdate(f32 dt, Combat::System& combat, Player const& player) override;
+    void ChildUpdate(f32 dt, Combat::System& combat, Player& player) override;
 };
 
 // ---------------------
 // | Child Class: Boss |
 // ---------------------
-class Boss : public Enemy {
+class Boss : public Enemy
+{
 public:
     Boss(AEVec2 pos, f32 size, f32 hp, f32 speed);
 
 protected:
-    void ChildUpdate(f32 dt, Combat::System& combat, Player const& player) override;
+    void ChildUpdate(f32 dt, Combat::System& combat, Player& player) override;
+};
+
+// ------------------------
+// | Child Class: Thrower |
+// ------------------------
+class Thrower : public Enemy {
+public:
+    Thrower(AEVec2 pos, f32 size, f32 hp, f32 speed);
+    void Draw() override;
+
+protected:
+    void ChildUpdate(f32 dt, Combat::System& combat, Player& player) override;
+    void ThrowProjectile(AEVec2 const& targetPos);
+    void UpdateProjectiles(f32 dt, Combat::System& combat, Player& player);
+    void CleanupProjectiles();
+
+    std::vector<Projectile> m_projectiles{};
+
+    f32 m_throwCooldown{ 2.0f };
+    f32 m_throwTimer{ 0.0f };
+    f32 m_minThrowRange{ 0.0f };
+    f32 m_maxThrowRange{ 500.0f };
+    f32 m_projectileSpeed{ 500.0f };
+    f32 m_projectileRadius{ 8.0f };
+    f32 m_projectileDamage{ 50.0f };
+    f32 m_projectileLifetime{ 3.0f };
 };

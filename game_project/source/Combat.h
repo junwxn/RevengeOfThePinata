@@ -128,6 +128,7 @@ namespace Combat {
             void ApplyKnockbackReaction_Enemy(Player& player, Enemy& enemy, double multiplier);
             void ApplyDamage(Player& player, Enemy& enemy);
             void ApplyDamage(Enemy& enemy, Player& player);
+            void ApplyProjectileDamage(Player& player, Enemy& enemy, f32 damage);
             void ColorIndicator(Enemy& enemy, f32 r, f32 g, f32 b, f32 a);
             double const GetOneFPS() const { return ONE_FRAME; };
 
