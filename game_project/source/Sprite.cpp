@@ -12,6 +12,22 @@ Sprite::~Sprite()
 		AEGfxTextureUnload(pEnemySpriteSheet);
 		pEnemySpriteSheet = nullptr;
 	}
+	if (pEnemyWindup_SpriteMesh) {
+		AEGfxMeshFree(pEnemyWindup_SpriteMesh);
+		pEnemyWindup_SpriteMesh = nullptr;
+	}
+	if (pEnemyWindup_SpriteSheet) {
+		AEGfxTextureUnload(pEnemyWindup_SpriteSheet);
+		pEnemyWindup_SpriteSheet = nullptr;
+	}
+	if (pEnemyAttack_SpriteMesh) {
+		AEGfxMeshFree(pEnemyAttack_SpriteMesh);
+		pEnemyAttack_SpriteMesh = nullptr;
+	}
+	if (pEnemyAttack_SpriteSheet) {
+		AEGfxTextureUnload(pEnemyAttack_SpriteSheet);
+		pEnemyAttack_SpriteSheet = nullptr;
+	}
 
 	if (pPlayerSpriteMesh) {
 		AEGfxMeshFree(pPlayerSpriteMesh);
@@ -36,7 +52,9 @@ void Sprite::Sprite_Load()
 {
 	// Free existing texture before loading (prevents leak on re-init)
 
+	/////////////////////
 	// ENEMY SPRITE SHEET
+	/////////////////////
 	if (pEnemySpriteSheet) {
 		AEGfxTextureUnload(pEnemySpriteSheet);
 		pEnemySpriteSheet = nullptr;
@@ -49,7 +67,33 @@ void Sprite::Sprite_Load()
 		return;
 	}
 
+	if (pEnemyWindup_SpriteSheet) {
+		AEGfxTextureUnload(pEnemyWindup_SpriteSheet);
+		pEnemyWindup_SpriteSheet = nullptr;
+	}
+
+	pEnemyWindup_SpriteSheet = AEGfxTextureLoad("Assets/Sprites/Enemy_Windup_SpriteSheet.png");
+	if (!pEnemyWindup_SpriteSheet)
+	{
+		std::cout << "ERROR LOADING ENEMY WINDUP SPRITE SHEET" << std::endl;
+		return;
+	}
+
+	if (pEnemyAttack_SpriteSheet) {
+		AEGfxTextureUnload(pEnemyAttack_SpriteSheet);
+		pEnemyAttack_SpriteSheet = nullptr;
+	}
+
+	pEnemyAttack_SpriteSheet = AEGfxTextureLoad("Assets/Sprites/Enemy_Attack_SpriteSheet.png");
+	if (!pEnemyAttack_SpriteSheet)
+	{
+		std::cout << "ERROR LOADING ENEMY ATTACK SPRITE SHEET" << std::endl;
+		return;
+	}
+
+	//////////////////////
 	// PLAYER SPRITE SHEET
+	//////////////////////
 	if (pPlayerSpriteSheet) {
 		AEGfxTextureUnload(pPlayerSpriteSheet);
 		pPlayerSpriteSheet = nullptr;
@@ -62,7 +106,9 @@ void Sprite::Sprite_Load()
 		return;
 	}
 
+	/////////////////////////////
 	// PLAYER COMBAT SPRITE SHEET
+	/////////////////////////////
 	if (pPlayerCombatSpriteSheet) {
 		AEGfxTextureUnload(pPlayerCombatSpriteSheet);
 		pPlayerCombatSpriteSheet = nullptr;
@@ -79,23 +125,47 @@ void Sprite::Sprite_Load()
 void Sprite::Sprite_Init()
 {
 	// Free existing mesh before creating (prevents leak on re-init)
+	////////////////////
+	// Enemy Spritesheet
+	////////////////////
 	if (pSpriteMesh) {
 		AEGfxMeshFree(pSpriteMesh);
 		pSpriteMesh = nullptr;
 	}
+	if (pEnemyWindup_SpriteMesh) {
+		AEGfxMeshFree(pEnemyWindup_SpriteMesh);
+		pEnemyWindup_SpriteMesh = nullptr;
+	}
+	if (pEnemyAttack_SpriteMesh) {
+		AEGfxMeshFree(pEnemyAttack_SpriteMesh);
+		pEnemyAttack_SpriteMesh = nullptr;
+	}
+
+	/////////////////////
+	// Player Spritesheet
+	/////////////////////
 	if (pPlayerSpriteMesh) {
 		AEGfxMeshFree(pPlayerSpriteMesh);
 		pPlayerSpriteMesh = nullptr;
 	}
 
+	////////////////////////////
+	// Player Combat Spritesheet
+	////////////////////////////
 	if (pPlayerCombatSpriteMesh) {
 		AEGfxMeshFree(pPlayerCombatSpriteMesh);
 		pPlayerCombatSpriteMesh = nullptr;
 	}
 
 	Sprite_Load();
+	// Enemy Spritesheet
 	pSpriteMesh = CreateSpriteRectMesh(0xAEF359, 8.0f, 7.0f);
+	pEnemyWindup_SpriteMesh = CreateSpriteRectMesh(0xAEF359, 8.0f, 7.0f);
+	pEnemyAttack_SpriteMesh = CreateSpriteRectMesh(0xAEF359, 8.0f, 7.0f);
+
+	// Player Spritesheet
 	pPlayerSpriteMesh = CreateSpriteRectMesh(0xAEF359, 10.0f, 8.0f);
+	// Player Combat Spritesheet
 	pPlayerCombatSpriteMesh = CreateSpriteRectMesh(0xAEF359, 10.0f, 8.0f);
 }
 
@@ -114,7 +184,7 @@ void Sprite::Sprite_Update(float dt)
 	if (pFrameTimer > pFrameSpeed)
 	{
 		pFrame++;
-		pFrame %= 10;   // 8 frames
+		pFrame %= 10;   // 10 frames
 		pFrameTimer = 0;
 	}
 }

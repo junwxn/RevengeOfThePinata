@@ -56,5 +56,5 @@ AEGfxVertexList* CreateSpriteRectMesh(u32 color, float newU, float newV);
 // Generic Draw function that can draw ANY mesh (Circle or Rect)
 // This replaces specific DrawCircle/DrawRect functions by letting you pass the mesh you want to draw.
 void DrawMesh(AEGfxVertexList* pMesh, float width, float height, float x, float y, float rot, float r, float g, float b, float a);
-void DrawTexture(Sprite& spriteObj, int currentDirection, AEGfxVertexList* pMesh, AEGfxTexture* pTexture, float width, float height, float x, float y, float rot);
-void DrawTexturePlayer(Sprite& spriteObj, int currentDirection, AEGfxVertexList* pMesh, AEGfxTexture* pTexture, float width, float height, float x, float y, float rot);
+void DrawTexture(Sprite& spriteObj, int currentDirection, AEGfxVertexList* pMesh, AEGfxTexture* pTexture, float width, float height, float x, float y, float rot, float sizeMultiplier);
+void DrawTexturePlayer(Sprite& spriteObj, int currentDirection, AEGfxVertexList* pMesh, AEGfxTexture* pTexture, float width, float height, float x, float y, float rot, float sizeMultiplier);

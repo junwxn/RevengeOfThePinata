@@ -131,8 +131,11 @@ public:
     f32 GetSpeed() const { return m_speed; }
 
 protected:
+    float sizeMultiplier{ 1.5f };
     Sprite m_EnemySprite;
     AEGfxTexture* m_EnemySpriteSheet;
+    AEGfxTexture* m_EnemyWindupSpriteSheet;
+    AEGfxTexture* m_EnemyAttackSpriteSheet;
 
     // Enemy stats --------------------
     AEVec2 m_pos{};

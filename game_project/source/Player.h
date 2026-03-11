@@ -135,6 +135,7 @@ public:
     void EvaluateCurrentDirection();
 
 private:
+    float sizeMultiplier{ 2.0f };
     Sprite m_PlayerSprite;
     AEGfxTexture* m_PlayerSpriteSheet;
     AEGfxTexture* m_PlayerCombatSpriteSheet;

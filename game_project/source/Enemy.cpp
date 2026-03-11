@@ -67,6 +67,8 @@ void Enemy::Init() {
 
     m_EnemySprite.Sprite_Init();
     m_EnemySpriteSheet = m_EnemySprite.GetSpriteSheet();
+    m_EnemyWindupSpriteSheet = m_EnemySprite.GetEnemyWindupSpriteSheet();
+    m_EnemyAttackSpriteSheet = m_EnemySprite.GetEnemyAttackSpriteSheet();
 }
 
 void Enemy::BaseUpdate(f32 dt, Combat::System& combat, Player& player) {
@@ -227,17 +229,25 @@ void Enemy::Draw() {
         // Flash red just before attacking (last 0.2s of wind-up)
         float flash = sinf(m_WindUpTimer * 40.0f);
         float r = (flash > 0.0f) ? 255.0f : 180.0f;
-        DrawMesh(m_enemyMesh, m_size, isoHeight, m_pos.x, m_pos.y, 0.0f, r, 0, 0, 255);
+        //DrawMesh(m_enemyMesh, m_size, isoHeight, m_pos.x, m_pos.y, 0.0f, r, 0, 0, 255);
+
+        DrawTexture(m_EnemySprite, static_cast<int>(m_CurrentDirection), m_EnemySprite.GetEnemyAttackSpriteMesh(), m_EnemySprite.GetEnemyAttackSpriteSheet(), m_EnemySprite.GetPixelScale(),
+            m_EnemySprite.GetPixelScale(), m_pos.x, m_pos.y, 0.0f, sizeMultiplier);
     }
     else if (m_WindingUp) {
         // Winding up — tint yellow to show charging
-        DrawMesh(m_enemyMesh, m_size, isoHeight, m_pos.x, m_pos.y, 0.0f, 255, 200, 0, 255);
+        //DrawMesh(m_enemyMesh, m_size, isoHeight, m_pos.x, m_pos.y, 0.0f, 255, 200, 0, 255);
+
+        DrawTexture(m_EnemySprite, static_cast<int>(m_CurrentDirection), m_EnemySprite.GetEnemyWindupSpriteMesh(), m_EnemySprite.GetEnemyWindupSpriteSheet(), m_EnemySprite.GetPixelScale(),
+            m_EnemySprite.GetPixelScale(), m_pos.x, m_pos.y, 0.0f, sizeMultiplier);
     }
     else if (m_CombatFlags.parried) {
         DrawMesh(m_enemyMesh, m_size, isoHeight, m_pos.x, m_pos.y, 0.0f, 255, 0, 0, 255);
     }
     else {
-        DrawMesh(m_enemyMesh, m_size, isoHeight, m_pos.x, m_pos.y, 0.0f, 44, 255, 255, 255);
+        //DrawMesh(m_enemyMesh, m_size, isoHeight, m_pos.x, m_pos.y, 0.0f, 44, 255, 255, 255);
+        DrawTexture(m_EnemySprite, static_cast<int>(m_CurrentDirection), m_EnemySprite.GetSpriteMesh(), m_EnemySprite.GetSpriteSheet(), m_EnemySprite.GetPixelScale(),
+            m_EnemySprite.GetPixelScale(), m_pos.x, m_pos.y, 0.0f, sizeMultiplier);
     }
 
     // Enemy sword
@@ -252,8 +262,8 @@ void Enemy::Draw() {
     f32 dRate = m_CombatStats.maxHealth * dt;
     if (m_healthDepletionPercentage >= 0.0f) { m_healthDepletionPercentage -= dRate; };
 
-    DrawMesh(m_enemyHealthBarMesh, dbarWidth, barHeight, m_pos.x - m_size, m_pos.y + m_size + barHeight / 2.0f + 5.0f, 0.0f, 255, 175, 65, 255); // Depleting bar
-    DrawMesh(m_enemyHealthBarMesh, barWidth, barHeight, m_pos.x - m_size, m_pos.y + m_size + barHeight / 2.0f + 5.0f, 0.0f, 210, 70, 75, 255); // Instant bar
+    DrawMesh(m_enemyHealthBarMesh, dbarWidth, barHeight, m_pos.x - m_size, m_pos.y + m_size + barHeight / 2.0f + 10.0f, 0.0f, 255, 175, 65, 255); // Depleting bar
+    DrawMesh(m_enemyHealthBarMesh, barWidth, barHeight, m_pos.x - m_size, m_pos.y + m_size + barHeight / 2.0f + 10.0f, 0.0f, 210, 70, 75, 255); // Instant bar
 
     // Damaging Mark: draw dagger above marked/detonating enemies
     if (m_marked && !m_markDetonating && m_markMesh) {
@@ -270,9 +280,14 @@ void Enemy::Draw() {
         DrawMesh(m_markMesh, 14.0f, 20.0f, m_pos.x, daggerY, 0.0f, 255, 80, 80, 255);
     }
 
+
     // ENEMY SPRITE DRAWING
-    DrawTexture(m_EnemySprite, static_cast<int>(m_CurrentDirection), m_EnemySprite.GetSpriteMesh(), m_EnemySprite.GetSpriteSheet(), m_EnemySprite.GetPixelScale(),
-                m_EnemySprite.GetPixelScale(), m_pos.x, m_pos.y, 0.0f);
+    //DrawTexture(m_EnemySprite, static_cast<int>(m_CurrentDirection), m_EnemySprite.GetSpriteMesh(), m_EnemySprite.GetSpriteSheet(), m_EnemySprite.GetPixelScale(),
+    //            m_EnemySprite.GetPixelScale(), m_pos.x, m_pos.y, 0.0f);
+    //DrawTexture(m_EnemySprite, static_cast<int>(m_CurrentDirection), m_EnemySprite.GetEnemyWindupSpriteMesh(), m_EnemySprite.GetEnemyWindupSpriteSheet(), m_EnemySprite.GetPixelScale(),
+    //    m_EnemySprite.GetPixelScale(), m_pos.x, m_pos.y, 0.0f);
+    //DrawTexture(m_EnemySprite, static_cast<int>(m_CurrentDirection), m_EnemySprite.GetEnemyAttackSpriteMesh(), m_EnemySprite.GetEnemyAttackSpriteSheet(), m_EnemySprite.GetPixelScale(),
+    //    m_EnemySprite.GetPixelScale(), m_pos.x, m_pos.y, 0.0f);
 }
 
 void Enemy::StartAttack(Combat::CombatData::AttackData attackData) {

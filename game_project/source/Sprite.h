@@ -11,8 +11,13 @@ class Sprite
 		void Sprite_Init();
 		void Sprite_Update(float dt);
 
+		// Enemy Spritesheet
 		AEGfxTexture* GetSpriteSheet() { return pEnemySpriteSheet; }
+		AEGfxTexture* GetEnemyWindupSpriteSheet() { return pEnemyWindup_SpriteSheet; }
+		AEGfxTexture* GetEnemyAttackSpriteSheet() { return pEnemyAttack_SpriteSheet; }
 		AEGfxVertexList* GetSpriteMesh() { return pSpriteMesh; }
+		AEGfxVertexList* GetEnemyWindupSpriteMesh() { return pEnemyWindup_SpriteMesh; }
+		AEGfxVertexList* GetEnemyAttackSpriteMesh() { return pEnemyAttack_SpriteMesh; }
 
 		AEGfxTexture* GetPlayerSpriteSheet() { return pPlayerSpriteSheet; }
 		AEGfxVertexList* GetPlayerSpriteMesh() { return pPlayerSpriteMesh; }
@@ -39,9 +44,17 @@ class Sprite
 		void SetTexturePlayerV(int animRow) { pRow = animRow; p_v0 = pRow * pFrameVSize; }
 
 	private:
+		// Enemy Spritesheet
 		AEGfxTexture* pEnemySpriteSheet{nullptr};
 		AEGfxVertexList* pSpriteMesh{nullptr};
 
+		AEGfxTexture* pEnemyWindup_SpriteSheet{ nullptr };
+		AEGfxVertexList* pEnemyWindup_SpriteMesh{ nullptr };
+
+		AEGfxTexture* pEnemyAttack_SpriteSheet{ nullptr };
+		AEGfxVertexList* pEnemyAttack_SpriteMesh{ nullptr };
+
+		// Player Spritesheet
 		AEGfxTexture* pPlayerSpriteSheet{ nullptr };
 		AEGfxVertexList* pPlayerSpriteMesh{ nullptr };
 

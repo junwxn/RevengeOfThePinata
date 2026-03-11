@@ -657,12 +657,12 @@ void Player::Draw()
     if (!m_AttackActive)
     {
         DrawTexturePlayer(m_PlayerSprite, static_cast<int>(m_CurrentDirection), m_PlayerSprite.GetPlayerSpriteMesh(), m_PlayerSprite.GetPlayerSpriteSheet(), m_PlayerSprite.GetPixelScale(),
-            m_PlayerSprite.GetPixelScale(), m_PosX, m_PosY, 0.0f);
+            m_PlayerSprite.GetPixelScale(), m_PosX, m_PosY, 0.0f, sizeMultiplier);
     }
     else
     {
         DrawTexturePlayer(m_PlayerSprite, static_cast<int>(m_CurrentDirection), m_PlayerSprite.GetPlayerCombatSpriteMesh(), m_PlayerSprite.GetPlayerCombatSpriteSheet(), m_PlayerSprite.GetPixelScale(),
-            m_PlayerSprite.GetPixelScale(), m_PosX, m_PosY, 0.0f);
+            m_PlayerSprite.GetPixelScale(), m_PosX, m_PosY, 0.0f, sizeMultiplier);
     }
 }
 

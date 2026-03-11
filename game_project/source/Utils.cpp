@@ -160,6 +160,7 @@ AEGfxVertexList* CreateRingMesh(int segments, f32 thickness) {
 }
 
 void DrawMesh(AEGfxVertexList* pMesh, float width, float height, float x, float y, float rot, float r, float g, float b, float a) {
+    AEGfxSetRenderMode(AE_GFX_RM_COLOR);
     AEGfxSetColorToMultiply(0.0f, 0.0f, 0.0f, 0.0f);
     AEGfxSetColorToAdd(r / 255.0f, g / 255.0f, b / 255.0f, a / 255.0f);
 
@@ -175,7 +176,10 @@ void DrawMesh(AEGfxVertexList* pMesh, float width, float height, float x, float 
     AEGfxMeshDraw(pMesh, AE_GFX_MDM_TRIANGLES);
 }
 
-void DrawTexture(Sprite& spriteObj, int currentDirection, AEGfxVertexList* pMesh, AEGfxTexture* pTexture, float width, float height, float x, float y, float rot) {
+void DrawTexture(Sprite& spriteObj, int currentDirection, AEGfxVertexList* pMesh, AEGfxTexture* pTexture, float width, float height, float x, float y, float rot, float sizeMultiplier) {
+    float scaleWidth{ width * sizeMultiplier };
+    float scaleHeight{ height * sizeMultiplier };
+
     AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
     AEGfxSetColorToMultiply(1.0f, 1.0f, 1.0f, 1.0f);
     AEGfxSetColorToAdd(0.0f, 0.0f, 0.0f, 0.0f);
@@ -188,7 +192,7 @@ void DrawTexture(Sprite& spriteObj, int currentDirection, AEGfxVertexList* pMesh
     AEGfxTextureSet(pTexture, spriteObj.GetU(), spriteObj.GetV());
 
     AEMtx33 scale, rotate, translate, transform;
-    AEMtx33Scale(&scale, width, height);
+    AEMtx33Scale(&scale, scaleWidth, scaleHeight);
     AEMtx33Rot(&rotate, rot);
     AEMtx33Trans(&translate, x, y);
 
@@ -201,8 +205,11 @@ void DrawTexture(Sprite& spriteObj, int currentDirection, AEGfxVertexList* pMesh
 
 void DrawTexturePlayer(Sprite& spriteObj, int currentDirection,
     AEGfxVertexList* pMesh, AEGfxTexture* pTexture,
-    float width, float height, float x, float y, float rot)
+    float width, float height, float x, float y, float rot, float sizeMultiplier)
 {
+    float scaleWidth{ width * sizeMultiplier };
+    float scaleHeight{ height * sizeMultiplier };
+    
     AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
     AEGfxSetColorToMultiply(1, 1, 1, 1);
     AEGfxSetColorToAdd(0, 0, 0, 0);
@@ -215,7 +222,7 @@ void DrawTexturePlayer(Sprite& spriteObj, int currentDirection,
     AEGfxTextureSet(pTexture, spriteObj.GetPlayerU(), spriteObj.GetPlayerV());
 
     AEMtx33 scale, rotate, translate, transform;
-    AEMtx33Scale(&scale, width, height);
+    AEMtx33Scale(&scale, scaleWidth, scaleHeight);
     AEMtx33Rot(&rotate, rot);
     AEMtx33Trans(&translate, x, y);
 
