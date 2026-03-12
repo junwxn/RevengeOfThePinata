@@ -107,6 +107,12 @@ namespace Combat {
 		}
 
 		if (enemy.IsAttacking() && !enemy.GetCombatFlag().attackResolved) {
+			// If the player moved out of range during wind-up, the attack whiffs
+			if (!CanStartAttack_Enemy(player, enemy)) {
+				enemy.MarkAttackResolved();
+				return;
+			}
+
 			CombatOutcome outcome =
 				EvaluateAttack(player, enemy, enemy.GetAttackProgress());
 			std::cout << "Outcome: " << outcome << std::endl;
