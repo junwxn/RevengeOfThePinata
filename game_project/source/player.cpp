@@ -832,6 +832,7 @@ void Player::ResetCombatVariables()
     std::cout << "RESETTING" << std::endl;
     m_AttackActive = false;
     m_AllowAttack = true;
+    m_AttackState.recovered = true;
 
     m_AttackProgress = 0.0f;
 
