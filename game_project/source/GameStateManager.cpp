@@ -2,6 +2,7 @@
 
 #include "GameStateManager.h"
 #include "MainMenu.h"
+#include "Tutorial.h"
 #include "level1.h"
 #include "Level2.h"
 #include "Level3.h"
@@ -31,6 +32,14 @@ void GSM_Update() {
 		fpDraw = MainMenu_Draw;
 		fpFree = MainMenu_Free;
 		fpUnload = MainMenu_Unload;
+		break;
+	case GS_TUTORIAL:
+		fpLoad = Tutorial_Load;
+		fpInitialize = Tutorial_Init;
+		fpUpdate = Tutorial_Update;
+		fpDraw = Tutorial_Draw;
+		fpFree = Tutorial_Free;
+		fpUnload = Tutorial_Unload;
 		break;
 	case GS_LEVEL1:
 		fpLoad = Level1_Load;
