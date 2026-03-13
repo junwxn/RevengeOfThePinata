@@ -38,6 +38,7 @@ static const char* PlayerStateStr(PlayerState st) {
 static const char* GameStateStr(int gs) {
     switch (gs) {
         case GS_MAINMENU:  return "MAINMENU";
+        case GS_TUTORIAL:  return "TUTORIAL";
         case GS_LEVEL1:    return "LEVEL1";
         case GS_LEVEL2:    return "LEVEL2";
         case GS_LEVEL3:    return "LEVEL3";

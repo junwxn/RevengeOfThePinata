@@ -8,7 +8,7 @@
 #include "Player.h"
 
 // --- Enums & Structs ---
-enum MenuScreen { MENU_MAIN, MENU_CONTROLS, MENU_CREDITS };
+enum MenuScreen { MENU_MAIN, MENU_CONTROLS, MENU_CREDITS, MENU_TUTORIAL_PROMPT };
 
 struct Button {
 	float x, y, w, h;
@@ -25,6 +25,8 @@ static s8 fontBody  = -1;
 static MenuScreen menuScreen;
 static Button mainButtons[4];
 static Button backButton;
+static Button yesButton;
+static Button noButton;
 static Button muteButton;
 static float titleBob;
 static float bgHue;
@@ -113,6 +115,22 @@ void MainMenu_Init() {
 	backButton.hovered = false;
 	backButton.hoverT  = 0.0f;
 
+	yesButton.x       = -110.0f;
+	yesButton.y       = -120.0f;
+	yesButton.w       = 160.0f;
+	yesButton.h       = 55.0f;
+	yesButton.label   = "Yes";
+	yesButton.hovered = false;
+	yesButton.hoverT  = 0.0f;
+
+	noButton.x       = 110.0f;
+	noButton.y       = -120.0f;
+	noButton.w       = 160.0f;
+	noButton.h       = 55.0f;
+	noButton.label   = "No";
+	noButton.hovered = false;
+	noButton.hoverT  = 0.0f;
+
 	muteButton.x       = -700.0f;
 	muteButton.y       = -380.0f;
 	muteButton.w       = 160.0f;
@@ -146,11 +164,22 @@ void MainMenu_Update(float dt) {
 		for (int i = 0; i < 4; i++)
 			mainButtons[i].hovered = IsInside(worldX, worldY, mainButtons[i]);
 		backButton.hovered = false;
+		yesButton.hovered = false;
+		noButton.hovered = false;
+	}
+	else if (menuScreen == MENU_TUTORIAL_PROMPT) {
+		for (int i = 0; i < 4; i++)
+			mainButtons[i].hovered = false;
+		backButton.hovered = IsInside(worldX, worldY, backButton);
+		yesButton.hovered = IsInside(worldX, worldY, yesButton);
+		noButton.hovered = IsInside(worldX, worldY, noButton);
 	}
 	else {
 		for (int i = 0; i < 4; i++)
 			mainButtons[i].hovered = false;
 		backButton.hovered = IsInside(worldX, worldY, backButton);
+		yesButton.hovered = false;
+		noButton.hovered = false;
 	}
 
 	// Mute button hover (always active regardless of screen)
@@ -163,6 +192,10 @@ void MainMenu_Update(float dt) {
 	}
 	backButton.hoverT += (backButton.hovered ? 1.0f : -1.0f) * dt * 6.0f;
 	backButton.hoverT = Clamp01(backButton.hoverT);
+	yesButton.hoverT += (yesButton.hovered ? 1.0f : -1.0f) * dt * 6.0f;
+	yesButton.hoverT = Clamp01(yesButton.hoverT);
+	noButton.hoverT += (noButton.hovered ? 1.0f : -1.0f) * dt * 6.0f;
+	noButton.hoverT = Clamp01(noButton.hoverT);
 	muteButton.hoverT += (muteButton.hovered ? 1.0f : -1.0f) * dt * 6.0f;
 	muteButton.hoverT = Clamp01(muteButton.hoverT);
 
@@ -173,10 +206,15 @@ void MainMenu_Update(float dt) {
 			muteButton.label = gAudio.IsMuted() ? "Unmute" : "Mute";
 		}
 		if (menuScreen == MENU_MAIN) {
-			if (mainButtons[0].hovered) { g_PlayerAttackCharges = DEFAULT_ATTACK_CHARGES; next = GS_LEVEL1; }
+			if (mainButtons[0].hovered) menuScreen = MENU_TUTORIAL_PROMPT;
 			if (mainButtons[1].hovered) menuScreen = MENU_CONTROLS;
 			if (mainButtons[2].hovered) menuScreen = MENU_CREDITS;
 			if (mainButtons[3].hovered) next = GS_QUIT;
+		}
+		else if (menuScreen == MENU_TUTORIAL_PROMPT) {
+			if (yesButton.hovered) { g_PlayerAttackCharges = DEFAULT_ATTACK_CHARGES; next = GS_TUTORIAL; }
+			if (noButton.hovered)  { g_PlayerAttackCharges = DEFAULT_ATTACK_CHARGES; next = GS_LEVEL1; }
+			if (backButton.hovered) menuScreen = MENU_MAIN;
 		}
 		else {
 			if (backButton.hovered) menuScreen = MENU_MAIN;
@@ -225,6 +263,20 @@ void MainMenu_Draw() {
 			                 mainButtons[i].w, mainButtons[i].h,
 			                 mainButtons[i].hoverT, ease);
 		}
+	}
+	else if (menuScreen == MENU_TUTORIAL_PROMPT) {
+		// Dark overlay + compact panel for the prompt
+		DrawMesh(rectMesh, 1600, 900, -800, 0, 0, 0, 0, 0, 180);
+		DrawPanel(0, -100, 550, 250, 1.0f);
+
+		// Yes / No buttons
+		DrawStyledButton(yesButton.x, yesButton.y, yesButton.w, yesButton.h, yesButton.hoverT, 1.0f);
+		DrawStyledButton(noButton.x, noButton.y, noButton.w, noButton.h, noButton.hoverT, 1.0f);
+
+		// Back button below the panel
+		DrawStyledButton(backButton.x, backButton.y,
+		                 backButton.w, backButton.h,
+		                 backButton.hoverT, 1.0f);
 	}
 	else {
 		// Sub-screen: dark overlay + bordered panel
@@ -312,6 +364,42 @@ void MainMenu_Draw() {
 		           backButton.x / 800.0f - tw * 0.5f,
 		           backButton.y / 450.0f - th * 0.5f,
 		           1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
+	}
+	else if (menuScreen == MENU_TUTORIAL_PROMPT) {
+		// Prompt text
+		{
+			const char* prompt = "Do you need a tutorial?";
+			float tw, th;
+			AEGfxGetPrintSize(fontBody, prompt, 0.8f, &tw, &th);
+			AEGfxPrint(fontBody, prompt, -tw * 0.5f, -30.0f / 450.0f, 0.8f, 1.0f, 1.0f, 1.0f, 1.0f);
+		}
+		// Yes button label
+		{
+			float tw, th;
+			AEGfxGetPrintSize(fontBody, yesButton.label, 1.0f, &tw, &th);
+			AEGfxPrint(fontBody, yesButton.label,
+			           yesButton.x / 800.0f - tw * 0.5f,
+			           yesButton.y / 450.0f - th * 0.5f,
+			           1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
+		}
+		// No button label
+		{
+			float tw, th;
+			AEGfxGetPrintSize(fontBody, noButton.label, 1.0f, &tw, &th);
+			AEGfxPrint(fontBody, noButton.label,
+			           noButton.x / 800.0f - tw * 0.5f,
+			           noButton.y / 450.0f - th * 0.5f,
+			           1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
+		}
+		// Back button label
+		{
+			float tw, th;
+			AEGfxGetPrintSize(fontBody, backButton.label, 1.0f, &tw, &th);
+			AEGfxPrint(fontBody, backButton.label,
+			           backButton.x / 800.0f - tw * 0.5f,
+			           backButton.y / 450.0f - th * 0.5f,
+			           1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
+		}
 	}
 
 	// Mute button (always visible)
