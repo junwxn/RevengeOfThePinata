@@ -2,15 +2,15 @@
 
 #include "Enemy.h"
 #include "Player.h"
-#include "MathFunctions.h"
 #include "Utils.h"
 #include "Map.h"
-#include <cmath>
-#include <queue>
-#include <unordered_map>
 #include "Raycast.h"
 #include "Sprite.h"
 #include "Shadow.h"
+#include "Combat.h"
+#include "Audio.h"
+#include <queue>
+
 
 //std::ostream& operator<<(std::ostream& os, CombatOutcome outcome) {
 //    if (outcome == CombatOutcome::OUTCOME_HIT) return os << "OUTCOME_HIT";
@@ -800,6 +800,7 @@ void Thrower::ThrowProjectile(AEVec2 const& targetPos) {
         m_projectileLifetime
     );
 
+    m_projectiles.back().SetType(m_projectileType);
     m_projectiles.back().Init();
 }
 
@@ -814,6 +815,38 @@ void Thrower::UpdateProjectiles(f32 dt, Combat::System& combat, Player& player) 
 
         AEVec2 projectilePos = projectile.GetPosition();
 
+        AEVec2 toProjectile{
+            projectilePos.x - player.GetX(),
+            projectilePos.y - player.GetY()
+        };
+
+        f32 dist = AEVec2Length(&toProjectile);
+
+        // Parry destroys or reflects projectile before it hits player
+        f32 parryRange = player.GetAttackRange();
+
+        if (player.GetParryStatus() && dist <= parryRange) {
+            player.GainAttackCharge();
+            gAudio.PlayCombatSFX(COMBAT_PARRY);
+
+            if (projectile.GetType() == ProjectileType::Normal) {
+                projectile.Destroy();
+            }
+            else if (projectile.GetType() == ProjectileType::Reflect) {
+                AEVec2 reflectDir = player.GetNormalizedVector();
+
+                if (AEVec2Length(&reflectDir) > 0.001f) {
+                    projectile.Reflect(reflectDir);
+                }
+                else {
+                    projectile.Destroy();
+                }
+            }
+
+            continue;
+        }
+
+        // Actual hit on player
         if (AreCirclesIntersecting(projectilePos.x, projectilePos.y, projectile.GetRadius(),
             player.GetX(), player.GetY(), player.GetSize())) {
             combat.ApplyProjectileDamage(player, *this, projectile.GetDamage());

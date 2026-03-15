@@ -329,4 +329,5 @@ protected:
     f32 m_projectileRadius{ 8.0f };
     f32 m_projectileDamage{ 50.0f };
     f32 m_projectileLifetime{ 3.0f };
+    ProjectileType m_projectileType{ ProjectileType::Reflect };
 };

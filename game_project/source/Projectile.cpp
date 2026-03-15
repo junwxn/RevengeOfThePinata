@@ -96,3 +96,14 @@ void Projectile::SetDirection(AEVec2 const& dir){
         m_dir = { 1.0f, 0.0f };
     }
 }
+
+void Projectile::Reflect(AEVec2 const& newDir) {
+    m_dir = newDir;
+
+    if (AEVec2Length(&m_dir) > 0.001f) {
+        AEVec2Normalize(&m_dir, &m_dir);
+    }
+
+    m_isReflected = true;
+    m_reflectGrace = 0.1f;
+}
