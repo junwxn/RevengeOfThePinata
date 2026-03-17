@@ -69,6 +69,10 @@ public:
 
     void ResetCombatVariables();
 
+    // Projectile parry
+    bool CanParryPoint(AEVec2 const& point) const;
+    AEVec2 GetParryDirection() const;
+
     // Getters allowing Game.cpp to access position for Camera/Collisions
     float GetX() const { return m_PosX; }
     float GetY() const { return m_PosY; }

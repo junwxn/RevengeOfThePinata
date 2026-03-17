@@ -883,3 +883,27 @@ void Player::EvaluateCurrentDirection()
     else
         m_CurrentDirection = PlayerDirection::DIRECTION_DOWN_RIGHT;
 }
+
+AEVec2 Player::GetParryDirection() const {
+    float angle = m_CurrentAngle; // use active parry angle
+    AEVec2 dir{ cosf(angle), sinf(angle) };
+    return dir;
+}
+
+bool Player::CanParryPoint(AEVec2 const& point) const {
+    if (!m_ParryActive || !m_CombatFlags.parryOn)
+        return false;
+
+    AEVec2 toPoint {
+        point.x - m_PosX,
+        point.y - m_PosY
+    };
+
+    float dist = AEVec2Length(&toPoint);
+    if (dist > GetAttackRange() || dist <= 0.001f)
+        return false;
+
+    AEVec2 parryDir = GetParryDirection();
+    float dot = toPoint.x * parryDir.x + toPoint.y * parryDir.y;
+    return dot >= m_ConeThreshold;
+}

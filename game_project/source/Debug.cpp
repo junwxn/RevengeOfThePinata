@@ -19,6 +19,7 @@ static AEGfxVertexList* debugRingMesh = nullptr;
 static bool s_showHUD           = false;   // F1
 static bool s_showCollisionGrid = false;   // F2
 static bool s_showEnemyDebug = false;   // F3
+static bool s_showPlayerCombatDebug = false;   // F4
 
 static DebugContext s_ctx = {};
 
@@ -73,6 +74,7 @@ void Debug_Init() {
     s_showHUD           = false;
     s_showCollisionGrid = false;
     s_showEnemyDebug = false;
+    s_showPlayerCombatDebug = false;
     s_ctx               = {};
 }
 
@@ -87,17 +89,42 @@ void Debug_Update() {
         s_showCollisionGrid = !s_showCollisionGrid;
     if (AEInputCheckTriggered(AEVK_F3))
         s_showEnemyDebug = !s_showEnemyDebug;
+    if (AEInputCheckTriggered(AEVK_F4))
+        s_showPlayerCombatDebug = !s_showPlayerCombatDebug;
 }
 
 // -----------------------------------------------------------------
 // World-space overlays (call while camera is still active)
 // -----------------------------------------------------------------
 void Debug_DrawWorld(float camX, float camY) {
-    if (!s_showHUD && !s_showCollisionGrid && !s_showEnemyDebug) return;
+    if (!s_showHUD && !s_showCollisionGrid && !s_showEnemyDebug && !s_showPlayerCombatDebug) return;
 
     AEGfxSetRenderMode(AE_GFX_RM_COLOR);
     AEGfxSetBlendMode(AE_GFX_BM_BLEND);
     AEGfxSetTransparency(1.0f);
+
+    // --- Player attack/parry cone (F4) ---
+    if (s_showPlayerCombatDebug && s_ctx.player) {
+        AEVec2 playerPos{ s_ctx.player->GetX(), s_ctx.player->GetY() };
+
+        // Same range currently used by attack/parry
+        float range = s_ctx.player->GetAttackRange();
+
+        // Your player cone half-angle is currently 30 degrees
+        float halfAngleRad = AEDegToRad(30.0f);
+
+        // Use current angle while attacking/parrying, otherwise use aim angle
+        float centerAngle = s_ctx.player->GetAimAngle();
+        if (s_ctx.player->IsAttacking() || s_ctx.player->GetParryStatus()) {
+            centerAngle = s_ctx.player->GetCurrentAngle();
+        }
+
+        // Range ring
+        Debug_DrawAttackRadius(playerPos, range);
+
+        // Cone
+        Debug_DrawCone(playerPos, range, centerAngle, halfAngleRad);
+    }
 
     // --- Enemy LOS / Attack Range / Hitbox (F3) ---
     if (s_showEnemyDebug && s_ctx.player && s_ctx.map) {
@@ -297,8 +324,8 @@ void Debug_DrawHUD() {
     }
 
     // Toggle hints (bottom-right)
-    AEGfxPrint(debugFont, "[F1] HUD  [F2] Grid  [F3] Enemy Debug",
-        0.35f, -0.95f, 0.5f, 0.5f, 0.5f, 0.5f, 1.0f);
+    AEGfxPrint(debugFont, "[F1] HUD  [F2] Grid  [F3] Enemy Debug  [F4] Player Combat",
+        0.20f, -0.95f, 0.5f, 0.5f, 0.5f, 0.5f, 1.0f);
 }
 
 void Debug_Unload() {
@@ -345,4 +372,51 @@ void Debug_DrawLOS(AEVec2 start, AEVec2 end, bool visible) {
 
     f32 angle = atan2f(dy, dx);
     DrawMesh(debugRectMesh, len, thickness, start.x, start.y, angle, r, g, b, a);
+}
+
+// -----------------------------------------------------------------
+// Player attack cone
+// -----------------------------------------------------------------
+void Debug_DrawCone(AEVec2 origin, float range, float centerAngle, float halfAngleRad) {
+    // Fixed debug color
+    f32 r = 255;
+    f32 g = 0;
+    f32 b = 0;
+    f32 a = 200;
+
+    float leftAngle = centerAngle + halfAngleRad;
+    float rightAngle = centerAngle - halfAngleRad;
+
+    AEVec2 centerEnd{
+        origin.x + cosf(centerAngle) * range,
+        origin.y + sinf(centerAngle) * range
+    };
+
+    AEVec2 leftEnd{
+        origin.x + cosf(leftAngle) * range,
+        origin.y + sinf(leftAngle) * range
+    };
+
+    AEVec2 rightEnd{
+        origin.x + cosf(rightAngle) * range,
+        origin.y + sinf(rightAngle) * range
+    };
+
+    const float thickness = 3.0f;
+
+    auto drawLine = [&](AEVec2 const& from, AEVec2 const& to)
+        {
+            float dx = to.x - from.x;
+            float dy = to.y - from.y;
+            float len = sqrtf(dx * dx + dy * dy);
+            if (len <= 0.001f) return;
+
+            float angle = atan2f(dy, dx);
+            DrawMesh(debugRectMesh, len, thickness, from.x, from.y, angle, r, g, b, a);
+        };
+
+    drawLine(origin, centerEnd);
+    drawLine(origin, leftEnd);
+    drawLine(origin, rightEnd);
+    drawLine(leftEnd, rightEnd);
 }

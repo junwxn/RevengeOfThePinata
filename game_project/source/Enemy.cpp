@@ -815,25 +815,15 @@ void Thrower::UpdateProjectiles(f32 dt, Combat::System& combat, Player& player) 
 
         AEVec2 projectilePos = projectile.GetPosition();
 
-        AEVec2 toProjectile{
-            projectilePos.x - player.GetX(),
-            projectilePos.y - player.GetY()
-        };
-
-        f32 dist = AEVec2Length(&toProjectile);
-
-        // Parry destroys or reflects projectile before it hits player
-        f32 parryRange = player.GetAttackRange();
-
-        if (player.GetParryStatus() && dist <= parryRange) {
+        if (player.CanParryPoint(projectilePos)) {
             player.GainAttackCharge();
             gAudio.PlayCombatSFX(COMBAT_PARRY);
 
             if (projectile.GetType() == ProjectileType::Normal) {
                 projectile.Destroy();
             }
-            else if (projectile.GetType() == ProjectileType::Reflect) {
-                AEVec2 reflectDir = player.GetNormalizedVector();
+            else if (projectile.GetType() == ProjectileType::Reflect && !projectile.IsReflected()) {
+                AEVec2 reflectDir = player.GetParryDirection();
 
                 if (AEVec2Length(&reflectDir) > 0.001f) {
                     projectile.Reflect(reflectDir);
