@@ -45,15 +45,21 @@ static void SpawnWave1_L2() {
 	Wave1.clear();
 	AEVec2 playerPos = { player.GetX(), player.GetY() };
 
-	// 3 Walkers + 2 Dashers
-	for (int i = 0; i < 3; ++i) {
+	// 3 Walkers + 2 Throwers
+	for (int i = 0; i < 2; ++i) {
 		AEVec2 p = GetRandomSpawnPos(gameMap, playerPos, 200.0f, ENEMY_SIZE);
 		Wave1.push_back(std::make_unique<Walker>(p, ENEMY_SIZE, 120.0f, 220.0f));
 	}
-	for (int i = 0; i < 2; ++i) {
+	for (int i = 0; i < 1; ++i) {
 		AEVec2 p = GetRandomSpawnPos(gameMap, playerPos, 200.0f, ENEMY_SIZE);
 		Wave1.push_back(std::make_unique<Dasher>(p, ENEMY_SIZE, 100.0f, 250.0f, 3.0f));
 	}
+	for (int i = 0; i < 2; ++i) {
+		AEVec2 p = GetRandomSpawnPos(gameMap, playerPos, 200.0f, ENEMY_SIZE);
+		Wave1.push_back(std::make_unique<Thrower>(p, ENEMY_SIZE, 50.0f, 100.0f));
+	}
+
+
 
 	for (auto& enemy : Wave1) {
 		enemy->Init();
@@ -156,7 +162,7 @@ void Level2_Update(float dt) {
 		);
 
 		for (auto& enemy : Wave1) {
-			enemy->Update(dt, CombatSystem, player);
+			enemy->Update(dt, CombatSystem, player, Wave1);
 			CombatSystem.Update(player, *enemy, camera, dt);
 		}
 
@@ -181,7 +187,7 @@ void Level2_Update(float dt) {
 		);
 
 		for (auto& enemy : Wave2) {
-			enemy->Update(dt, CombatSystem, player);
+			enemy->Update(dt, CombatSystem, player, Wave2);
 			CombatSystem.Update(player, *enemy, camera, dt);
 		}
 

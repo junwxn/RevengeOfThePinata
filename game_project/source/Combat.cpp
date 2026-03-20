@@ -37,6 +37,7 @@ namespace Combat {
 		}
 		return result;
 	}
+
 	f32 ComputeDamage(Enemy& attacker, Player& defender) {
 		f32 damageDealt = attacker.GetCombatStats().attack - defender.GetCombatStats().defense;
 		return defender.GetCombatFlag().blockOn ? damageDealt / 2 : damageDealt;
@@ -45,6 +46,18 @@ namespace Combat {
 	f32 ComputeDamage(Projectile& attacker, Player& defender) {
 		f32 damageDealt = attacker.GetDamage() - defender.GetCombatStats().defense;
 		return defender.GetCombatFlag().blockOn ? damageDealt / 2 : damageDealt;
+	}
+
+	f32 ComputeDamage(Projectile& attacker, Enemy& defender)
+	{
+		f32 damageDealt = attacker.GetDamage() - defender.GetCombatStats().defense;
+
+		if (damageDealt < 1.0f)
+		{
+			damageDealt = 1.0f;
+		}
+
+		return damageDealt;
 	}
 
 	void System::Update(Player& player, Enemy& enemy, Camera& camera, float dt) {
@@ -292,6 +305,22 @@ namespace Combat {
 		}
 		gAudio.PlayEnemySFX(ENEMY_HURT);
 	}
+
+	void System::ApplyDamage(Enemy& enemy, Projectile& projectile) {
+		f32 dmg = ComputeDamage(projectile, enemy);
+
+		enemy.DeductHealth(dmg);
+		enemy.SetHDP(dmg);
+
+		// Damaging Mark augment: accumulate damage on marked enemies
+		if (enemy.m_marked)
+		{
+			enemy.m_markAccumulatedDamage += dmg;
+		}
+
+		gAudio.PlayEnemySFX(ENEMY_HURT);
+	}
+
 	void System::ColorIndicator(Enemy& enemy, f32 r, f32 g, f32 b, f32 a) {
 		f32 isoHeight = enemy.GetSize() * (GRID_H / GRID_W);
 

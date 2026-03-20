@@ -70,9 +70,8 @@ public:
     void ResetCombatVariables();
 
     // Projectile parry
-    bool CanParryProjectileSweep(AEVec2 const& prevPos, AEVec2 const& currPos, f32 projectileRadius) const;
-    bool CanParryPoint(AEVec2 const& point) const;
     AEVec2 GetParryDirection() const;
+    bool CanParryProjectileSweep(AEVec2 const& prevPos, AEVec2 const& currPos, f32 projectileRadius) const;
 
     // Getters allowing Game.cpp to access position for Camera/Collisions
     float GetX() const { return m_PosX; }
@@ -91,6 +90,7 @@ public:
     f32 GetConeThreshold() const { return m_ConeThreshold; }
     f32 GetStartAngle() const { return m_StartAngle; }
     f32 GetCurrentAngle() const { return m_CurrentAngle; }
+    f32 GetPreviousParryAngle() const { return m_PreviousParryAngle; }
 
     bool GetBlockStatus() const { return m_BlockActive; }
     bool GetParryStatus() const { return m_ParryActive; }
@@ -172,13 +172,13 @@ private:
     // -------------------------- //
     Combat::CombatStats m_CombatStats
     {
-        200.0f, // health
+        2000.0f, // health
         40.0f, // attack
         5.0f, // defense
         0.0f, // crit chance
         0.0f, // crit multiplier
         0.0f, // attack multiplier
-        200.0f // max health
+        2000.0f // max health
     };
 
     Combat::CombatFlags m_CombatFlags
@@ -227,6 +227,7 @@ private:
     float m_StartAngle{};
     float m_EndAngle{};
     float m_CurrentAngle{};
+    float m_PreviousParryAngle{};
 
     f32 a_StartDegree{ 30.0f };
     f32 a_EndDegree{ 30.0f };

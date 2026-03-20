@@ -174,7 +174,7 @@ void Level3_Update(float dt) {
 			Wave1.end()
 		);
 		for (auto& enemy : Wave1) {
-			enemy->Update(dt, CombatSystem, player);
+			enemy->Update(dt, CombatSystem, player, Wave1);
 			CombatSystem.Update(player, *enemy, camera, dt);
 		}
 
@@ -196,7 +196,7 @@ void Level3_Update(float dt) {
 			Wave2.end()
 		);
 		for (auto& enemy : Wave2) {
-			enemy->Update(dt, CombatSystem, player);
+			enemy->Update(dt, CombatSystem, player, Wave2);
 			CombatSystem.Update(player, *enemy, camera, dt);
 		}
 
@@ -218,7 +218,7 @@ void Level3_Update(float dt) {
 			Wave3.end()
 		);
 		for (auto& enemy : Wave3) {
-			enemy->Update(dt, CombatSystem, player);
+			enemy->Update(dt, CombatSystem, player, Wave3);
 			CombatSystem.Update(player, *enemy, camera, dt);
 		}
 

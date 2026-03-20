@@ -319,7 +319,7 @@ void Tutorial_Update(float dt) {
 			tutorialEnemies.end()
 		);
 		for (auto& enemy : tutorialEnemies) {
-			enemy->Update(dt, CombatSystem, player);
+			enemy->Update(dt, CombatSystem, player, tutorialEnemies);
 			CombatSystem.Update(player, *enemy, camera, dt);
 		}
 		// Detect if player gained a charge via parry
@@ -351,7 +351,7 @@ void Tutorial_Update(float dt) {
 			tutorialEnemies.end()
 		);
 		for (auto& enemy : tutorialEnemies) {
-			enemy->Update(dt, CombatSystem, player);
+			enemy->Update(dt, CombatSystem, player, tutorialEnemies);
 			CombatSystem.Update(player, *enemy, camera, dt);
 		}
 		if (tutorialEnemies.empty()) {

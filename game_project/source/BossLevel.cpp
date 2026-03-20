@@ -114,7 +114,7 @@ void BossLevel_Update(float dt) {
 		);
 
 		for (auto& enemy : Wave1) {
-			enemy->Update(dt, CombatSystem, player);
+			enemy->Update(dt, CombatSystem, player, Wave1);
 			CombatSystem.Update(player, *enemy, camera, dt);
 		}
 

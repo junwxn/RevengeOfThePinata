@@ -398,8 +398,8 @@ void Player::Update(float dt, Combat::System& combat, std::vector<std::unique_pt
 
             blockProgress = float(m_BlockCurrentFrame - m_BlockData.startUp) / (m_BlockData.parry - 1);
 
+            m_PreviousParryAngle = m_CurrentAngle;
             m_CurrentAngle = Vectors::lerp(m_StartAngle, m_EndAngle, blockProgress);
-            //std::cout << "blockProgress: " << blockProgress << std::endl;
         }
         else if (m_BlockCurrentFrame < m_BlockData.total)
         {
@@ -735,6 +735,7 @@ void Player::StartBlock(Combat::CombatData::BlockData& blockData, std::vector<st
 
     // 60-degree cone
     m_CurrentAngle = m_AimAngle;
+    m_PreviousParryAngle = m_CurrentAngle;
     m_StartAngle = m_AimAngle + AEDegToRad(blockData.startAngle);
     m_EndAngle = m_AimAngle - AEDegToRad(blockData.endAngle);
 }
@@ -885,44 +886,54 @@ void Player::EvaluateCurrentDirection()
         m_CurrentDirection = PlayerDirection::DIRECTION_DOWN_RIGHT;
 }
 
+namespace
+{
+    float NormalizeAnglePi(float angle)
+    {
+        while (angle > PI)  angle -= 2.0f * PI;
+        while (angle < -PI) angle += 2.0f * PI;
+        return angle;
+    }
+
+    bool IsAngleWithinDirectedSweep(float testAngle, float fromAngle, float toAngle)
+    {
+        testAngle = NormalizeAnglePi(testAngle);
+        fromAngle = NormalizeAnglePi(fromAngle);
+        toAngle = NormalizeAnglePi(toAngle);
+
+        float deltaSweep = NormalizeAnglePi(toAngle - fromAngle);
+        float deltaTest = NormalizeAnglePi(testAngle - fromAngle);
+
+        if (deltaSweep >= 0.0f)
+            return deltaTest >= 0.0f && deltaTest <= deltaSweep;
+        else
+            return deltaTest <= 0.0f && deltaTest >= deltaSweep;
+    }
+}
+
 AEVec2 Player::GetParryDirection() const
 {
     AEVec2 dir;
     AEVec2FromAngle(&dir, m_CurrentAngle);
+
+    float sweepDelta = NormalizeAnglePi(m_CurrentAngle - m_PreviousParryAngle);
+
+    // If there was meaningful sweep this frame, use the leading tangent direction.
+    if (fabsf(sweepDelta) > 0.0001f)
+    {
+        if (sweepDelta > 0.0f)
+        {
+            // CCW sweep -> tangent points 90 deg left of blade
+            AEVec2Set(&dir, -sinf(m_CurrentAngle), cosf(m_CurrentAngle));
+        }
+        else
+        {
+            // CW sweep -> tangent points 90 deg right of blade
+            AEVec2Set(&dir, sinf(m_CurrentAngle), -cosf(m_CurrentAngle));
+        }
+    }
+
     return dir;
-}
-
-bool Player::CanParryPoint(AEVec2 const& point) const
-{
-    if (!m_ParryActive || !m_CombatFlags.parryOn)
-        return false;
-
-    AEVec2 bladeDir;
-    AEVec2FromAngle(&bladeDir, m_CurrentAngle);
-
-    AEVec2 playerPos;
-    AEVec2 pointCopy = point;
-    AEVec2 toPoint;
-
-    AEVec2Set(&playerPos, m_PosX, m_PosY);
-    AEVec2Sub(&toPoint, &pointCopy, &playerPos);
-
-    f32 reach = GetAttackRange();
-    f32 forward = AEVec2DotProduct(&toPoint, &bladeDir);
-
-    if (forward < 0.0f || forward > reach)
-        return false;
-
-    AEVec2 forwardVec;
-    AEVec2 perpVec;
-
-    AEVec2Scale(&forwardVec, &bladeDir, forward);
-    AEVec2Sub(&perpVec, &toPoint, &forwardVec);
-
-    f32 perpDistSq = AEVec2SquareLength(&perpVec);
-
-    const f32 bladeThickness = 20.0f;
-    return perpDistSq <= bladeThickness * bladeThickness;
 }
 
 bool Player::CanParryProjectileSweep(AEVec2 const& prevPos, AEVec2 const& currPos, f32 projectileRadius) const
@@ -930,23 +941,53 @@ bool Player::CanParryProjectileSweep(AEVec2 const& prevPos, AEVec2 const& currPo
     if (!m_ParryActive || !m_CombatFlags.parryOn)
         return false;
 
-    AEVec2 bladeDir;
-    AEVec2FromAngle(&bladeDir, m_CurrentAngle);
-
-    f32 reach = GetAttackRange();
-
-    AEVec2 bladeStart;
-    AEVec2 bladeOffset;
-    AEVec2 bladeEnd;
-
-    AEVec2Set(&bladeStart, m_PosX, m_PosY);
-    AEVec2Scale(&bladeOffset, &bladeDir, reach);
-    AEVec2Add(&bladeEnd, &bladeStart, &bladeOffset);
-
     const f32 bladeThickness = 20.0f;
     const f32 totalThickness = bladeThickness + projectileRadius;
-    const f32 totalThicknessSq = totalThickness * totalThickness;
+    const f32 reach = GetAttackRange();
 
-    f32 distSq = DistanceSqSegmentToSegment(bladeStart, bladeEnd, prevPos, currPos);
-    return distSq <= totalThicknessSq;
+    AEVec2 playerPos;
+    AEVec2Set(&playerPos, m_PosX, m_PosY);
+
+    auto PointInsideSweptParry = [&](AEVec2 const& point) -> bool
+        {
+            AEVec2 pointCopy = point;
+            AEVec2 toPoint;
+            AEVec2Sub(&toPoint, &pointCopy, &playerPos);
+
+            float distSq = AEVec2SquareLength(&toPoint);
+            float maxDist = reach + totalThickness;
+            if (distSq > maxDist * maxDist)
+                return false;
+
+            float dist = sqrtf(distSq);
+            if (dist <= 0.0001f)
+                return true;
+
+            float pointAngle = atan2f(toPoint.y, toPoint.x);
+            if (!IsAngleWithinDirectedSweep(pointAngle, m_PreviousParryAngle, m_CurrentAngle))
+                return false;
+
+            // Make sure point is close enough to the blade radius band.
+            // This prevents points near the player center from always counting.
+            if (dist < 0.0f || dist > reach + totalThickness)
+                return false;
+
+            return true;
+        };
+
+    // Projectile counts if either endpoint entered the swept wedge this frame.
+    if (PointInsideSweptParry(prevPos))
+        return true;
+
+    if (PointInsideSweptParry(currPos))
+        return true;
+
+    // Optional safety: check midpoint too, helps with some fast-moving cases.
+    AEVec2 midPos;
+    midPos.x = (prevPos.x + currPos.x) * 0.5f;
+    midPos.y = (prevPos.y + currPos.y) * 0.5f;
+    if (PointInsideSweptParry(midPos))
+        return true;
+
+    return false;
 }

@@ -1,4 +1,6 @@
 #pragma once
+#include "pch.h"
+
 #include "Utils.h"
 #include "Combat.h"
 #include "Player.h"
@@ -38,9 +40,10 @@ public:
     virtual ~Enemy();
 
     void Init();
-    void Update(f32 dt, Combat::System& combat, Player& player) {
+    void Update(f32 dt, Combat::System& combat, Player& player,
+        std::vector<std::unique_ptr<Enemy>>& enemies) {
         BaseUpdate(dt, combat, player);
-        ChildUpdate(dt, combat, player);
+        ChildUpdate(dt, combat, player, enemies);
     }
     virtual void Draw();
 
@@ -259,7 +262,8 @@ protected:
     void MoveTowardTarget(AEVec2 const& targetPos, f32 dt);
 
     void BaseUpdate(f32 dt, Combat::System& combat, Player& player);
-    virtual void ChildUpdate(f32 dt, Combat::System& combat, Player& player) = 0;
+    virtual void ChildUpdate(f32 dt, Combat::System& combat, Player& player,
+        std::vector<std::unique_ptr<Enemy>>& enemies) = 0;
 };
 
 // -----------------------
@@ -271,7 +275,8 @@ public:
     using Enemy::Enemy;
 
 protected:
-    void ChildUpdate(f32 dt, Combat::System& combat, Player& player) override;
+    void ChildUpdate(f32 dt, Combat::System& combat, Player& player,
+        std::vector<std::unique_ptr<Enemy>>& enemies) override;
 };
 
 // -----------------------
@@ -290,7 +295,8 @@ protected:
     f32 m_dashDistance{ 200.0f };
 
     void PerformDash(AEVec2 const& direction);
-    void ChildUpdate(f32 dt, Combat::System& combat, Player& player) override;
+    void ChildUpdate(f32 dt, Combat::System& combat, Player& player,
+        std::vector<std::unique_ptr<Enemy>>& enemies) override;
 };
 
 // ---------------------
@@ -302,7 +308,8 @@ public:
     Boss(AEVec2 pos, f32 size, f32 hp, f32 speed);
 
 protected:
-    void ChildUpdate(f32 dt, Combat::System& combat, Player& player) override;
+    void ChildUpdate(f32 dt, Combat::System& combat, Player& player,
+        std::vector<std::unique_ptr<Enemy>>& enemies) override;
 };
 
 // ------------------------
@@ -314,9 +321,11 @@ public:
     void Draw() override;
 
 protected:
-    void ChildUpdate(f32 dt, Combat::System& combat, Player& player) override;
+    void ChildUpdate(f32 dt, Combat::System& combat, Player& player,
+        std::vector<std::unique_ptr<Enemy>>& enemies) override;
     void ThrowProjectile(AEVec2 const& targetPos);
-    void UpdateProjectiles(f32 dt, Combat::System& combat, Player& player);
+    void UpdateProjectiles(f32 dt, Combat::System& combat, Player& player,
+        std::vector<std::unique_ptr<Enemy>>& enemies);
     void CleanupProjectiles();
 
     std::vector<Projectile> m_projectiles{};

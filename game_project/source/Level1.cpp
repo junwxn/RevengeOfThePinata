@@ -71,7 +71,7 @@ static void SpawnWave2() {
 
 	for (int i = 0; i < 1; ++i) {
 		AEVec2 spawnPos = GetRandomSpawnPos(gameMap, playerPos, 200.0f, ENEMY_SIZE);
-		Wave2.push_back(std::make_unique<Walker>(spawnPos, ENEMY_SIZE, 100.0f, 0.0f));
+		Wave2.push_back(std::make_unique<Walker>(spawnPos, ENEMY_SIZE, 100.0f, 100.0f));
 	}
 
 	for (auto& enemy : Wave2) {
@@ -185,7 +185,7 @@ void Level1_Update(float dt) {
 		);
 
 		for (auto& enemy : Wave1) {
-			enemy->Update(dt, CombatSystem, player);
+			enemy->Update(dt, CombatSystem, player, Wave1);
 			CombatSystem.Update(player, *enemy, camera, dt);
 		}
 
@@ -213,7 +213,7 @@ void Level1_Update(float dt) {
 		);
 
 		for (auto& enemy : Wave2) {
-			enemy->Update(dt, CombatSystem, player);
+			enemy->Update(dt, CombatSystem, player, Wave2);
 			CombatSystem.Update(player, *enemy, camera, dt);
 		}
 

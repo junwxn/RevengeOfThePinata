@@ -595,7 +595,9 @@ void Enemy::MoveTowardTarget(AEVec2 const& targetPos, f32 dt) {
 //------------------------
  //| Child Class: Walker |
  //-----------------------
-void Walker::ChildUpdate(f32 dt, Combat::System& combat, Player& player) {
+void Walker::ChildUpdate(f32 dt, Combat::System& combat, Player& player,
+    std::vector<std::unique_ptr<Enemy>>& enemies) {
+    (void)enemies;
     AEVec2 playerPos{ player.GetX(), player.GetY() };
     AEVec2Sub(&m_enemyToPlayerDir, &playerPos, &m_pos);
     AEVec2Normalize(&m_enemyToPlayerDir, &m_enemyToPlayerDir);
@@ -639,7 +641,9 @@ void Dasher::PerformDash(AEVec2 const& direction) {
     }
 }
 
-void Dasher::ChildUpdate(f32 dt, Combat::System& combat, Player& player) {
+void Dasher::ChildUpdate(f32 dt, Combat::System& combat, Player& player,
+    std::vector<std::unique_ptr<Enemy>>& enemies) {
+    (void)enemies;
     AEVec2 playerPos{ player.GetX(), player.GetY() };
     AEVec2Sub(&m_enemyToPlayerDir, &playerPos, &m_pos);
     f32 dist = AEVec2Length(&m_enemyToPlayerDir);
@@ -694,7 +698,9 @@ Boss::Boss(AEVec2 pos, f32 size, f32 hp, f32 speed)
     m_WindUpDuration = 1.0f; // Boss winds up longer
 }
 
-void Boss::ChildUpdate(f32 dt, Combat::System& combat, Player& player) {
+void Boss::ChildUpdate(f32 dt, Combat::System& combat, Player& player,
+    std::vector<std::unique_ptr<Enemy>>& enemies) {
+    (void)enemies;
     AEVec2 playerPos{ player.GetX(), player.GetY() };
     AEVec2Sub(&m_enemyToPlayerDir, &playerPos, &m_pos);
     AEVec2Normalize(&m_enemyToPlayerDir, &m_enemyToPlayerDir);
@@ -746,7 +752,8 @@ void Thrower::Draw() {
     }
 }
 
-void Thrower::ChildUpdate(f32 dt, Combat::System& combat, Player& player) {
+void Thrower::ChildUpdate(f32 dt, Combat::System& combat, Player& player,
+    std::vector<std::unique_ptr<Enemy>>& enemies) {
     // Update direction vector, get dist bw enemy and player
     AEVec2 playerPos{ player.GetX(), player.GetY() };
     AEVec2Sub(&m_enemyToPlayerDir, &playerPos, &m_pos);
@@ -757,7 +764,7 @@ void Thrower::ChildUpdate(f32 dt, Combat::System& combat, Player& player) {
     m_AimAngle = atan2(-m_enemyToPlayerDir.y, -m_enemyToPlayerDir.x);
 
     // Check projectile collision / projectile movement
-    UpdateProjectiles(dt, combat, player);
+    UpdateProjectiles(dt, combat, player, enemies);
     // Remove inactive projectiles (eg hit wall, hit player, lifetime 0)
     CleanupProjectiles();
 
@@ -805,7 +812,8 @@ void Thrower::ThrowProjectile(AEVec2 const& targetPos) {
 }
 
 // Projectile collision check
-void Thrower::UpdateProjectiles(f32 dt, Combat::System& combat, Player& player)
+void Thrower::UpdateProjectiles(f32 dt, Combat::System& combat, Player& player,
+    std::vector<std::unique_ptr<Enemy>>& enemies)
 {
     for (Projectile& projectile : m_projectiles)
     {
@@ -830,13 +838,41 @@ void Thrower::UpdateProjectiles(f32 dt, Combat::System& combat, Player& player)
             }
             else if (projectile.GetType() == ProjectileType::Reflect)
             {
-                projectile.Reflect(player.GetParryDirection());
+                AEVec2 reflectDir;
+                AEVec2FromAngle(&reflectDir, player.GetAimAngle());
+                projectile.Reflect(reflectDir);
             }
 
             continue;
         }
 
-        // Normal hit on player if not parried
+        // Reflected projectile now damages enemies
+        if (projectile.IsReflected())
+        {
+            for (auto& enemyPtr : enemies)
+            {
+                Enemy* enemy = enemyPtr.get();
+                if (!enemy)
+                    continue;
+
+                if (!enemy->GetIsAlive())
+                    continue;
+
+                if (AreCirclesIntersecting(
+                    currPos.x, currPos.y, projectile.GetRadius(),
+                    enemy->GetX(), enemy->GetY(), enemy->GetSize()))
+                {
+                    combat.ApplyDamage(*enemy, projectile);
+                    projectile.Destroy();
+                    break;
+                }
+            }
+
+            // Reflected projectile should never damage player
+            continue;
+        }
+
+        // Normal hit on player if not parried / not reflected into an enemy
         if (AreCirclesIntersecting(
             currPos.x, currPos.y, projectile.GetRadius(),
             player.GetX(), player.GetY(), player.GetSize()))
