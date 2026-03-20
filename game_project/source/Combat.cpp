@@ -42,6 +42,11 @@ namespace Combat {
 		return defender.GetCombatFlag().blockOn ? damageDealt / 2 : damageDealt;
 	}
 
+	f32 ComputeDamage(Projectile& attacker, Player& defender) {
+		f32 damageDealt = attacker.GetDamage() - defender.GetCombatStats().defense;
+		return defender.GetCombatFlag().blockOn ? damageDealt / 2 : damageDealt;
+	}
+
 	void System::Update(Player& player, Enemy& enemy, Camera& camera, float dt) {
 			
 		//if (enemy.IsStunned()) {
@@ -269,6 +274,11 @@ namespace Combat {
 		}
 		player.DeductHealth(ComputeDamage(enemy, player));
 		player.SetHDP(ComputeDamage(enemy, player));
+		gAudio.PlayPlayerSFX(PLAYER_HURT);
+	}
+	void System::ApplyDamage(Player& player, Projectile& projectile) {
+		player.DeductHealth(ComputeDamage(projectile, player));
+		player.SetHDP(ComputeDamage(projectile, player));
 		gAudio.PlayPlayerSFX(PLAYER_HURT);
 	}
 

@@ -58,3 +58,9 @@ AEGfxVertexList* CreateSpriteRectMesh(u32 color, float newU, float newV);
 void DrawMesh(AEGfxVertexList* pMesh, float width, float height, float x, float y, float rot, float r, float g, float b, float a);
 void DrawTexture(Sprite& spriteObj, int currentDirection, AEGfxVertexList* pMesh, AEGfxTexture* pTexture, float width, float height, float x, float y, float rot, float sizeMultiplier);
 void DrawTexturePlayer(Sprite& spriteObj, int currentDirection, AEGfxVertexList* pMesh, AEGfxTexture* pTexture, float width, float height, float x, float y, float rot, float sizeMultiplier);
+
+// Parry segment checks
+f32 ClampFloat(f32 t);
+bool PointOnSegment(AEVec2 const& p, AEVec2 const& a, AEVec2 const& b);
+f32 DistanceSqPointToSegment(AEVec2 const& point, AEVec2 const& segStart, AEVec2 const& segEnd);
+f32 DistanceSqSegmentToSegment(AEVec2 const& a0, AEVec2 const& a1, AEVec2 const& b0, AEVec2 const& b1);

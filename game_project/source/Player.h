@@ -70,6 +70,7 @@ public:
     void ResetCombatVariables();
 
     // Projectile parry
+    bool CanParryProjectileSweep(AEVec2 const& prevPos, AEVec2 const& currPos, f32 projectileRadius) const;
     bool CanParryPoint(AEVec2 const& point) const;
     AEVec2 GetParryDirection() const;
 

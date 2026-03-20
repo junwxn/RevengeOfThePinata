@@ -4,6 +4,7 @@
 class Player;
 class Enemy;
 class Camera;
+class Projectile;
 
 enum class CombatOutcome {
     OUTCOME_NONE,
@@ -110,6 +111,7 @@ namespace Combat {
 
     f32 ComputeDamage(Player& attacker, Enemy& defender);
     f32 ComputeDamage(Enemy& attacker, Player& defender);
+    f32 ComputeDamage(Projectile& attacker, Player& defender);
 
     class System 
     {
@@ -126,6 +128,7 @@ namespace Combat {
             void ApplyBlockReaction_Enemy(Player& player, Enemy& enemy);
             //void ApplyGotHitReaction_Enemy(Player& player, Enemy& enemy);
             void ApplyKnockbackReaction_Enemy(Player& player, Enemy& enemy, double multiplier);
+            void ApplyDamage(Player& player, Projectile& projectile);
             void ApplyDamage(Player& player, Enemy& enemy);
             void ApplyDamage(Enemy& enemy, Player& player);
             void ApplyProjectileDamage(Player& player, Enemy& enemy, f32 damage);

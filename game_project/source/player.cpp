@@ -10,6 +10,7 @@
 #include "AugmentData.h"
 #include "Audio.h"
 #include "Shadow.h"
+#include "Utils.h"
 
 int g_PlayerAttackCharges = DEFAULT_ATTACK_CHARGES;
 
@@ -884,26 +885,68 @@ void Player::EvaluateCurrentDirection()
         m_CurrentDirection = PlayerDirection::DIRECTION_DOWN_RIGHT;
 }
 
-AEVec2 Player::GetParryDirection() const {
-    float angle = m_CurrentAngle; // use active parry angle
-    AEVec2 dir{ cosf(angle), sinf(angle) };
+AEVec2 Player::GetParryDirection() const
+{
+    AEVec2 dir;
+    AEVec2FromAngle(&dir, m_CurrentAngle);
     return dir;
 }
 
-bool Player::CanParryPoint(AEVec2 const& point) const {
+bool Player::CanParryPoint(AEVec2 const& point) const
+{
     if (!m_ParryActive || !m_CombatFlags.parryOn)
         return false;
 
-    AEVec2 toPoint {
-        point.x - m_PosX,
-        point.y - m_PosY
-    };
+    AEVec2 bladeDir;
+    AEVec2FromAngle(&bladeDir, m_CurrentAngle);
 
-    float dist = AEVec2Length(&toPoint);
-    if (dist > GetAttackRange() || dist <= 0.001f)
+    AEVec2 playerPos;
+    AEVec2 pointCopy = point;
+    AEVec2 toPoint;
+
+    AEVec2Set(&playerPos, m_PosX, m_PosY);
+    AEVec2Sub(&toPoint, &pointCopy, &playerPos);
+
+    f32 reach = GetAttackRange();
+    f32 forward = AEVec2DotProduct(&toPoint, &bladeDir);
+
+    if (forward < 0.0f || forward > reach)
         return false;
 
-    AEVec2 parryDir = GetParryDirection();
-    float dot = toPoint.x * parryDir.x + toPoint.y * parryDir.y;
-    return dot >= m_ConeThreshold;
+    AEVec2 forwardVec;
+    AEVec2 perpVec;
+
+    AEVec2Scale(&forwardVec, &bladeDir, forward);
+    AEVec2Sub(&perpVec, &toPoint, &forwardVec);
+
+    f32 perpDistSq = AEVec2SquareLength(&perpVec);
+
+    const f32 bladeThickness = 20.0f;
+    return perpDistSq <= bladeThickness * bladeThickness;
+}
+
+bool Player::CanParryProjectileSweep(AEVec2 const& prevPos, AEVec2 const& currPos, f32 projectileRadius) const
+{
+    if (!m_ParryActive || !m_CombatFlags.parryOn)
+        return false;
+
+    AEVec2 bladeDir;
+    AEVec2FromAngle(&bladeDir, m_CurrentAngle);
+
+    f32 reach = GetAttackRange();
+
+    AEVec2 bladeStart;
+    AEVec2 bladeOffset;
+    AEVec2 bladeEnd;
+
+    AEVec2Set(&bladeStart, m_PosX, m_PosY);
+    AEVec2Scale(&bladeOffset, &bladeDir, reach);
+    AEVec2Add(&bladeEnd, &bladeStart, &bladeOffset);
+
+    const f32 bladeThickness = 20.0f;
+    const f32 totalThickness = bladeThickness + projectileRadius;
+    const f32 totalThicknessSq = totalThickness * totalThickness;
+
+    f32 distSq = DistanceSqSegmentToSegment(bladeStart, bladeEnd, prevPos, currPos);
+    return distSq <= totalThicknessSq;
 }

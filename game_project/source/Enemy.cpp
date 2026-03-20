@@ -805,41 +805,43 @@ void Thrower::ThrowProjectile(AEVec2 const& targetPos) {
 }
 
 // Projectile collision check
-void Thrower::UpdateProjectiles(f32 dt, Combat::System& combat, Player& player) {
-    for (Projectile& projectile : m_projectiles) {
+void Thrower::UpdateProjectiles(f32 dt, Combat::System& combat, Player& player)
+{
+    for (Projectile& projectile : m_projectiles)
+    {
+        AEVec2 prevPos = projectile.GetPosition();
+
         projectile.Update(dt, m_pMap);
 
-        if (!projectile.IsActive()) {
+        if (!projectile.IsActive())
             continue;
-        }
 
-        AEVec2 projectilePos = projectile.GetPosition();
+        AEVec2 currPos = projectile.GetPosition();
 
-        if (player.CanParryPoint(projectilePos)) {
+        // Projectile got sliced by parry during this frame
+        if (player.CanParryProjectileSweep(prevPos, currPos, projectile.GetRadius()))
+        {
             player.GainAttackCharge();
             gAudio.PlayCombatSFX(COMBAT_PARRY);
 
-            if (projectile.GetType() == ProjectileType::Normal) {
+            if (projectile.GetType() == ProjectileType::Normal)
+            {
                 projectile.Destroy();
             }
-            else if (projectile.GetType() == ProjectileType::Reflect && !projectile.IsReflected()) {
-                AEVec2 reflectDir = player.GetParryDirection();
-
-                if (AEVec2Length(&reflectDir) > 0.001f) {
-                    projectile.Reflect(reflectDir);
-                }
-                else {
-                    projectile.Destroy();
-                }
+            else if (projectile.GetType() == ProjectileType::Reflect)
+            {
+                projectile.Reflect(player.GetParryDirection());
             }
 
             continue;
         }
 
-        // Actual hit on player
-        if (AreCirclesIntersecting(projectilePos.x, projectilePos.y, projectile.GetRadius(),
-            player.GetX(), player.GetY(), player.GetSize())) {
-            combat.ApplyProjectileDamage(player, *this, projectile.GetDamage());
+        // Normal hit on player if not parried
+        if (AreCirclesIntersecting(
+            currPos.x, currPos.y, projectile.GetRadius(),
+            player.GetX(), player.GetY(), player.GetSize()))
+        {
+            combat.ApplyDamage(player, projectile);
             projectile.Destroy();
         }
     }

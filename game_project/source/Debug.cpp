@@ -113,11 +113,8 @@ void Debug_DrawWorld(float camX, float camY) {
         // Your player cone half-angle is currently 30 degrees
         float halfAngleRad = AEDegToRad(30.0f);
 
-        // Use current angle while attacking/parrying, otherwise use aim angle
+        // Non-moving cone: always use the player's aim angle
         float centerAngle = s_ctx.player->GetAimAngle();
-        if (s_ctx.player->IsAttacking() || s_ctx.player->GetParryStatus()) {
-            centerAngle = s_ctx.player->GetCurrentAngle();
-        }
 
         // Range ring
         Debug_DrawAttackRadius(playerPos, range);

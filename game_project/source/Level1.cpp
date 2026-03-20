@@ -69,9 +69,9 @@ static void SpawnWave2() {
 	Wave2.clear();
 	AEVec2 playerPos = { player.GetX(), player.GetY() };
 
-	for (int i = 0; i < 10; ++i) {
+	for (int i = 0; i < 1; ++i) {
 		AEVec2 spawnPos = GetRandomSpawnPos(gameMap, playerPos, 200.0f, ENEMY_SIZE);
-		Wave2.push_back(std::make_unique<Walker>(spawnPos, ENEMY_SIZE, 100.0f, 200.0f));
+		Wave2.push_back(std::make_unique<Walker>(spawnPos, ENEMY_SIZE, 100.0f, 0.0f));
 	}
 
 	for (auto& enemy : Wave2) {
