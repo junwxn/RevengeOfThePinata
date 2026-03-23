@@ -17,7 +17,7 @@ public:
     Projectile(AEVec2 const& startPos = { 0.0f, 0.0f },
                AEVec2 const& direction = { 1.0f, 0.0f },
                f32 speed = 0.0f,
-               f32 radius = .0f,
+               f32 radius = 0.0f,
                f32 damage = 10.0f,
                f32 lifetime = 3.0f);
 

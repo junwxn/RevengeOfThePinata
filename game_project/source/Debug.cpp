@@ -103,24 +103,28 @@ void Debug_DrawWorld(float camX, float camY) {
     AEGfxSetBlendMode(AE_GFX_BM_BLEND);
     AEGfxSetTransparency(1.0f);
 
-    // --- Player attack/parry cone (F4) ---
+    // --- Player attack/parry sector (F4) ---
     if (s_showPlayerCombatDebug && s_ctx.player) {
         AEVec2 playerPos{ s_ctx.player->GetX(), s_ctx.player->GetY() };
 
-        // Same range currently used by attack/parry
-        float range = s_ctx.player->GetAttackRange();
+        const float range = s_ctx.player->GetAttackRange();
 
-        // Your player cone half-angle is currently 30 degrees
-        float halfAngleRad = AEDegToRad(30.0f);
-
-        // Non-moving cone: always use the player's aim angle
-        float centerAngle = s_ctx.player->GetAimAngle();
-
-        // Range ring
         Debug_DrawAttackRadius(playerPos, range);
 
-        // Cone
-        Debug_DrawCone(playerPos, range, centerAngle, halfAngleRad);
+        if (s_ctx.player->GetParryStatus() || s_ctx.player->GetBlockStatus()) {
+            const float startAngle = s_ctx.player->GetStartAngle();
+            const float endAngle = s_ctx.player->GetEndAngle();
+
+            // Fixed parry swing sector
+            Debug_DrawSwingSector(playerPos, range, startAngle, endAngle, 255, 60, 60, 220);
+        }
+        else {
+            // Fallback aim cone when not parrying/blocking
+            const float aimAngle = s_ctx.player->GetAimAngle();
+            const float halfAngleRad = AEDegToRad(30.0f);
+
+            Debug_DrawCone(playerPos, range, aimAngle, halfAngleRad, 255, 220, 80, 180);
+        }
     }
 
     // --- Enemy LOS / Attack Range / Hitbox (F3) ---
@@ -374,20 +378,43 @@ void Debug_DrawLOS(AEVec2 start, AEVec2 end, bool visible) {
 // -----------------------------------------------------------------
 // Player attack cone
 // -----------------------------------------------------------------
-void Debug_DrawCone(AEVec2 origin, float range, float centerAngle, float halfAngleRad) {
-    // Fixed debug color
-    f32 r = 255;
-    f32 g = 0;
-    f32 b = 0;
-    f32 a = 200;
-
-    float leftAngle = centerAngle + halfAngleRad;
-    float rightAngle = centerAngle - halfAngleRad;
-
-    AEVec2 centerEnd{
-        origin.x + cosf(centerAngle) * range,
-        origin.y + sinf(centerAngle) * range
+void Debug_DrawSwingSector(AEVec2 origin, float range, float startAngle, float endAngle,
+    f32 r, f32 g, f32 b, f32 a)
+{
+    AEVec2 startEnd{
+        origin.x + cosf(startAngle) * range,
+        origin.y + sinf(startAngle) * range
     };
+
+    AEVec2 endEnd{
+        origin.x + cosf(endAngle) * range,
+        origin.y + sinf(endAngle) * range
+    };
+
+    const float thickness = 3.0f;
+
+    auto drawLine = [&](AEVec2 const& from, AEVec2 const& to)
+        {
+            const float dx = to.x - from.x;
+            const float dy = to.y - from.y;
+            const float len = sqrtf(dx * dx + dy * dy);
+            if (len <= 0.001f)
+                return;
+
+            const float angle = atan2f(dy, dx);
+            DrawMesh(debugRectMesh, len, thickness, from.x, from.y, angle, r, g, b, a);
+        };
+
+    drawLine(origin, startEnd);
+    drawLine(origin, endEnd);
+    drawLine(startEnd, endEnd);
+}
+
+void Debug_DrawCone(AEVec2 origin, float range, float centerAngle, float halfAngleRad,
+    f32 r, f32 g, f32 b, f32 a)
+{
+    const float leftAngle = centerAngle + halfAngleRad;
+    const float rightAngle = centerAngle - halfAngleRad;
 
     AEVec2 leftEnd{
         origin.x + cosf(leftAngle) * range,
@@ -403,16 +430,16 @@ void Debug_DrawCone(AEVec2 origin, float range, float centerAngle, float halfAng
 
     auto drawLine = [&](AEVec2 const& from, AEVec2 const& to)
         {
-            float dx = to.x - from.x;
-            float dy = to.y - from.y;
-            float len = sqrtf(dx * dx + dy * dy);
-            if (len <= 0.001f) return;
+            const float dx = to.x - from.x;
+            const float dy = to.y - from.y;
+            const float len = sqrtf(dx * dx + dy * dy);
+            if (len <= 0.001f)
+                return;
 
-            float angle = atan2f(dy, dx);
+            const float angle = atan2f(dy, dx);
             DrawMesh(debugRectMesh, len, thickness, from.x, from.y, angle, r, g, b, a);
         };
 
-    drawLine(origin, centerEnd);
     drawLine(origin, leftEnd);
     drawLine(origin, rightEnd);
     drawLine(leftEnd, rightEnd);

@@ -888,26 +888,22 @@ void Player::EvaluateCurrentDirection()
 
 namespace
 {
-    float NormalizeAnglePi(float angle)
+    static f32 NormalizeAnglePi(f32 a)
     {
-        while (angle > PI)  angle -= 2.0f * PI;
-        while (angle < -PI) angle += 2.0f * PI;
-        return angle;
+        while (a > PI)  a -= 2*PI;
+        while (a < -PI) a += 2*PI;
+        return a;
     }
 
-    bool IsAngleWithinDirectedSweep(float testAngle, float fromAngle, float toAngle)
+    static bool IsAngleWithinSector(f32 testAngle, f32 startAngle, f32 endAngle)
     {
-        testAngle = NormalizeAnglePi(testAngle);
-        fromAngle = NormalizeAnglePi(fromAngle);
-        toAngle = NormalizeAnglePi(toAngle);
+        const f32 sectorSpan = NormalizeAnglePi(endAngle - startAngle);
+        const f32 testSpan = NormalizeAnglePi(testAngle - startAngle);
 
-        float deltaSweep = NormalizeAnglePi(toAngle - fromAngle);
-        float deltaTest = NormalizeAnglePi(testAngle - fromAngle);
+        if (sectorSpan >= 0.0f)
+            return testSpan >= 0.0f && testSpan <= sectorSpan;
 
-        if (deltaSweep >= 0.0f)
-            return deltaTest >= 0.0f && deltaTest <= deltaSweep;
-        else
-            return deltaTest <= 0.0f && deltaTest >= deltaSweep;
+        return testSpan <= 0.0f && testSpan >= sectorSpan;
     }
 }
 
@@ -936,57 +932,44 @@ AEVec2 Player::GetParryDirection() const
     return dir;
 }
 
-bool Player::CanParryProjectileSweep(AEVec2 const& prevPos, AEVec2 const& currPos, f32 projectileRadius) const
+bool Player::CanParryProjectileSweep(AEVec2 const& prevPos, AEVec2 const& currPos, f32 /*projectileRadius*/) const
 {
     if (!m_ParryActive || !m_CombatFlags.parryOn)
         return false;
 
-    const f32 bladeThickness = 20.0f;
-    const f32 totalThickness = bladeThickness + projectileRadius;
     const f32 reach = GetAttackRange();
 
-    AEVec2 playerPos;
-    AEVec2Set(&playerPos, m_PosX, m_PosY);
-
-    auto PointInsideSweptParry = [&](AEVec2 const& point) -> bool
+    auto PointInsideParrySector = [&](AEVec2 const& point) -> bool
         {
-            AEVec2 pointCopy = point;
-            AEVec2 toPoint;
-            AEVec2Sub(&toPoint, &pointCopy, &playerPos);
+            AEVec2 toPoint{
+                point.x - m_PosX,
+                point.y - m_PosY
+            };
 
-            float distSq = AEVec2SquareLength(&toPoint);
-            float maxDist = reach + totalThickness;
-            if (distSq > maxDist * maxDist)
+            const f32 distSq = AEVec2SquareLength(&toPoint);
+            if (distSq > reach * reach)
                 return false;
 
-            float dist = sqrtf(distSq);
-            if (dist <= 0.0001f)
+            if (distSq <= 0.0001f)
                 return true;
 
-            float pointAngle = atan2f(toPoint.y, toPoint.x);
-            if (!IsAngleWithinDirectedSweep(pointAngle, m_PreviousParryAngle, m_CurrentAngle))
-                return false;
+            const f32 pointAngle = atan2f(toPoint.y, toPoint.x);
 
-            // Make sure point is close enough to the blade radius band.
-            // This prevents points near the player center from always counting.
-            if (dist < 0.0f || dist > reach + totalThickness)
-                return false;
-
-            return true;
+            return IsAngleWithinSector(pointAngle, m_StartAngle, m_EndAngle);
         };
 
-    // Projectile counts if either endpoint entered the swept wedge this frame.
-    if (PointInsideSweptParry(prevPos))
+    if (PointInsideParrySector(prevPos))
         return true;
 
-    if (PointInsideSweptParry(currPos))
+    AEVec2 midPos{
+        (prevPos.x + currPos.x) * 0.5f,
+        (prevPos.y + currPos.y) * 0.5f
+    };
+
+    if (PointInsideParrySector(midPos))
         return true;
 
-    // Optional safety: check midpoint too, helps with some fast-moving cases.
-    AEVec2 midPos;
-    midPos.x = (prevPos.x + currPos.x) * 0.5f;
-    midPos.y = (prevPos.y + currPos.y) * 0.5f;
-    if (PointInsideSweptParry(midPos))
+    if (PointInsideParrySector(currPos))
         return true;
 
     return false;

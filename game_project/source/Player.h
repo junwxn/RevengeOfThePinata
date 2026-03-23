@@ -89,6 +89,7 @@ public:
     f32 GetAttackRange() const { return m_AttackRange; }
     f32 GetConeThreshold() const { return m_ConeThreshold; }
     f32 GetStartAngle() const { return m_StartAngle; }
+    f32 GetEndAngle() const { return m_EndAngle; }
     f32 GetCurrentAngle() const { return m_CurrentAngle; }
     f32 GetPreviousParryAngle() const { return m_PreviousParryAngle; }
 
