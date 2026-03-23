@@ -622,22 +622,95 @@ Dasher::Dasher(AEVec2 pos, f32 size, f32 hp, f32 speed, f32 dashCD)
     m_dashTimer = static_cast<f32>(rand()) / RAND_MAX * m_dashCD;
 }
 
-void Dasher::PerformDash(AEVec2 const& direction) {
+//void Dasher::PerformDash(AEVec2 const& direction) {
+//    m_moveDir = direction;
+//    if (!m_pMap) {
+//        m_pos.x += direction.x * m_dashDistance;
+//        m_pos.y += direction.y * m_dashDistance;
+//        return;
+//    }
+//
+//    // Step-wise collision (same pattern as player dash)
+//    const int steps = static_cast<int>(m_dashDistance / 16.0f) + 1;
+//    float stepVelX = direction.x * m_dashDistance / steps;
+//    float stepVelY = direction.y * m_dashDistance / steps;
+//    for (int i = 0; i < steps; ++i) {
+//        float prevX = m_pos.x, prevY = m_pos.y;
+//        ResolveCollision(m_pos.x, m_pos.y, stepVelX, stepVelY, m_size, *m_pMap);
+//        if (m_pos.x == prevX && m_pos.y == prevY) break;
+//    }
+//}
+
+void Dasher::StartDash(AEVec2 const& direction)
+{
+    m_DashActive = true;
+    m_MovementState.recovered = false;
+    m_DashFrameAccumulator = 0.0f;
+    m_DashCurrentFrame = 0;
+
+    m_DashDir = direction;
     m_moveDir = direction;
-    if (!m_pMap) {
-        m_pos.x += direction.x * m_dashDistance;
-        m_pos.y += direction.y * m_dashDistance;
+
+    m_DashStepX = (direction.x * m_dashDistance) / static_cast<float>(m_ActiveFrames);
+    m_DashStepY = (direction.y * m_dashDistance) / static_cast<float>(m_ActiveFrames);
+
+    m_dashTimer = m_dashCD;
+}
+
+void Dasher::ApplyDashStep()
+{
+    float dashVelX = m_DashStepX;
+    float dashVelY = m_DashStepY;
+
+    if (m_pMap)
+    {
+        const int steps = 2;
+        float stepVelX = dashVelX / steps;
+        float stepVelY = dashVelY / steps;
+
+        for (int i = 0; i < steps; ++i)
+        {
+            float prevX = m_pos.x;
+            float prevY = m_pos.y;
+
+            ResolveCollision(m_pos.x, m_pos.y, stepVelX, stepVelY, m_size, *m_pMap);
+
+            if (m_pos.x == prevX && m_pos.y == prevY)
+                break;
+        }
+    }
+    else
+    {
+        m_pos.x += dashVelX;
+        m_pos.y += dashVelY;
+    }
+}
+
+void Dasher::UpdateDash(float dt, Combat::System& combat)
+{
+    if (!m_DashActive)
         return;
+
+    m_DashFrameAccumulator += dt;
+
+    while (m_DashFrameAccumulator >= combat.GetOneFPS() &&
+        m_DashCurrentFrame <= m_TotalFrames)
+    {
+        ++m_DashCurrentFrame;
+        m_DashFrameAccumulator -= combat.GetOneFPS();
+
+        if (m_DashCurrentFrame >= m_StartFrames &&
+            m_DashCurrentFrame < m_StartFrames + m_ActiveFrames)
+        {
+            ApplyDashStep();
+        }
     }
 
-    // Step-wise collision (same pattern as player dash)
-    const int steps = static_cast<int>(m_dashDistance / 16.0f) + 1;
-    float stepVelX = direction.x * m_dashDistance / steps;
-    float stepVelY = direction.y * m_dashDistance / steps;
-    for (int i = 0; i < steps; ++i) {
-        float prevX = m_pos.x, prevY = m_pos.y;
-        ResolveCollision(m_pos.x, m_pos.y, stepVelX, stepVelY, m_size, *m_pMap);
-        if (m_pos.x == prevX && m_pos.y == prevY) break;
+    if (m_DashCurrentFrame >= m_TotalFrames)
+    {
+        m_DashActive = false;
+        m_DashCurrentFrame = 0;
+        m_DashFrameAccumulator = 0.0f;
     }
 }
 
@@ -659,9 +732,21 @@ void Dasher::ChildUpdate(f32 dt, Combat::System& combat, Player& player,
     // Tick dash cooldown
     m_dashTimer -= dt;
 
+    if (m_dashTimer <= 0.0f) m_MovementState.recovered = true;
+
+    if (!m_MovementState.recovered || m_DashActive) m_AllowDash = false;
+    else m_AllowDash = true;
+
+    // Update an ongoing dash first
+    if (m_DashActive)
+    {
+        UpdateDash(dt, combat);
+        return;
+    }
+
     // Dash if cooldown ready and player in range
-    if (m_dashTimer <= 0.0f && dist >= m_dashMinRange && dist <= m_dashRange) {
-        PerformDash(m_enemyToPlayerDir);
+    if (m_AllowDash && dist >= m_dashMinRange && dist <= m_dashRange) {
+        StartDash(m_enemyToPlayerDir);
         m_dashTimer = m_dashCD;
         return;
     }

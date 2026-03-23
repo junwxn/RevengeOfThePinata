@@ -227,6 +227,8 @@ protected:
         m_Damage
     };
 
+
+
     // Animation
     EnemyDirection m_CurrentDirection;
 
@@ -294,7 +296,36 @@ protected:
     f32 m_dashMinRange{ 80.0f };
     f32 m_dashDistance{ 200.0f };
 
-    void PerformDash(AEVec2 const& direction);
+    AEVec2 m_DashDir{};
+    float m_DashStepX{};
+    float m_DashStepY{};
+
+    bool m_AllowDash{ true };
+    bool m_DashActive{ false };
+    float m_DashFrameAccumulator{};
+    float m_DashCurrentFrame{};
+
+    int m_StartFrames{ 2 };
+    int m_ActiveFrames{ 4 };
+    int m_RecoveryFrames{ 6 };
+    bool m_Recovered{ true };
+    int m_TotalFrames{ m_StartFrames + m_ActiveFrames + m_RecoveryFrames };
+    Combat::CombatData::MovementData m_MovementData
+    {
+        m_StartFrames,
+        m_ActiveFrames,
+        m_RecoveryFrames,
+        m_TotalFrames
+    };
+    Combat::CombatData::MovementState m_MovementState
+    {
+        m_Recovered
+    };
+
+    //void PerformDash(AEVec2 const& direction);
+    void StartDash(AEVec2 const& direction);
+    void ApplyDashStep();
+    void UpdateDash(float dt, Combat::System& combat);
     void ChildUpdate(f32 dt, Combat::System& combat, Player& player,
         std::vector<std::unique_ptr<Enemy>>& enemies) override;
 };
