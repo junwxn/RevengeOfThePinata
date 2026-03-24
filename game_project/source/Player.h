@@ -165,20 +165,20 @@ private:
     // Visual Assets
     AEGfxVertexList* m_pMesh = nullptr;
     AEGfxVertexList* m_playerHealthBarMesh{ nullptr };
-
+    AEGfxVertexList* m_DashParticleMesh = nullptr;
 
     // -------------------------- //
     //      COMBAT VARIABLES      //
     // -------------------------- //
     Combat::CombatStats m_CombatStats
     {
-        2000.0f, // health
+        500.0f, // health
         40.0f, // attack
         5.0f, // defense
         0.0f, // crit chance
         0.0f, // crit multiplier
         0.0f, // attack multiplier
-        2000.0f // max health
+        10.0f // max health
     };
 
     Combat::CombatFlags m_CombatFlags
@@ -305,8 +305,8 @@ private:
     float m_DashCooldown{};
     float m_DashCooldown_Default{};
 
-    float m_DashStepX{};
-    float m_DashStepY{};
+    float m_DashTotalX{};
+    float m_DashTotalY{};
 
     float m_DashDuration{ 0.15f };
 
@@ -315,9 +315,9 @@ private:
     int m_DashCurrentFrame{};
 
     bool m_DashActive{ false };
-    int m_StartFrames{ 0 };
-    int m_ActiveFrames{ 4 };
-    int m_RecoveryFrames{ 5 };
+    int m_StartFrames{ 2 };
+    int m_ActiveFrames{ 5 };
+    int m_RecoveryFrames{ 3 };
     bool m_Recovered{ true };
     int m_TotalFrames{ m_StartFrames + m_ActiveFrames + m_RecoveryFrames };
     Combat::CombatData::MovementData m_MovementData
@@ -331,6 +331,27 @@ private:
     {
         m_Recovered
     };
+
+    // Dash Visual
+    struct DashParticle {
+        AEVec2 pos{ 0.0f, 0.0f };
+        AEVec2 vel{ 0.0f, 0.0f };
+        f32 life{ 0.0f };
+        f32 maxLife{ 0.0f };
+        f32 size{ 0.0f };
+        f32 angle{ 0.0f };
+        f32 angularVelocity{ 0.0f };
+        bool active = false;
+
+        f32 r{ 255.0f };
+        f32 g{ 255.0f };
+        f32 b{ 255.0f };
+    };
+
+    std::vector<DashParticle> m_DashParticles;
+    void SpawnDashParticles(int count);
+    void UpdateDashParticles(f32 dt);
+    void DrawDashParticles() const;
 
     // Attack Visual
     AEGfxVertexList* m_AttackRangeMesh = nullptr;

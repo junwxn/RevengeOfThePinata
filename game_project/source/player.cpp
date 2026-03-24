@@ -53,11 +53,13 @@ void Player::Init()
     if (m_BlockRangeMesh)  { AEGfxMeshFree(m_BlockRangeMesh);  m_BlockRangeMesh  = nullptr; }
     if (m_pMesh)           { AEGfxMeshFree(m_pMesh);           m_pMesh           = nullptr; }
     if (m_playerHealthBarMesh) { AEGfxMeshFree(m_playerHealthBarMesh); m_playerHealthBarMesh = nullptr; }
+    if (m_DashParticleMesh) { AEGfxMeshFree(m_DashParticleMesh); m_DashParticleMesh = nullptr; }
 
     m_AttackRangeMesh = CreateLineMesh(m_AttackRange, Colors::bananaYellow);
     m_BlockRangeMesh = CreateLineMesh(m_AttackRange, Colors::red);
     m_pMesh = CreateCircleMesh(1.0f, 32, 0x50A655);
     m_playerHealthBarMesh = CreateRectMesh(0xFF0000);
+    m_DashParticleMesh = CreateRectMesh(0xFFFFFFFF);
 
     m_PlayerSprite.Sprite_Init();
     m_PlayerSpriteSheet = m_PlayerSprite.GetPlayerSpriteSheet();
@@ -609,6 +611,7 @@ void Player::Update(float dt, Combat::System& combat, std::vector<std::unique_pt
             std::cout << "DASH OVER" << std::endl;
         }
     }
+    UpdateDashParticles(dt);
 }
 
 void Player::Draw()
@@ -651,11 +654,18 @@ void Player::Draw()
     if (m_healthDepletionPercentage >= 0.0f) { m_healthDepletionPercentage -= dRate; };
 
     if (m_CombatStats.health >= 0) {
-        DrawMesh(m_playerHealthBarMesh, dbarWidth, barHeight, m_PosX - m_Size, m_PosY + m_Size + barHeight / 2.0f + 5.0f, 0.0f, 255, 0, 0, 255); // Depleting bar
-        DrawMesh(m_playerHealthBarMesh, barWidth, barHeight, m_PosX - m_Size, m_PosY + m_Size + barHeight / 2.0f + 5.0f, 0.0f, 80, 200, 120, 255); // Instant bar
+        DrawMesh(m_playerHealthBarMesh, dbarWidth, barHeight, m_PosX - m_Size, m_PosY + m_Size + barHeight / 2.0f + 40.0f, 0.0f, 230.0f, 80.0f, 80.0f, 255.0f); // Depleting bar
+        DrawMesh(m_playerHealthBarMesh, barWidth, barHeight, m_PosX - m_Size, m_PosY + m_Size + barHeight / 2.0f + 40.0f, 0.0f, 80.0f, 220.0f, 180.0f, 255.0f); // Instant bar
     }
 
+<<<<<<< Updated upstream
     if (!m_AttackActive)
+=======
+    // Player dash particles
+    DrawDashParticles();
+
+    if (m_AttackActive)
+>>>>>>> Stashed changes
     {
         DrawTexturePlayer(m_PlayerSprite, static_cast<int>(m_CurrentDirection), m_PlayerSprite.GetPlayerSpriteMesh(), m_PlayerSprite.GetPlayerSpriteSheet(), m_PlayerSprite.GetPixelScale(),
             m_PlayerSprite.GetPixelScale(), m_PosX, m_PosY, 0.0f, sizeMultiplier);
@@ -684,6 +694,185 @@ void Player::Free()
     if (m_playerHealthBarMesh) {
         AEGfxMeshFree(m_playerHealthBarMesh);
         m_playerHealthBarMesh = nullptr;
+    }
+<<<<<<< Updated upstream
+=======
+    if (m_BatMesh) {
+        AEGfxMeshFree(m_BatMesh);
+        m_BatMesh = nullptr;
+    }
+    if (m_BatTexture) {
+        AEGfxTextureUnload(m_BatTexture);
+        m_BatTexture = nullptr;
+    }
+    if (m_DashParticleMesh) {
+        AEGfxMeshFree(m_DashParticleMesh);
+        m_DashParticleMesh = nullptr;
+    }
+}
+
+namespace {
+    static f32 NormalizeAnglePi(f32 a)
+    {
+        while (a > PI)  a -= 2 * PI;
+        while (a < -PI) a += 2 * PI;
+        return a;
+    }
+
+    static bool IsAngleWithinSector(f32 testAngle, f32 startAngle, f32 endAngle)
+    {
+        const f32 sectorSpan = NormalizeAnglePi(endAngle - startAngle);
+        const f32 testSpan = NormalizeAnglePi(testAngle - startAngle);
+
+        if (sectorSpan >= 0.0f)
+            return testSpan >= 0.0f && testSpan <= sectorSpan;
+
+        return testSpan <= 0.0f && testSpan >= sectorSpan;
+    }
+
+    static f32 EaseInOutSine(f32 t)
+    {
+        t = AEClamp(t, 0.0f, 1.0f);
+        return 0.5f - 0.5f * cosf(t * PI);
+    }
+}
+
+void Player::DrawBat(float angle)
+{
+    if (!m_BatMesh || !m_BatTexture) return;
+
+    static constexpr float BAT_WIDTH  = 35.0f;
+    static constexpr float BAT_LENGTH = 175.0f;
+
+    // Mesh extends along +Y, but atan2 angles measure from +X — subtract PI/2
+    float drawAngle = angle - PI * 0.5f;
+
+    AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
+    AEGfxSetColorToMultiply(1.0f, 1.0f, 1.0f, 1.0f);
+    AEGfxSetColorToAdd(0.0f, 0.0f, 0.0f, 0.0f);
+    AEGfxSetBlendMode(AE_GFX_BM_BLEND);
+    AEGfxSetTransparency(1.0f);
+    AEGfxTextureSet(m_BatTexture, 0.0f, 0.0f);
+
+    AEMtx33 scale, rotate, translate, transform;
+    AEMtx33Scale(&scale, BAT_WIDTH, BAT_LENGTH);
+    AEMtx33Rot(&rotate, drawAngle);
+    AEMtx33Trans(&translate, m_PosX, m_PosY);
+
+    AEMtx33Concat(&transform, &rotate, &scale);
+    AEMtx33Concat(&transform, &translate, &transform);
+
+    AEGfxSetTransform(transform.m);
+    AEGfxMeshDraw(m_BatMesh, AE_GFX_MDM_TRIANGLES);
+>>>>>>> Stashed changes
+}
+
+// Dash particles
+void Player::SpawnDashParticles(int count)
+{
+    float backOffset = m_Size * 0.7f;
+
+    struct ParticleColor
+    {
+        f32 r, g, b;
+    };
+
+    static const ParticleColor kPinataColors[] =
+    {
+        {  60.0f, 220.0f, 255.0f }, // cyan
+        {  70.0f, 120.0f, 255.0f }, // blue
+        { 255.0f,  70.0f, 200.0f }, // pink / magenta
+        { 140.0f, 255.0f,  70.0f }, // lime green
+        { 255.0f, 230.0f,  70.0f }, // yellow
+        { 255.0f, 150.0f,  60.0f }  // orange
+    };
+
+    const int colorCount = sizeof(kPinataColors) / sizeof(kPinataColors[0]);
+
+    for (int i = 0; i < count; ++i)
+    {
+        DashParticle p{};
+        p.active = true;
+
+        int colorIndex = rand() % colorCount;
+        p.r = kPinataColors[colorIndex].r;
+        p.g = kPinataColors[colorIndex].g;
+        p.b = kPinataColors[colorIndex].b;
+
+        p.pos.x = m_PosX - m_DashDirX * backOffset + AERandFloat() * 12.0f - 6.0f;
+        p.pos.y = m_PosY - m_DashDirY * backOffset + AERandFloat() * 12.0f - 6.0f;
+
+        float speed = 40.0f + AERandFloat() * 30.0f; // floatty
+        p.vel.x = -m_DashDirX * speed + (AERandFloat() * 60.0f - 30.0f);
+        p.vel.y = -m_DashDirY * speed + (AERandFloat() * 60.0f - 30.0f);
+
+        p.maxLife = 0.35f + AERandFloat() * 0.25f;     // longer life
+        p.life = p.maxLife;
+
+        p.size = 12.0f + AERandFloat() * 6.0f; // particle size
+
+        p.angle = AERandFloat() * 2.0f * PI;
+        p.angularVelocity = AERandFloat() * 8.0f - 4.0f;
+
+        m_DashParticles.push_back(p);
+    }
+}
+
+void Player::UpdateDashParticles(f32 dt)
+{
+    for (DashParticle& p : m_DashParticles)
+    {
+        if (!p.active)
+            continue;
+
+        p.life -= dt;
+        if (p.life <= 0.0f)
+        {
+            p.active = false;
+            continue;
+        }
+
+        p.pos.x += p.vel.x * dt;
+        p.pos.y += p.vel.y * dt;
+
+        p.vel.x *= 0.98f;
+        p.vel.y *= 0.98f;
+
+        // slight upward drift (nice float effect)
+        p.vel.y += 6.0f * dt;
+
+        p.angle += p.angularVelocity * dt;
+    }
+
+    m_DashParticles.erase(
+        std::remove_if(m_DashParticles.begin(), m_DashParticles.end(),
+            [](DashParticle const& p) { return !p.active; }),
+        m_DashParticles.end());
+}
+
+void Player::DrawDashParticles() const
+{
+    if (!m_DashParticleMesh)
+        return;
+
+    for (DashParticle const& p : m_DashParticles)
+    {
+        if (!p.active)
+            continue;
+
+        float lifeT = p.life / p.maxLife;
+        float drawSize = p.size * lifeT;
+        float alpha = 255.0f * (p.life / p.maxLife);
+
+        DrawMesh(
+            m_DashParticleMesh,
+            drawSize,
+            drawSize * 0.6f,
+            p.pos.x,
+            p.pos.y,
+            p.angle,
+            p.r, p.g, p.b, alpha
+        );
     }
 }
 
@@ -751,6 +940,9 @@ void Player::StartDash(float moveX, float moveY, float dirX, float dirY)
     m_DashDirX = dirX;
     m_DashDirY = dirY;
 
+    // Dash particles
+    SpawnDashParticles(8);
+
     // Store pre-dash position for poison trail
     float preDashX = m_PosX;
     float preDashY = m_PosY;
@@ -780,15 +972,8 @@ void Player::StartDash(float moveX, float moveY, float dirX, float dirY)
     // through thin walls.  If a step is blocked the player stops at
     // the last clear position (wall-sliding still applies per step).
 
-    // Increase multiplier for smoother dash
-    float dashSpeedMultiplier = 1.8f;
-
-    float dashVelX = dirX * blinkDist * dashSpeedMultiplier;
-    float dashVelY = dirY * blinkDist * dashSpeedMultiplier;
-
-    // Divide steps by active frames
-    m_DashStepX = dashVelX / m_MovementData.active;
-    m_DashStepY = dashVelY / m_MovementData.active;
+    m_DashTotalX = dirX * blinkDist;
+    m_DashTotalY = dirY * blinkDist;
 
     // NEW
     m_DashCharges--;
@@ -801,15 +986,30 @@ void Player::StartDash(float moveX, float moveY, float dirX, float dirY)
 
 void Player::ApplyDashStep()
 {
-    float dashVelX = m_DashStepX;
-    float dashVelY = m_DashStepY;
+    const int activeStart = m_MovementData.startUp;
+
+    int currentActiveFrame = m_DashCurrentFrame - activeStart;
+    int previousActiveFrame = currentActiveFrame - 1;
+
+    float prevLinearT = (float)previousActiveFrame / (float)m_MovementData.active;
+    float currLinearT = (float)currentActiveFrame / (float)m_MovementData.active;
+
+    prevLinearT = AEClamp(prevLinearT, 0.0f, 1.0f);
+    currLinearT = AEClamp(currLinearT, 0.0f, 1.0f);
+
+    float prevCurveT = EaseInOutSine(prevLinearT);
+    float currCurveT = EaseInOutSine(currLinearT);
+
+    float deltaT = currCurveT - prevCurveT;
+
+    float dashVelX = m_DashTotalX * deltaT;
+    float dashVelY = m_DashTotalY * deltaT;
 
     if (m_pMap)
     {
         const int steps = 2;
-
-        float stepVelX = m_DashStepX / steps;
-        float stepVelY = m_DashStepY / steps;
+        float stepVelX = dashVelX / steps;
+        float stepVelY = dashVelY / steps;
 
         for (int i = 0; i < steps; ++i)
         {
@@ -827,6 +1027,9 @@ void Player::ApplyDashStep()
         m_PosX += dashVelX;
         m_PosY += dashVelY;
     }
+
+    // Dash particles
+    SpawnDashParticles(1);
 }
 
 void Player::ResetCombatVariables()
@@ -886,6 +1089,7 @@ void Player::EvaluateCurrentDirection()
         m_CurrentDirection = PlayerDirection::DIRECTION_DOWN_RIGHT;
 }
 
+<<<<<<< Updated upstream
 namespace
 {
     float NormalizeAnglePi(float angle)
@@ -910,6 +1114,9 @@ namespace
             return deltaTest <= 0.0f && deltaTest >= deltaSweep;
     }
 }
+=======
+
+>>>>>>> Stashed changes
 
 AEVec2 Player::GetParryDirection() const
 {
