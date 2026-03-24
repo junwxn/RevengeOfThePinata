@@ -130,7 +130,7 @@ void Player::Update(float dt, Combat::System& combat, std::vector<std::unique_pt
     //std::cout << m_CurrentState << std::endl;
 
 
-    if (AEInputCheckTriggered(AEVK_LALT)) GainAttackCharge();
+    if (AEInputCheckTriggered(AEVK_C)) GainAttackCharge();
     // Toggle player attack on / off
     if (AEInputCheckTriggered(AEVK_TAB)) {
         m_AllowAttack = !m_AllowAttack;
@@ -632,15 +632,13 @@ void Player::Draw()
     if (!m_AttackActive) {
         DrawMesh(m_AttackRangeMesh, 1.0f, 5.0f, m_PosX, m_PosY, m_AimAngle, 255, 255, 53, 255);
     }
-
-    else if (m_AttackActive)
-    {
+    else {
         DrawMesh(m_AttackRangeMesh, 1.0f, 5.0f, m_PosX, m_PosY, m_CurrentAngle, 255, 255, 53, 255);
     }
 
     if (m_BlockActive)
     {
-        if (m_ParryActive) DrawMesh(m_BlockRangeMesh, 1.0f, 5.0f, m_PosX, m_PosY, m_CurrentAngle, 255, 0, 0, 255);   
+        if (m_ParryActive) DrawMesh(m_BlockRangeMesh, 1.0f, 5.0f, m_PosX, m_PosY, m_CurrentAngle, 255, 0, 0, 255);
     }
 
     // Player health bar
