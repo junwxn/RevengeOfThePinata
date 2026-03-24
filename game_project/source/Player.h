@@ -373,11 +373,6 @@ private:
     AEVec2 m_AimVector{};
     f32 m_AimAngle{};
 
-    // Bat sprite (standalone weapon)
-    AEGfxTexture* m_BatTexture = nullptr;
-    AEGfxVertexList* m_BatMesh = nullptr;
-    void DrawBat(float angle);
-
     // Non-owning pointer to the active map; set via SetMap().
     const MapSystem* m_pMap = nullptr;
     // Augments

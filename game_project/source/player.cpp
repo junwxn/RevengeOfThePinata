@@ -576,21 +576,20 @@ void Player::Draw()
     DrawMesh(m_pMesh, m_Size, isoHeight, m_PosX, m_PosY, 0.0f, 44, 145, 57, 255);
 
     // Aiming Pointer
-    if (!m_AttackActive) {
-        DrawMesh(m_AttackRangeMesh, 1.0f, 5.0f, m_PosX, m_PosY, m_AimAngle, 255, 255, 53, 255);
-    }
+    //if (!m_AttackActive) {
+    //    DrawMesh(m_AttackRangeMesh, 1.0f, 5.0f, m_PosX, m_PosY, m_AimAngle, 255, 255, 53, 255);
+    //}
 
-    else if (m_AttackActive)
-    {
-        DrawMesh(m_AttackRangeMesh, 1.0f, 5.0f, m_PosX, m_PosY, m_CurrentAngle, 255, 255, 53, 255);
-    }
+    //else if (m_AttackActive)
+    //{
+    //    DrawMesh(m_AttackRangeMesh, 1.0f, 5.0f, m_PosX, m_PosY, m_CurrentAngle, 255, 255, 53, 255);
+    //}
 
-    
     if (m_BlockActive)
     {
-        if (m_ParryActive) DrawMesh(m_BlockRangeMesh, 1.0f, 5.0f, m_PosX, m_PosY, m_CurrentAngle, 255, 0, 0, 255);
+        float blockAngle = m_ParryActive ? m_CurrentAngle : m_AimAngle;
+        DrawMesh(m_BlockRangeMesh, 1.0f, 5.0f, m_PosX, m_PosY, blockAngle, 255, 0, 0, 255);
     }
-
     // Player health bar
     f32 barWidth = m_Size * 2.0f * (m_CombatStats.health / m_CombatStats.maxHealth);
     f32 barHeight = m_Size / 3.0f;
@@ -612,48 +611,22 @@ void Player::Draw()
     // Player dash particles
     DrawDashParticles();
 
-    if (!m_AttackActive)
-    {
-        float batAngle = m_CurrentAngle;
-        bool batInFront = sinf(batAngle) < 0.0f;
+    float batAngle = m_AimAngle;
 
-        if (!batInFront) DrawBat(batAngle);
-
-        DrawTexturePlayer(m_PlayerSprite, static_cast<int>(m_CurrentDirection),
-            m_PlayerSprite.GetPlayerSpriteMesh(), m_PlayerSprite.GetPlayerSpriteSheet(),
-            m_PlayerSprite.GetPixelScale(), m_PlayerSprite.GetPixelScale(),
-            m_PosX, m_PosY, 0.0f, sizeMultiplier);
-
-        if (batInFront) DrawBat(batAngle);
+    if (m_AttackActive || m_BlockActive) {
+        batAngle = m_CurrentAngle;
     }
-    else if (m_BlockActive)
-    {
-        float batAngle = m_CurrentAngle;
-        bool batInFront = sinf(batAngle) < 0.0f;
 
-        if (!batInFront) DrawBat(batAngle);
+    bool batInFront = sinf(batAngle) < 0.0f;
 
-        DrawTexturePlayer(m_PlayerSprite, static_cast<int>(m_CurrentDirection),
-            m_PlayerSprite.GetPlayerSpriteMesh(), m_PlayerSprite.GetPlayerSpriteSheet(),
-            m_PlayerSprite.GetPixelScale(), m_PlayerSprite.GetPixelScale(),
-            m_PosX, m_PosY, 0.0f, sizeMultiplier);
+    if (!batInFront) DrawBat(batAngle);
 
-        if (batInFront) DrawBat(batAngle);
-    }
-    else
-    {
-        float batAngle = m_AimAngle;
-        bool batInFront = sinf(batAngle) < 0.0f;
+    DrawTexturePlayer(m_PlayerSprite, static_cast<int>(m_CurrentDirection),
+        m_PlayerSprite.GetPlayerSpriteMesh(), m_PlayerSprite.GetPlayerSpriteSheet(),
+        m_PlayerSprite.GetPixelScale(), m_PlayerSprite.GetPixelScale(),
+        m_PosX, m_PosY, 0.0f, sizeMultiplier);
 
-        if (!batInFront) DrawBat(batAngle);
-
-        DrawTexturePlayer(m_PlayerSprite, static_cast<int>(m_CurrentDirection),
-            m_PlayerSprite.GetPlayerSpriteMesh(), m_PlayerSprite.GetPlayerSpriteSheet(),
-            m_PlayerSprite.GetPixelScale(), m_PlayerSprite.GetPixelScale(),
-            m_PosX, m_PosY, 0.0f, sizeMultiplier);
-
-        if (batInFront) DrawBat(batAngle);
-    }
+    if (batInFront) DrawBat(batAngle);
 }
 
 void Player::Free()
@@ -716,6 +689,17 @@ namespace
     {
         t = AEClamp(t, 0.0f, 1.0f);
         return 0.5f - 0.5f * cosf(t * PI);
+    }
+
+    static bool IsAngleWithinSector(f32 testAngle, f32 startAngle, f32 endAngle)
+    {
+        const f32 sectorSpan = NormalizeAnglePi(endAngle - startAngle);
+        const f32 testSpan = NormalizeAnglePi(testAngle - startAngle);
+
+        if (sectorSpan >= 0.0f)
+            return testSpan >= 0.0f && testSpan <= sectorSpan;
+
+        return testSpan <= 0.0f && testSpan >= sectorSpan;
     }
 }
 
@@ -1068,27 +1052,6 @@ void Player::EvaluateCurrentDirection()
         m_CurrentDirection = PlayerDirection::DIRECTION_DOWN;
     else
         m_CurrentDirection = PlayerDirection::DIRECTION_DOWN_RIGHT;
-}
-
-namespace
-{
-    static f32 NormalizeAnglePi(f32 a)
-    {
-        while (a > PI)  a -= 2*PI;
-        while (a < -PI) a += 2*PI;
-        return a;
-    }
-
-    static bool IsAngleWithinSector(f32 testAngle, f32 startAngle, f32 endAngle)
-    {
-        const f32 sectorSpan = NormalizeAnglePi(endAngle - startAngle);
-        const f32 testSpan = NormalizeAnglePi(testAngle - startAngle);
-
-        if (sectorSpan >= 0.0f)
-            return testSpan >= 0.0f && testSpan <= sectorSpan;
-
-        return testSpan <= 0.0f && testSpan >= sectorSpan;
-    }
 }
 
 AEVec2 Player::GetParryDirection() const
