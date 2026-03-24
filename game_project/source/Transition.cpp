@@ -44,7 +44,8 @@ void Transition_Init()
         g_TransitionSpriteSheet = nullptr;
     }
 
-    g_TransitionSpriteSheet = AEGfxTextureLoad("Assets/Sprites/Pinata_Transition_SpritesheetTEST.png");
+    g_TransitionSpriteSheet = AEGfxTextureLoad("Assets/Sprites/Pinata_Transition_SpritesheetTEST2.png");
+    //g_TransitionSpriteSheet = AEGfxTextureLoad("Assets/Sprites/Pinata_Transition_SpritesheetTEST.png");
     if (!g_TransitionSpriteSheet)
     {
         std::cout << "ERROR LOADING TRANSITION SPRITESHEET" << std::endl;
