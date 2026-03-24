@@ -128,6 +128,7 @@ xcopy "$(SolutionDir)Extern\AlphaEngine\lib\fmod.dll" "$(OutDir)" /s /r /y /q</C
     <ClCompile Include="source\Projectile.cpp" />
     <ClCompile Include="source\Raycast.cpp" />
     <ClCompile Include="source\Sprite.cpp" />
+    <ClCompile Include="source\Transition.cpp" />
     <ClCompile Include="source\Tutorial.cpp" />
     <ClCompile Include="source\Victory.cpp" />
     <ClCompile Include="source\pch.cpp">
@@ -185,6 +186,7 @@ xcopy "$(SolutionDir)Extern\AlphaEngine\lib\fmod.dll" "$(OutDir)" /s /r /y /q</C
     <ClInclude Include="source\Projectile.h" />
     <ClInclude Include="source\Raycast.h" />
     <ClInclude Include="source\Sprite.h" />
+    <ClInclude Include="source\Transition.h" />
     <ClInclude Include="source\Tutorial.h" />
     <ClInclude Include="source\Victory.h" />
     <ClInclude Include="source\pch.h" />

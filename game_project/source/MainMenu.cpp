@@ -6,6 +6,7 @@
 #include "AugmentData.h"
 #include "EventSystem.h"
 #include "Player.h"
+#include "Transition.h"
 
 // --- Enums & Structs ---
 enum MenuScreen { MENU_MAIN, MENU_CONTROLS, MENU_CREDITS, MENU_TUTORIAL_PROMPT };
@@ -209,11 +210,11 @@ void MainMenu_Update(float dt) {
 			if (mainButtons[0].hovered) menuScreen = MENU_TUTORIAL_PROMPT;
 			if (mainButtons[1].hovered) menuScreen = MENU_CONTROLS;
 			if (mainButtons[2].hovered) menuScreen = MENU_CREDITS;
-			if (mainButtons[3].hovered) next = GS_QUIT;
+			if (mainButtons[3].hovered) /*next = GS_QUIT*/ Transition_Start(GS_QUIT);
 		}
 		else if (menuScreen == MENU_TUTORIAL_PROMPT) {
-			if (yesButton.hovered) { g_PlayerAttackCharges = DEFAULT_ATTACK_CHARGES; next = GS_TUTORIAL; }
-			if (noButton.hovered)  { g_PlayerAttackCharges = DEFAULT_ATTACK_CHARGES; next = GS_LEVEL1; }
+			if (yesButton.hovered) { g_PlayerAttackCharges = DEFAULT_ATTACK_CHARGES; /*next = GS_TUTORIAL;*/ Transition_Start(GS_TUTORIAL); }
+			if (noButton.hovered)  { g_PlayerAttackCharges = DEFAULT_ATTACK_CHARGES; /*next = GS_LEVEL1;*/ Transition_Start(GS_LEVEL1); }
 			if (backButton.hovered) menuScreen = MENU_MAIN;
 		}
 		else {
@@ -234,7 +235,7 @@ void MainMenu_Update(float dt) {
 	}
 
 	if (!AESysDoesWindowExist())
-		next = GS_QUIT;
+		Transition_Start(GS_QUIT);
 
 	// Animation
 	titleBob += dt;
@@ -245,7 +246,7 @@ void MainMenu_Update(float dt) {
 
 // ========== DRAW ==========
 void MainMenu_Draw() {
-	AESysFrameStart();
+	//AESysFrameStart();
 
 	// Background: slow HSV color cycle
 	float bgR, bgG, bgB;
@@ -424,7 +425,7 @@ void MainMenu_Draw() {
 		           1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
 	}
 
-	AESysFrameEnd();
+	//AESysFrameEnd();
 }
 
 // ========== FREE ==========

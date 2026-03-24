@@ -11,6 +11,7 @@
 #include "HUD.h"
 #include "Debug.h"
 #include "Shadow.h"
+#include "Transition.h"
 
 // load variables
 static AEGfxTexture* TexBlock2;
@@ -93,7 +94,7 @@ void BossLevel_Init() {
 
 void BossLevel_Update(float dt) {
 	if (!AESysDoesWindowExist()) {
-		next = GS_QUIT;
+		Transition_Start(GS_QUIT);
 		return;
 	}
 
@@ -101,7 +102,7 @@ void BossLevel_Update(float dt) {
 	Debug_Update();
 
 	// Player death -> Game Over screen
-	if (!player.GetIsAlive()) { next = GS_GAMEOVER; return; }
+	if (!player.GetIsAlive()) { Transition_Start(GS_GAMEOVER); return; }
 
 	player.Update(dt, CombatSystem, Wave1, camera.GetX(), camera.GetY(), preventingmovement);
 
@@ -126,7 +127,7 @@ void BossLevel_Update(float dt) {
 
 	// Boss defeated — go straight to victory (no augments)
 	if (bossDefeated) {
-		next = GS_VICTORY;
+		Transition_Start(GS_VICTORY);
 	}
 
 	// map boundaries
@@ -161,19 +162,19 @@ void BossLevel_Update(float dt) {
 	AugmentEffects_Update(dt, player, Wave1);
 
 	if (0 == AESysDoesWindowExist()) {
-		next = GS_QUIT;
+		Transition_Start(GS_QUIT);
 	}
 	if (AEInputCheckTriggered(AEVK_K)) {
 		Wave1.clear();
 	}
 
 	if (AEInputCheckTriggered(AEVK_N)) {
-		next = GS_VICTORY;
+		Transition_Start(GS_VICTORY);
 	}
 }
 
 void BossLevel_Draw() {
-	AESysFrameStart();
+	//AESysFrameStart();
 	AEGfxSetBackgroundColor(0.68f, 0.85f, 0.90f);
 	AEGfxSetCamPosition(camera.GetRenderX(), camera.GetRenderY());
 	AEGfxSetRenderMode(AE_GFX_RM_COLOR);
@@ -217,11 +218,11 @@ void BossLevel_Draw() {
 
 	AugmentEffects_Draw(camera.GetX(), camera.GetY());
 
-	AESysFrameEnd();
+	//AESysFrameEnd();
 }
 
 void BossLevel_Free() {
-	if (next != GS_RESTART) g_PlayerAttackCharges = player.GetAttackCharges();
+	if (next != GS_BOSSLEVEL) g_PlayerAttackCharges = player.GetAttackCharges();
 	Wave1.clear();
 	player.Free();
 	AugmentEffects_Free();

@@ -291,7 +291,7 @@ void Level3_Update(float dt) {
 }
 
 void Level3_Draw() {
-	AESysFrameStart();
+	//AESysFrameStart();
 	AEGfxSetBackgroundColor(0.68f, 0.85f, 0.90f);
 	AEGfxSetCamPosition(camera.GetRenderX(), camera.GetRenderY());
 
@@ -352,7 +352,7 @@ void Level3_Draw() {
 		augments.Draw(camera.GetX(), camera.GetY());
 	}
 
-	AESysFrameEnd();
+	//AESysFrameEnd();
 }
 
 void Level3_Free() {

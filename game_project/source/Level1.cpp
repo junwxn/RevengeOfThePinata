@@ -304,7 +304,7 @@ void Level1_Update(float dt) {
 	}
 }
 void Level1_Draw() {
-	AESysFrameStart();
+	//AESysFrameStart();
 	AEGfxSetBackgroundColor(0.68f, 0.85f, 0.90f);
 	AEGfxSetCamPosition(camera.GetRenderX(), camera.GetRenderY());
 
@@ -365,7 +365,7 @@ void Level1_Draw() {
 		augments.Draw(camera.GetX(), camera.GetY());
 	}
 
-	AESysFrameEnd();
+	//AESysFrameEnd();
 }
 void Level1_Free() {
 	if (next != GS_RESTART) g_PlayerAttackCharges = player.GetAttackCharges();

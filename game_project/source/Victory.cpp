@@ -2,6 +2,7 @@
 #include "Victory.h"
 #include "GameStateManager.h"
 #include "Utils.h"
+#include "Transition.h"
 #include <cstdlib>
 
 static AEGfxVertexList* rectMesh = nullptr;
@@ -61,7 +62,7 @@ void Victory_Init() {
 
 void Victory_Update(float dt) {
 	if (!AESysDoesWindowExist()) {
-		next = GS_QUIT;
+		Transition_Start(GS_QUIT);
 		return;
 	}
 
@@ -82,12 +83,12 @@ void Victory_Update(float dt) {
 		AEInputCheckTriggered(AEVK_RETURN) ||
 		AEInputCheckTriggered(AEVK_SPACE) ||
 		AEInputCheckTriggered(AEVK_ESCAPE)) {
-		next = GS_MAINMENU;
+		Transition_Start(GS_MAINMENU);
 	}
 }
 
 void Victory_Draw() {
-	AESysFrameStart();
+	//AESysFrameStart();
 	AEGfxSetBackgroundColor(0.05f, 0.08f, 0.15f);
 
 	AEGfxSetRenderMode(AE_GFX_RM_COLOR);
@@ -147,7 +148,7 @@ void Victory_Draw() {
 		AEGfxPrint(fontBody, prompt, -tw * 0.5f, -100.0f / 450.0f, 1.0f, 0.8f, 0.8f, 0.8f, alpha);
 	}
 
-	AESysFrameEnd();
+	//AESysFrameEnd();
 }
 
 void Victory_Free() {
