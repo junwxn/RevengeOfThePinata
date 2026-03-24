@@ -55,7 +55,7 @@ static void SpawnWave1() {
 	Wave1.push_back(std::make_unique<Dasher>(p2, ENEMY_SIZE, 100.0f, 200.0f, 3.0f));
 
 	AEVec2 p3 = GetRandomSpawnPos(gameMap, playerPos, 200.0f, ENEMY_SIZE);
-	Wave1.push_back(std::make_unique<Thrower>(p3, ENEMY_SIZE, 50.0f, 100.0f));
+	Wave1.push_back(std::make_unique<Thrower>(p3, ENEMY_SIZE, 500.0f, 100.0f));
 
 	for (auto& enemy : Wave1) {
 		enemy->Init();
@@ -304,9 +304,9 @@ void Level1_Update(float dt) {
 	}
 }
 void Level1_Draw() {
-	AESysFrameStart();
+	//AESysFrameStart();
 	AEGfxSetBackgroundColor(0.68f, 0.85f, 0.90f);
-	AEGfxSetCamPosition(camera.GetX(), camera.GetY());
+	AEGfxSetCamPosition(camera.GetRenderX(), camera.GetRenderY());
 
 	//draw map
 	AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
@@ -365,7 +365,7 @@ void Level1_Draw() {
 		augments.Draw(camera.GetX(), camera.GetY());
 	}
 
-	AESysFrameEnd();
+	//AESysFrameEnd();
 }
 void Level1_Free() {
 	if (next != GS_RESTART) g_PlayerAttackCharges = player.GetAttackCharges();

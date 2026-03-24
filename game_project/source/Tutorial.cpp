@@ -13,6 +13,7 @@
 #include "Combat.h"
 #include "AugmentData.h"
 #include "EventSystem.h"
+#include "Transition.h"
 
 // --- Tutorial steps ---
 enum TutorialStep {
@@ -175,7 +176,7 @@ void Tutorial_Load() {
 	TexBlock   = AEGfxTextureLoad("Assets/block.png");
 	CircleMesh = CreateCircleMesh(1.0f, 32, 0xFFFFFFFF);
 	RectMesh   = CreateRectMesh(0xFFFFFFFF);
-	tutorialFont = AEGfxCreateFont("Assets/liberation-mono.ttf", 36);
+	tutorialFont = AEGfxCreateFont("Assets/fonts/Stick-Regular.ttf", 36);
 	TexSpeechLeft = AEGfxTextureLoad("Assets/speech_left.png");
 	TexPinata     = AEGfxTextureLoad("Assets/pinata1.png");
 	gameMap.Init("Assets/tutorial.tmx", "tilesheet_complete", "Assets/tilesheet_complete.png");
@@ -210,7 +211,7 @@ void Tutorial_Init() {
 
 void Tutorial_Update(float dt) {
 	if (!AESysDoesWindowExist()) {
-		next = GS_QUIT;
+		Transition_Start(GS_QUIT);
 		return;
 	}
 
@@ -238,7 +239,7 @@ void Tutorial_Update(float dt) {
 		pinataBobY = 0.0f;
 	}
 
-	if (!player.GetIsAlive()) { next = GS_GAMEOVER; return; }
+	if (!player.GetIsAlive()) { Transition_Start(GS_GAMEOVER); return; }
 
 	bool preventMovement = false;
 	player.Update(dt, CombatSystem, tutorialEnemies, camera.GetX(), camera.GetY(), preventMovement);
@@ -363,7 +364,7 @@ void Tutorial_Update(float dt) {
 	case TUT_DONE:
 		stepTimer += dt;
 		if (stepTimer > 2.0f) {
-			next = GS_LEVEL1;
+			Transition_Start(GS_LEVEL1);
 		}
 		break;
 	}
@@ -398,14 +399,14 @@ void Tutorial_Update(float dt) {
 
 	// Skip tutorial shortcut
 	if (AEInputCheckTriggered(AEVK_N)) {
-		next = GS_LEVEL1;
+		Transition_Start(GS_LEVEL1);
 	}
 }
 
 void Tutorial_Draw() {
-	AESysFrameStart();
+	//AESysFrameStart();
 	AEGfxSetBackgroundColor(0.68f, 0.85f, 0.90f);
-	AEGfxSetCamPosition(camera.GetX(), camera.GetY());
+	AEGfxSetCamPosition(camera.GetRenderX(), camera.GetRenderY());
 
 	// Draw map
 	AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
@@ -500,7 +501,7 @@ void Tutorial_Draw() {
 	AEGfxGetPrintSize(tutorialFont, skip, 0.7f, &tw, &th);
 	AEGfxPrint(tutorialFont, skip, 0.4f, 0.8f, 0.7f, 0.0f, 0.0f, 0.0f, 1.0f);
 
-	AESysFrameEnd();
+	//AESysFrameEnd();
 }
 
 void Tutorial_Free() {

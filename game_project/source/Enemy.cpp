@@ -1017,7 +1017,8 @@ void Thrower::UpdateProjectiles(f32 dt, Combat::System& combat, Player& player,
         AEVec2 currPos = projectile.GetPosition();
 
         // Projectile got sliced by parry during this frame
-        if (player.CanParryProjectileSweep(prevPos, currPos, projectile.GetRadius()))
+        if (!projectile.IsReflected() && !projectile.IsInReflectGrace() &&
+            player.CanParryProjectileSweep(prevPos, currPos, projectile.GetRadius()))
         {
             player.GainAttackCharge();
             gAudio.PlayCombatSFX(COMBAT_PARRY);

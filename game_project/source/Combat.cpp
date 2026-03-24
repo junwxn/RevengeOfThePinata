@@ -11,8 +11,6 @@
 #include "Utils.h" // GRID_W, GRID_H
 #include "Audio.h"
 
-// Iso ratio for normalizing Y axis in range checks
-static const float ISO_RATIO = GRID_H / GRID_W;
 
 static std::ostream& operator<<(std::ostream& os, CombatOutcome outcome) {
 	if (outcome == CombatOutcome::OUTCOME_HIT) return os << "OUTCOME_HIT";
@@ -172,7 +170,7 @@ namespace Combat {
 	bool System::CanStartAttack_Enemy(const Player& player, const Enemy& enemy) const {
 		// Direction vector / Forward vector
 		double dx = player.GetX() - enemy.GetX();
-		double dy = (player.GetY() - enemy.GetY()) / ISO_RATIO; // Normalize Y to iso grid
+		double dy = player.GetY() - enemy.GetY();
 
 		double s_DistMagPE = Vectors::magnitude(dx, dy);
 
@@ -195,9 +193,8 @@ namespace Combat {
 
 		double dx = enemy.GetX() - player.GetX();
 		double dy = enemy.GetY() - player.GetY();
-		double isoDy = dy / ISO_RATIO; // Normalize Y to iso grid
 
-		double dist = Vectors::magnitude(dx, isoDy);
+		double dist = Vectors::magnitude(dx, dy);
 
 		// Outside attack radius
 		if (dist > player.GetAttackRange())

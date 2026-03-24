@@ -27,4 +27,7 @@ void Debug_Unload();
 void Debug_DrawCircleWorld(AEVec2 pos, f32 radius);
 void Debug_DrawAttackRadius(AEVec2 pos, f32 radius);
 void Debug_DrawLOS(AEVec2 start, AEVec2 end, bool visible);
-void Debug_DrawCone(AEVec2 origin, float range, float centerAngle, float halfAngleRad);
+void Debug_DrawCone(AEVec2 origin, float range, float centerAngle, float halfAngleRad,
+    f32 r = 255, f32 g = 0, f32 b = 0, f32 a = 200);
+void Debug_DrawSwingSector(AEVec2 origin, float range, float startAngle, float endAngle,
+    f32 r = 255, f32 g = 0, f32 b = 0, f32 a = 200);

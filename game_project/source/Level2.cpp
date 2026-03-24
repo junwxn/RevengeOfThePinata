@@ -14,6 +14,7 @@
 #include "Audio.h"
 #include "Debug.h"
 #include "Shadow.h"
+#include "Projectile.h"
 
 // load variables
 static AEGfxTexture* TexBlock2;
@@ -259,9 +260,9 @@ void Level2_Update(float dt) {
 }
 
 void Level2_Draw() {
-	AESysFrameStart();
+	//AESysFrameStart();
 	AEGfxSetBackgroundColor(0.68f, 0.85f, 0.90f);
-	AEGfxSetCamPosition(camera.GetX(), camera.GetY());
+	AEGfxSetCamPosition(camera.GetRenderX(), camera.GetRenderY());
 
 	// map
 	AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
@@ -309,7 +310,7 @@ void Level2_Draw() {
 		augments.Draw(camera.GetX(), camera.GetY());
 	}
 
-	AESysFrameEnd();
+	//AESysFrameEnd();
 }
 
 void Level2_Free() {
@@ -319,6 +320,7 @@ void Level2_Free() {
 	player.Free();
 	augments.Free();
 	AugmentEffects_Free();
+	Projectile::Free();
 	g_Events.ClearAll();
 }
 

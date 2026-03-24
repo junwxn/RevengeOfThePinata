@@ -4,6 +4,7 @@
 #include "Utils.h"
 #include "Audio.h"
 #include "Player.h"
+#include "Transition.h"
 
 // --- Button struct ---
 struct PauseButton {
@@ -50,7 +51,7 @@ static void DrawStyledButton(float cx, float cy, float baseW, float baseH, float
 
 void Pause_Load() {
 	rectMesh  = CreateRectMesh(0xFFFFFFFF);
-	pauseFont = AEGfxCreateFont("Assets/liberation-mono.ttf", 36);
+	pauseFont = AEGfxCreateFont("Assets/fonts/Stick-Regular.ttf", 36);
 }
 
 void Pause_Init() {
@@ -123,8 +124,8 @@ bool Pause_Update(bool isPlayerAlive) {
 			muteButton.label = gAudio.IsMuted() ? "Unmute" : "Mute";
 		}
 		if (buttons[0].hovered) paused = false;        // Resume
-		if (buttons[1].hovered) next = GS_MAINMENU;    // Main Menu
-		if (buttons[2].hovered) { g_PlayerAttackCharges = DEFAULT_ATTACK_CHARGES; next = GS_RESTART; }     // Restart
+		if (buttons[1].hovered) Transition_Start(GS_MAINMENU);    // Main Menu
+		if (buttons[2].hovered) { g_PlayerAttackCharges = DEFAULT_ATTACK_CHARGES; Transition_Start(static_cast<GS_STATES>(current)); }     // Restart
 	}
 
 	return true;

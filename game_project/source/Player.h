@@ -89,6 +89,7 @@ public:
     f32 GetAttackRange() const { return m_AttackRange; }
     f32 GetConeThreshold() const { return m_ConeThreshold; }
     f32 GetStartAngle() const { return m_StartAngle; }
+    f32 GetEndAngle() const { return m_EndAngle; }
     f32 GetCurrentAngle() const { return m_CurrentAngle; }
     f32 GetPreviousParryAngle() const { return m_PreviousParryAngle; }
 
@@ -360,6 +361,11 @@ private:
     AEMtx33 atkScale{}, atkRot{}, atkTrans{}, atkTransform{};
     AEMtx33 blockScale{}, blockRot{}, blockTrans{}, blockTransform{};
     AEMtx33 pointScale{}, pointRot{}, pointTrans{}, pointTransform{};
+
+    // Bat sprite (standalone weapon)
+    AEGfxTexture*    m_BatTexture = nullptr;
+    AEGfxVertexList* m_BatMesh    = nullptr;
+    void DrawBat(float angle);
 
     // Mouse Aiming
     double m_DistMagMP{};

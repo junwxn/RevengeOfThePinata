@@ -1,3 +1,4 @@
+#pragma once
 enum GS_STATES
 {
 	GS_MAINMENU = 0,
@@ -8,7 +9,10 @@ enum GS_STATES
 	GS_BOSSLEVEL,
 	GS_VICTORY,
 	GS_GAMEOVER,
+	GS_TEST,
 
 	GS_QUIT,
-	GS_RESTART
+	GS_RESTART,
+
+	GS_NONE
 };

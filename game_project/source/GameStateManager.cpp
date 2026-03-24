@@ -9,21 +9,18 @@
 #include "BossLevel.h"
 #include "Victory.h"
 #include "GameOver.h"
+#include "TestLevel.h"
+#include "Transition.h"
 
 int current = 0, previous = 0, next = 0;
 
 FP fpLoad = nullptr, fpInitialize = nullptr, fpDraw = nullptr, fpFree = nullptr, fpUnload = nullptr;
 void (*fpUpdate)(float) = nullptr;
 
-void GSM_Initialize(int startingState) {
-	current = previous = next = startingState;
-	//std::cout << "GSM:Initialize" << std::endl;
-
-}
-
-void GSM_Update() {
-	std::cout << "GSM:Update" << std::endl;
-
+// New static function used to change states when needed
+// Previous one called every frame
+static void GSM_MapFunctionsToCurrentState()
+{
 	switch (current) {
 	case GS_MAINMENU:
 		fpLoad = MainMenu_Load;
@@ -89,11 +86,78 @@ void GSM_Update() {
 		fpFree = GameOver_Free;
 		fpUnload = GameOver_Unload;
 		break;
+	case GS_TEST:
+		fpLoad = TestLevel_Load;
+		fpInitialize = TestLevel_Init;
+		fpUpdate = TestLevel_Update;
+		fpDraw = TestLevel_Draw;
+		fpFree = TestLevel_Free;
+		fpUnload = TestLevel_Unload;
+		break;
 	case GS_RESTART:
-		break;
 	case GS_QUIT:
-		break;
 	default:
+		fpLoad = nullptr;
+		fpInitialize = nullptr;
+		fpUpdate = nullptr;
+		fpDraw = nullptr;
+		fpFree = nullptr;
+		fpUnload = nullptr;
 		break;
 	}
+}
+
+void GSM_Initialize(int startingState)
+{
+	current = previous = next = startingState;
+
+	Transition_Init();
+
+	GSM_MapFunctionsToCurrentState();
+
+	std::cout << "Initial load of state: " << current << std::endl;
+
+	if (fpLoad) fpLoad();
+	if (fpInitialize) fpInitialize();
+}
+
+void GSM_Update(float dt)
+{
+	if (Transition_IsActive())
+	{
+		std::cout << "Transition active\n";
+		Transition_Update(dt);
+
+		if (Transition_IsSwitchReady())
+		{
+			std::cout << "Transition switching state\n";
+
+			if (fpFree) fpFree();
+			if (fpUnload) fpUnload();
+
+			previous = current;
+			current = Transition_GetState();
+			next = current;
+
+			GSM_MapFunctionsToCurrentState();
+
+			if (fpLoad) fpLoad();
+			if (fpInitialize) fpInitialize();
+
+			Transition_BeginFadeIn();
+		}
+
+		return;
+	}
+
+	if (fpUpdate)
+		fpUpdate(dt);
+}
+
+void GSM_Draw()
+{
+	if (fpDraw)
+		fpDraw();
+
+	Transition_Draw();
 }
