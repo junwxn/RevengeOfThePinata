@@ -30,6 +30,21 @@ public:
         return augmentSelected;
     }
 
+    AEGfxTexture* GetTextureForCard(AugmentID id) {
+        switch (id) {
+        case AugmentID::AMPLIFIED_DAMAGE: return m_amplifieddamageTex;
+        case AugmentID::ATTACK_SPEED_BOOST: return m_attackmomentumTex;
+        case AugmentID::CHAIN_ATTACK: return m_chainattackTex;
+        case AugmentID::DAMAGING_MARK: return m_damagingmarkTex;
+        case AugmentID::DASH_SPEED_BOOST: return m_dashmomentumTex;
+        case AugmentID::MORE_PARRY_CHARGES: return m_parrychargesTex;
+        case AugmentID::POISON_TRAIL: return m_poisontrailTex;
+        case AugmentID::FASTER_PARRY: return m_quickparryTex;
+        case AugmentID::SHIELD_DASH: return m_shielddashTex;
+        default: return nullptr;
+        }
+    }
+
     void Reset();
 
 private:
@@ -59,7 +74,26 @@ private:
     AugmentID m_cardIDs[3] = { AugmentID::NONE, AugmentID::NONE, AugmentID::NONE };
 
     // Visual Assets
+    AEGfxTexture* m_candyTex;
+
+    AEGfxTexture* m_amplifieddamageTex;
+    AEGfxTexture* m_attackmomentumTex;
+    AEGfxTexture* m_chainattackTex;
+    AEGfxTexture* m_damagingmarkTex;
+    AEGfxTexture* m_dashmomentumTex;
+    AEGfxTexture* m_parrychargesTex;
+    AEGfxTexture* m_poisontrailTex;
+    AEGfxTexture* m_quickparryTex;
+    AEGfxTexture* m_shielddashTex;
+
+
     AEGfxVertexList* augmentMesh = nullptr;
+    AEGfxVertexList* candyMesh = nullptr;
     AEGfxVertexList* cardMesh = nullptr;
     s8 m_cardFont = -1;
+
+    Sprite candySprite;
+
+    Sprite cardSprite;
+
 };

@@ -65,10 +65,47 @@ void Augments::Init() {
     if (augmentMesh) { AEGfxMeshFree(augmentMesh); augmentMesh = nullptr; }
     if (cardMesh)    { AEGfxMeshFree(cardMesh);    cardMesh    = nullptr; }
     if (m_cardFont != -1) { AEGfxDestroyFont(m_cardFont); m_cardFont = -1; }
+    if (m_candyTex) { AEGfxTextureUnload(m_candyTex); m_candyTex = nullptr; }
+    if (m_amplifieddamageTex) { AEGfxTextureUnload(m_amplifieddamageTex); m_amplifieddamageTex = nullptr; }
+    if (m_attackmomentumTex) { AEGfxTextureUnload(m_attackmomentumTex); m_attackmomentumTex = nullptr; }
+    if (m_chainattackTex) { AEGfxTextureUnload(m_chainattackTex); m_chainattackTex = nullptr; }
+    if (m_damagingmarkTex) { AEGfxTextureUnload(m_damagingmarkTex); m_damagingmarkTex = nullptr; }
+    if (m_dashmomentumTex) { AEGfxTextureUnload(m_dashmomentumTex); m_dashmomentumTex = nullptr; }
+    if (m_parrychargesTex) { AEGfxTextureUnload(m_parrychargesTex); m_parrychargesTex = nullptr; }
+    if (m_poisontrailTex) { AEGfxTextureUnload(m_poisontrailTex); m_poisontrailTex = nullptr; }
+    if (m_quickparryTex) { AEGfxTextureUnload(m_quickparryTex); m_quickparryTex = nullptr; }
+    if (m_shielddashTex) { AEGfxTextureUnload(m_shielddashTex); m_shielddashTex = nullptr; }
+
+    m_candyTex = AEGfxTextureLoad("Assets/Cards/candy.png");
+
+    m_amplifieddamageTex = AEGfxTextureLoad("Assets/Cards/amplifieddamage2.png"); // 2 versions
+    m_attackmomentumTex = AEGfxTextureLoad("Assets/Cards/attackmomentum.png");
+    m_chainattackTex = AEGfxTextureLoad("Assets/Cards/chainattack.png");
+    m_damagingmarkTex = AEGfxTextureLoad("Assets/Cards/damagingmark.png");
+    m_dashmomentumTex = AEGfxTextureLoad("Assets/Cards/dashmomentum2.png");
+    m_parrychargesTex = AEGfxTextureLoad("Assets/Cards/parrycharges.png");
+    m_poisontrailTex = AEGfxTextureLoad("Assets/Cards/poisontrail2.png");
+    m_quickparryTex = AEGfxTextureLoad("Assets/Cards/quickparry.png");
+    m_shielddashTex = AEGfxTextureLoad("Assets/Cards/shielddash.png");
 
     augmentMesh = CreateCircleMesh(1, 16, 0x000000);
+    candyMesh = CreateSpriteRectMesh(0x000000, 1.0, 1.0);
+
     cardMesh = CreateRectMesh(0x000000);
     m_cardFont = AEGfxCreateFont("Assets/fonts/Stick-Regular.ttf", 24);
+    
+    if (!m_shielddashTex) {
+        std::cout << "Failed to load card texture!" << std::endl;
+
+    }
+    else {
+        std::cout << "card texture success" << std::endl;
+    }
+    candySprite.SetTextureU();
+    candySprite.SetTextureV(0);
+
+    cardSprite.SetSingleFrameTexture();
+
 }
 
 void Augments::Update(f32 playerX, f32 playerY, f32 dt) {
@@ -240,72 +277,176 @@ void Augments::Draw(float camX, float camY) {
     // AUGMENT BALL DROPS DOWN FROM THE SKY
     // AUGMENT SPAWNS AFTER LAST ENEMY DEATH (store enemy last location (wave is a vector) when size of wave = 1)
     // Ensure Color Mode is set
+
+
     AEGfxSetRenderMode(AE_GFX_RM_COLOR);
 
+    /*if (!m_candyTex)
+        std::cout << "Failed to load candy texture!" << std::endl;
+    else
+        std::cout << "Candy texture loaded successfully" << std::endl;*/
 
     DrawMesh(augmentMesh, (augSize - 20) - sinf(hoverTime) * hoverPower, (isoHeight - 10) - (sinf(hoverTime) * hoverPower), augPosX, (augPosY - 65), 0.0f, 44, 50, 150, 128);
 
     // Draw using Utils helper
     // Color: Black (0,0,0) with full alpha (255)
-    DrawMesh(augmentMesh, augSize, augSize, augPosX, (hoverPosY + sinf(hoverTime) * hoverPower), 0.0f, 44, 50, 150, 255);
+
+    AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
+    AEGfxSetColorToMultiply(1.0f, 1.0f, 1.0f, 1.0f);
+    AEGfxSetColorToAdd(0.0f, 0.0f, 0.0f, 0.0f);
+    AEGfxSetBlendMode(AE_GFX_BM_BLEND);
+    AEGfxSetTransparency(1.0f);
+    AEGfxTextureSet(m_candyTex, 0.0f, 0.0f);
+
+    //AEGfxMeshDraw(candyMesh, AE_GFX_MDM_TRIANGLES);
+
+    //DrawMesh(augmentMesh, augSize, augSize, augPosX, (hoverPosY + sinf(hoverTime) * hoverPower), 0.0f, 44, 50, 150, 255);
+
+    float hoverOffset = sinf(hoverTime) * hoverPower;
+
+    DrawTexture(
+        candySprite,       // sprite object
+        0,                 // currentDirection/frame (0 if one frame)
+        candyMesh,         // your quad mesh
+        m_candyTex,        // the candy PNG texture
+        augSize * 1.75,    // width of candy
+        augSize * 1.75,    // height of candy
+        augPosX,           // x position
+        hoverPosY + hoverOffset, // y position with hover
+        0.0f,              // rotation (0 = no rotation)
+        1.0f               // size multiplier (1.0 = normal)
+    );
+
+    //DrawMesh(candyMesh, augSize, augSize, augPosX, augPosY, 0.0f, 255, 255, 255, 255);
 
     if (choose == true) {
 
         DrawMesh(cardMesh, 3200, 1800, windowTintX, windowTintY, 0.0f, 0, 0, 0, 100); // Tinted Window
 
+        AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
+        AEGfxSetColorToMultiply(1.0f, 1.0f, 1.0f, 1.0f);
+        AEGfxSetColorToAdd(0.0f, 0.0f, 0.0f, 0.0f);
+        AEGfxSetBlendMode(AE_GFX_BM_BLEND);
+        AEGfxSetTransparency(1.0f);
+
         // drawing the cards and moving them to their picking positions
-        DrawMesh(cardMesh, cardWidth, cardHeight, cards_x1, cards_y, 0.0f, 255, 0, 0, 255); // Red Card (Left)
-        DrawMesh(cardMesh, cardWidth, cardHeight, cards_x2, cards_y, 0.0f, 0, 0, 255, 255); // Blue Card (Right)
-        DrawMesh(cardMesh, cardWidth, cardHeight, cards_x3, cards_y, 0.0f, 0, 255, 0, 255); // Green Card (Middle)
+        //DrawMesh(cardMesh, cardWidth, cardHeight, cards_x1, cards_y, 0.0f, 255, 0, 0, 255); // Red Card (Left)
+        //DrawMesh(cardMesh, cardWidth, cardHeight, cards_x2, cards_y, 0.0f, 0, 0, 255, 255); // Blue Card (Right)
+        //DrawMesh(cardMesh, cardWidth, cardHeight, cards_x3, cards_y, 0.0f, 0, 255, 0, 255); // Green Card (Middle)
+
+        for (int i = 0; i < 3; ++i) {
+            float cardX = (i == 0 ? cards_x1 : (i == 1 ? cards_x2 : cards_x3));
+            AEGfxTexture* tex = GetTextureForCard(m_cardIDs[i]);
+
+            if (!tex) continue; // skip if texture failed to load
+
+            DrawTexture(
+                cardSprite,
+                0,
+                cardMesh,
+                tex,
+                cardWidth,
+                cardHeight,
+                cardX,
+                cards_y,
+                0.0f,
+                1.0f
+            );
+        }
 
         // Draw augment text only after cards have settled into position
-        if (m_cardFont != -1 && cardsInPosition) {
-            float cardCentersX[3] = {
-                (cards_x1 - camX) + cardWidth * 0.5f,
-                (cards_x2 - camX) + cardWidth * 0.5f,
-                (cards_x3 - camX) + cardWidth * 0.5f
-            };
+        //if (m_cardFont != -1 && cardsInPosition) {
+        //    float cardCentersX[3] = {
+        //        (cards_x1 - camX) + cardWidth * 0.5f,
+        //        (cards_x2 - camX) + cardWidth * 0.5f,
+        //        (cards_x3 - camX) + cardWidth * 0.5f
+        //    };
 
-            for (int i = 0; i < 3; ++i) {
-                const AugmentInfo& info = GetAugmentInfo(m_cardIDs[i]);
+        //    for (int i = 0; i < 3; ++i) {
+        //        const AugmentInfo& info = GetAugmentInfo(m_cardIDs[i]);
 
-                // Convert screen position to normalized coords (-1 to 1)
-                float screenX = cardCentersX[i];
-                float screenY = cards_y - camY;
+        //        // Convert screen position to normalized coords (-1 to 1)
+        //        float screenX = cardCentersX[i];
+        //        float screenY = cards_y - camY;
 
-                float tw, th;
+        //        float tw, th;
 
-                // Title (near top of card)
-                AEGfxGetPrintSize(m_cardFont, info.name, 1.0f, &tw, &th);
-                float titleNX = screenX / 800.0f - tw * 0.5f;
-                float titleNY = (screenY + cardHeight * 0.3f) / 450.0f;
-                AEGfxPrint(m_cardFont, info.name, titleNX, titleNY, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
+        //        // Title (near top of card)
+        //        AEGfxGetPrintSize(m_cardFont, info.name, 1.0f, &tw, &th);
+        //        float titleNX = screenX / 800.0f - tw * 0.5f;
+        //        float titleNY = (screenY + cardHeight * 0.3f) / 450.0f;
+        //        AEGfxPrint(m_cardFont, info.name, titleNX, titleNY, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
 
-                // Description (below title)
-                AEGfxGetPrintSize(m_cardFont, info.description, 1.0f, &tw, &th);
-                float descNX = screenX / 800.0f - tw * 0.5f;
-                float descNY = (screenY + cardHeight * 0.15f) / 450.0f;
-                AEGfxPrint(m_cardFont, info.description, descNX, descNY, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
-            }
-        }
+        //        // Description (below title)
+        //        AEGfxGetPrintSize(m_cardFont, info.description, 1.0f, &tw, &th);
+        //        float descNX = screenX / 800.0f - tw * 0.5f;
+        //        float descNY = (screenY + cardHeight * 0.15f) / 450.0f;
+        //        AEGfxPrint(m_cardFont, info.description, descNX, descNY, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
+        //    }
+        //}
 
 
     }
 }
 
 void Augments::Free() {
-	if (augmentMesh) {
-		AEGfxMeshFree(augmentMesh);
-		augmentMesh = nullptr;
-	}
-	if (cardMesh) {
-		AEGfxMeshFree(cardMesh);
-		cardMesh = nullptr;
-	}
-	if (m_cardFont != -1) {
-		AEGfxDestroyFont(m_cardFont);
-		m_cardFont = -1;
-	}
+    if (augmentMesh) {
+        AEGfxMeshFree(augmentMesh);
+        augmentMesh = nullptr;
+    }
+    if (cardMesh) {
+        AEGfxMeshFree(cardMesh);
+        cardMesh = nullptr;
+    }
+    if (candyMesh) {
+        AEGfxMeshFree(candyMesh);
+        candyMesh = nullptr;
+    }
+    if (m_cardFont != -1) {
+        AEGfxDestroyFont(m_cardFont);
+        m_cardFont = -1;
+    }
+
+    if (m_candyTex) {
+        AEGfxTextureUnload(m_candyTex);
+        m_candyTex = nullptr;
+    }
+    if (m_amplifieddamageTex) {
+        AEGfxTextureUnload(m_amplifieddamageTex);
+        m_amplifieddamageTex = nullptr;
+    }
+    if (m_attackmomentumTex) {
+        AEGfxTextureUnload(m_attackmomentumTex);
+        m_attackmomentumTex = nullptr;
+    }
+    if (m_chainattackTex) {
+        AEGfxTextureUnload(m_chainattackTex);
+        m_chainattackTex = nullptr;
+    }
+    if (m_damagingmarkTex) {
+        AEGfxTextureUnload(m_damagingmarkTex);
+        m_damagingmarkTex = nullptr;
+    }
+    if (m_dashmomentumTex) {
+        AEGfxTextureUnload(m_dashmomentumTex);
+        m_dashmomentumTex = nullptr;
+    }
+    if (m_parrychargesTex) {
+        AEGfxTextureUnload(m_parrychargesTex);
+        m_parrychargesTex = nullptr;
+    }
+    if (m_poisontrailTex) {
+        AEGfxTextureUnload(m_poisontrailTex);
+        m_poisontrailTex = nullptr;
+    }
+    if (m_quickparryTex) {
+        AEGfxTextureUnload(m_quickparryTex);
+        m_quickparryTex = nullptr;
+    }
+    if (m_shielddashTex) {
+        AEGfxTextureUnload(m_shielddashTex);
+        m_shielddashTex = nullptr;
+    }
 }
 
 void Augments::Reset() {
