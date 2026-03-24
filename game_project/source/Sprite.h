@@ -43,6 +43,15 @@ class Sprite
 		void SetTexturePlayerU() { p_u0 = pFrame * pFrameUSize; }
 		void SetTexturePlayerV(int animRow) { pRow = animRow; p_v0 = pRow * pFrameVSize; }
 
+		void SetSingleFrameTexture() {
+			frame = 0;
+			row = 0;
+			frameUSize = 1.0f;
+			frameVSize = 1.0f;
+			SetTextureU();
+			SetTextureV(0);
+		}
+
 	private:
 		// Enemy Spritesheet
 		AEGfxTexture* pEnemySpriteSheet{nullptr};
