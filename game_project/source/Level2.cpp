@@ -14,6 +14,7 @@
 #include "Audio.h"
 #include "Debug.h"
 #include "Shadow.h"
+#include "Projectile.h"
 
 // load variables
 static AEGfxTexture* TexBlock2;
@@ -319,6 +320,7 @@ void Level2_Free() {
 	player.Free();
 	augments.Free();
 	AugmentEffects_Free();
+	Projectile::Free();
 	g_Events.ClearAll();
 }
 
