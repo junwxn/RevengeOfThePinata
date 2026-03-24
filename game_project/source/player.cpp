@@ -728,7 +728,7 @@ void Player::DrawBat(float angle)
     if (!m_BatMesh || !m_BatTexture) return;
 
     static constexpr float BAT_WIDTH  = 35.0f;
-    static constexpr float BAT_LENGTH = 190.0f;
+    static constexpr float BAT_LENGTH = 175.0f;
 
     // Mesh extends along +Y, but atan2 angles measure from +X — subtract PI/2
     float drawAngle = angle - PI * 0.5f;
