@@ -84,8 +84,8 @@ static void DrawPanel(float cx, float cy, float w, float h, float alpha) {
 // ========== LOAD ==========
 void MainMenu_Load() {
 	rectMesh  = CreateRectMesh(0xFFFFFFFF);
-	fontTitle = AEGfxCreateFont("Assets/liberation-mono.ttf", 72);
-	fontBody  = AEGfxCreateFont("Assets/liberation-mono.ttf", 36);
+	fontTitle = AEGfxCreateFont("Assets/fonts/Stick-Regular.ttf", 72);
+	fontBody  = AEGfxCreateFont("Assets/fonts/Stick-Regular.ttf", 36);
 	//gAudio.Audio_Init();
 }
 

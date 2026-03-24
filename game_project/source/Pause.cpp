@@ -50,7 +50,7 @@ static void DrawStyledButton(float cx, float cy, float baseW, float baseH, float
 
 void Pause_Load() {
 	rectMesh  = CreateRectMesh(0xFFFFFFFF);
-	pauseFont = AEGfxCreateFont("Assets/liberation-mono.ttf", 36);
+	pauseFont = AEGfxCreateFont("Assets/fonts/Stick-Regular.ttf", 36);
 }
 
 void Pause_Init() {

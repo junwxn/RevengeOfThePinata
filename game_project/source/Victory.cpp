@@ -47,8 +47,8 @@ static void SpawnConfetti(Confetti& c, bool randomY) {
 
 void Victory_Load() {
 	rectMesh = CreateRectMesh(0xFFFFFFFF);
-	fontTitle = AEGfxCreateFont("Assets/liberation-mono.ttf", 72);
-	fontBody = AEGfxCreateFont("Assets/liberation-mono.ttf", 36);
+	fontTitle = AEGfxCreateFont("Assets/fonts/Stick-Regular.ttf", 72);
+	fontBody = AEGfxCreateFont("Assets/fonts/Stick-Regular.ttf", 36);
 }
 
 void Victory_Init() {

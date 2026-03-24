@@ -68,7 +68,7 @@ void Augments::Init() {
 
     augmentMesh = CreateCircleMesh(1, 16, 0x000000);
     cardMesh = CreateRectMesh(0x000000);
-    m_cardFont = AEGfxCreateFont("Assets/liberation-mono.ttf", 24);
+    m_cardFont = AEGfxCreateFont("Assets/fonts/Stick-Regular.ttf", 24);
 }
 
 void Augments::Update(f32 playerX, f32 playerY, f32 dt) {

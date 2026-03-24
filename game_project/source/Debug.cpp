@@ -54,7 +54,7 @@ static const char* GameStateStr(int gs) {
 // --- Public API ---
 
 void Debug_Load() {
-    debugFont       = AEGfxCreateFont("Assets/liberation-mono.ttf", 30);
+    debugFont       = AEGfxCreateFont("Assets/fonts/liberation-mono.ttf", 30);
     debugCircleMesh = CreateCircleMesh(1.0f, 32, 0xFFFFFFFF);
     debugRectMesh = CreateRectMesh(0xFFFFFFFF);
     debugRingMesh = CreateRingMesh(32, 0.01f);

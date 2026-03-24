@@ -175,7 +175,7 @@ void Tutorial_Load() {
 	TexBlock   = AEGfxTextureLoad("Assets/block.png");
 	CircleMesh = CreateCircleMesh(1.0f, 32, 0xFFFFFFFF);
 	RectMesh   = CreateRectMesh(0xFFFFFFFF);
-	tutorialFont = AEGfxCreateFont("Assets/liberation-mono.ttf", 36);
+	tutorialFont = AEGfxCreateFont("Assets/fonts/Stick-Regular.ttf", 36);
 	TexSpeechLeft = AEGfxTextureLoad("Assets/speech_left.png");
 	TexPinata     = AEGfxTextureLoad("Assets/pinata1.png");
 	gameMap.Init("Assets/tutorial.tmx", "tilesheet_complete", "Assets/tilesheet_complete.png");

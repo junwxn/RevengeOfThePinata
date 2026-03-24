@@ -12,8 +12,8 @@ static s8 s_smallFont = -1;
 
 void HUD_Load() {
 	s_rectMesh  = CreateRectMesh(0xFFFFFFFF);
-	s_hudFont   = AEGfxCreateFont("Assets/liberation-mono.ttf", 40);
-	s_smallFont = AEGfxCreateFont("Assets/liberation-mono.ttf", 28);
+	s_hudFont   = AEGfxCreateFont("Assets/fonts/Stick-Regular.ttf", 40);
+	s_smallFont = AEGfxCreateFont("Assets/fonts/Stick-Regular.ttf", 28);
 }
 
 void HUD_Init() {
