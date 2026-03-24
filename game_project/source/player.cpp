@@ -634,17 +634,6 @@ void Player::Draw()
     // Player Mesh
     DrawMesh(m_pMesh, m_Size, isoHeight, m_PosX, m_PosY, 0.0f, 44, 145, 57, 255);
     
-    // Aiming Pointer (hide during block/parry)
-    if (m_BlockActive) {
-        // no yellow line while blocking/parrying
-    }
-    else if (!m_AttackActive) {
-        DrawMesh(m_AttackRangeMesh, 1.0f, 5.0f, m_PosX, m_PosY, m_AimAngle, 255, 255, 53, 255);
-    }
-    else {
-        DrawMesh(m_AttackRangeMesh, 1.0f, 5.0f, m_PosX, m_PosY, m_CurrentAngle, 255, 255, 53, 255);
-    }
-
     if (m_BlockActive)
     {
         if (m_ParryActive) DrawMesh(m_BlockRangeMesh, 1.0f, 5.0f, m_PosX, m_PosY, m_CurrentAngle, 255, 0, 0, 255);

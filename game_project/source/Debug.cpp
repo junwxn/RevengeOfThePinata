@@ -15,6 +15,7 @@ static AEGfxVertexList* debugCircleMesh = nullptr;
 static AEGfxVertexList* debugRectMesh   = nullptr;
 static AEGfxVertexList* debugDiamondMesh = nullptr;
 static AEGfxVertexList* debugRingMesh = nullptr;
+static AEGfxVertexList* debugAimLineMesh = nullptr;
 
 static bool s_showHUD           = false;   // F1
 static bool s_showCollisionGrid = false;   // F2
@@ -68,6 +69,8 @@ void Debug_Load() {
                  0.5f, 0.0f, 0xFFFFFFFF, 0.0f, 0.0f,
                  0.0f,-0.5f, 0xFFFFFFFF, 0.0f, 0.0f);
     debugDiamondMesh = AEGfxMeshEnd();
+
+    debugAimLineMesh = CreateLineMesh(200.0f, 0xFFFF35FF); // yellow aim line (attack range = 200)
 }
 
 void Debug_Init() {
@@ -110,6 +113,10 @@ void Debug_DrawWorld(float camX, float camY) {
         const float range = s_ctx.player->GetAttackRange();
 
         Debug_DrawAttackRadius(playerPos, range);
+
+        // Yellow aim line
+        float lineAngle = s_ctx.player->IsAttacking() ? s_ctx.player->GetCurrentAngle() : s_ctx.player->GetAimAngle();
+        DrawMesh(debugAimLineMesh, 1.0f, 5.0f, playerPos.x, playerPos.y, lineAngle, 255, 255, 53, 255);
 
         if (s_ctx.player->GetParryStatus() || s_ctx.player->GetBlockStatus()) {
             const float startAngle = s_ctx.player->GetStartAngle();
@@ -334,6 +341,7 @@ void Debug_Unload() {
     if (debugRectMesh)   { AEGfxMeshFree(debugRectMesh);   debugRectMesh   = nullptr; }
     if (debugDiamondMesh) { AEGfxMeshFree(debugDiamondMesh);   debugDiamondMesh = nullptr; }
     if (debugRingMesh){ AEGfxMeshFree(debugRingMesh); debugRingMesh = nullptr; }
+    if (debugAimLineMesh) { AEGfxMeshFree(debugAimLineMesh); debugAimLineMesh = nullptr; }
     if (debugFont >= 0)  { AEGfxDestroyFont(debugFont);    debugFont       = -1; }
 }
 
