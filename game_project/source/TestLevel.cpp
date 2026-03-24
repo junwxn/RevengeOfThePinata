@@ -160,7 +160,7 @@ void TestLevel_Update(float dt) {
 void TestLevel_Draw() {
 	AESysFrameStart();
 	AEGfxSetBackgroundColor(0.68f, 0.85f, 0.90f);
-	AEGfxSetCamPosition(camera.GetX(), camera.GetY());
+	AEGfxSetCamPosition(camera.GetRenderX(), camera.GetRenderY());
 
 	AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
 	AEGfxSetColorToMultiply(1.0f, 1.0f, 1.0f, 1.0f);

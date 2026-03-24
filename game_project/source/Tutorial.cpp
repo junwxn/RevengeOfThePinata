@@ -405,7 +405,7 @@ void Tutorial_Update(float dt) {
 void Tutorial_Draw() {
 	AESysFrameStart();
 	AEGfxSetBackgroundColor(0.68f, 0.85f, 0.90f);
-	AEGfxSetCamPosition(camera.GetX(), camera.GetY());
+	AEGfxSetCamPosition(camera.GetRenderX(), camera.GetRenderY());
 
 	// Draw map
 	AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);

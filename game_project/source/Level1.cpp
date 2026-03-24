@@ -306,7 +306,7 @@ void Level1_Update(float dt) {
 void Level1_Draw() {
 	AESysFrameStart();
 	AEGfxSetBackgroundColor(0.68f, 0.85f, 0.90f);
-	AEGfxSetCamPosition(camera.GetX(), camera.GetY());
+	AEGfxSetCamPosition(camera.GetRenderX(), camera.GetRenderY());
 
 	//draw map
 	AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
