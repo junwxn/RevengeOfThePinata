@@ -15,6 +15,8 @@ enum class EnemyState : char
 {
     STATE_IDLE,
     STATE_MOVING,
+    STATE_DASH_WINDUP,
+    STATE_DASH,
     STATE_ATTACK,
     STATE_PARRY,
     STATE_DEAD
@@ -90,7 +92,7 @@ public:
     void SetKnockback(AEVec2 knockbackVec) { AEVec2Add(&m_pos, &m_pos, &knockbackVec); }
     void SetKnockbackVelocity(AEVec2 setVelocity) { m_KnockbackVelocity = setVelocity; }
     void SetLastAttackID(int newID) { m_LastAttackID = newID; }
-    void SetHDP(f32 dmg) { m_healthDepletionPercentage += dmg; }
+    void SetHDP(f32 dmg) { m_healthDepletionPercentage = (dmg / m_CombatStats.maxHealth) * 100.0f; }
 
     // Flag Setters
     void SetParried(bool set) { m_CombatFlags.parried = set; }
@@ -227,8 +229,21 @@ protected:
         m_Damage
     };
 
+    Combat::CombatData::AttackData m_DashFollowupAttackData
+    {
+        30.0f,  // startAngle
+        30.0f,  // endAngle
+        3,      // startup ~0.1s
+        6,      // active
+        8,      // recovery
+        17,     // total
+        20      // damage
+    };
+
+
     // Animation
     EnemyDirection m_CurrentDirection;
+    EnemyState m_CurrentState{ EnemyState::STATE_IDLE };
 
     // Direction towards player -------
     AEVec2 m_enemyToPlayerDir{};
@@ -290,11 +305,41 @@ public:
 protected:
     f32 m_dashCD{ 3.0f };
     f32 m_dashTimer{ 0.0f };
-    f32 m_dashRange{ 400.0f };
-    f32 m_dashMinRange{ 80.0f };
-    f32 m_dashDistance{ 200.0f };
 
-    void PerformDash(AEVec2 const& direction);
+    // Dash trigger rules
+    f32 m_dashRange{ 400.0f };
+    f32 m_dashMinRange{ 180.0f };
+    f32 m_dashDistance{ 220.0f };
+    AEVec2 m_lockedDashDir{ 0.0f, 0.0f };
+
+    // Stop, wait, then dash
+    f32 m_dashWindupDuration{ 0.5f };
+    f32 m_dashWindupTimer{ 0.0f };
+
+    // Stop early when close enough to attack
+    f32 m_dashStopAttackFactor{ 0.35f };   // half of attack range
+    f32 m_dashEndRangeFactor{ 0.5f };
+
+    // Player-style dash timing
+    bool  m_dashActive{ false };
+    f32   m_dashFrameAccumulator{ 0.0f };
+    int   m_dashCurrentFrame{ 0 };
+    bool  m_dashAttackQueued{ false };
+
+    int   m_dashStartFrames{ 0 };
+    int   m_dashActiveFrames{ 7 };
+    int   m_dashRecoveryFrames{ 3 };
+    int   m_dashTotalFrames{ m_dashStartFrames + m_dashActiveFrames + m_dashRecoveryFrames };
+
+    f32   m_dashDirX{ 0.0f };
+    f32   m_dashDirY{ 0.0f };
+    f32   m_dashTotalX{ 0.0f };
+    f32   m_dashTotalY{ 0.0f };
+
+    void StartDash(AEVec2 const& direction, f32 distToPlayer);
+    void UpdateDash(f32 dt, Player& player);
+    void ApplyDashStep(Player& player);
+    void PerformDash(AEVec2 const& direction, f32 distToPlayer);
     void ChildUpdate(f32 dt, Combat::System& combat, Player& player,
         std::vector<std::unique_ptr<Enemy>>& enemies) override;
 };

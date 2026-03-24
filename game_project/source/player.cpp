@@ -33,9 +33,9 @@ void Player::Init()
     m_PosY = 0.0f;
     m_Speed = 300.0f;
     m_Size = PLAYER_SIZE;
-    m_DashChargesMax    = 3;
-    m_DashCharges       = 3;
-    m_DashRechargeTime  = 5.0f / 3.0f;  // ~1.67s per charge
+    m_DashChargesMax = 3;
+    m_DashCharges = 3;
+    m_DashRechargeTime = 5.0f / 3.0f;  // ~1.67s per charge
     m_DashRechargeTimer = 0.0f;
 
     m_CurrentState = PlayerState::STATE_IDLE;
@@ -50,8 +50,8 @@ void Player::Init()
 
     // Free any existing meshes before creating new ones (prevents leaks on restart)
     if (m_AttackRangeMesh) { AEGfxMeshFree(m_AttackRangeMesh); m_AttackRangeMesh = nullptr; }
-    if (m_BlockRangeMesh)  { AEGfxMeshFree(m_BlockRangeMesh);  m_BlockRangeMesh  = nullptr; }
-    if (m_pMesh)           { AEGfxMeshFree(m_pMesh);           m_pMesh           = nullptr; }
+    if (m_BlockRangeMesh) { AEGfxMeshFree(m_BlockRangeMesh);  m_BlockRangeMesh = nullptr; }
+    if (m_pMesh) { AEGfxMeshFree(m_pMesh);           m_pMesh = nullptr; }
     if (m_playerHealthBarMesh) { AEGfxMeshFree(m_playerHealthBarMesh); m_playerHealthBarMesh = nullptr; }
     if (m_DashParticleMesh) { AEGfxMeshFree(m_DashParticleMesh); m_DashParticleMesh = nullptr; }
 
@@ -500,68 +500,6 @@ void Player::Update(float dt, Combat::System& combat, std::vector<std::unique_pt
             // --- 4. Dash Logic ---
             if (AEInputCheckTriggered(AEVK_SPACE) && m_DashCharges > 0 && !m_DashActive)
             {
-                //// Store pre-dash position for poison trail
-                //float preDashX = m_PosX;
-                //float preDashY = m_PosY;
-
-                //float blinkDist = 0.0f;
-
-                //if (moveX != 0 && moveY != 0)
-                //{
-                //    // Diagonal: Move Hypotenuse of one tile
-                //    float halfW = GRID_W * 0.5f;
-                //    float halfH = GRID_H * 0.5f;
-                //    blinkDist = sqrt(halfW * halfW + halfH * halfH);
-                //}
-                //else
-                //{
-                //    // Orthogonal: Move Width or Height
-                //    blinkDist = (moveX != 0) ? GRID_W : GRID_H;
-                //}
-
-                //// Dash uses the same collision resolution as walking, stepped in
-                //// small increments along the path so the player can't tunnel
-                //// through thin walls.  If a step is blocked the player stops at
-                //// the last clear position (wall-sliding still applies per step).
-                //float dashVelX = dirX * blinkDist;
-                //float dashVelY = dirY * blinkDist;
-                //if (m_pMap) {
-                //    const int steps = (int)(blinkDist / 16.0f) + 1;
-                //    float stepVelX = dashVelX / steps;
-                //    float stepVelY = dashVelY / steps;
-                //    for (int i = 0; i < steps; ++i) 
-                //    {
-                //        float prevX = m_PosX, prevY = m_PosY;
-                //        ResolveCollision(m_PosX, m_PosY, stepVelX, stepVelY, m_Size, *m_pMap);
-                //        // If this step made no progress, stop early.
-                //        if (m_PosX == prevX && m_PosY == prevY) break;
-                //    }
-                //}
-                //else {
-                //    m_PosX += dashVelX;
-                //    m_PosY += dashVelY;
-                //}
-
-                //m_DashCooldown = m_DashCooldown_Default;
-
-                //// Fire ON_DASH event for augment effects
-                //EventData dashData;
-                //dashData.playerX = m_PosX;
-                //dashData.playerY = m_PosY;
-                //dashData.dirX = dirX;
-                //dashData.dirY = dirY;
-                //g_Events.Fire(GameEvent::ON_DASH, dashData);
-
-                //// --- 5. Apply Velocity with isometric wall-sliding collision ---
-                //float velX = dirX * m_Speed * m_SpeedMultiplier * dt;
-                //float velY = dirY * m_Speed * m_SpeedMultiplier * dt;
-                //if (m_pMap) {
-                //    ResolveCollision(m_PosX, m_PosY, velX, velY, m_Size, *m_pMap);
-                //}
-                //else {
-                //    m_PosX += velX;
-                //    m_PosY += velY;
-                //}
                 StartDash(moveX, moveY, dirX, dirY);
             }
         }
@@ -630,7 +568,7 @@ void Player::Draw()
     // Color: Black (0,0,0) with full alpha (255)
     // Player Mesh
     DrawMesh(m_pMesh, m_Size, isoHeight, m_PosX, m_PosY, 0.0f, 44, 145, 57, 255);
-    
+
     // Aiming Pointer
     if (!m_AttackActive) {
         DrawMesh(m_AttackRangeMesh, 1.0f, 5.0f, m_PosX, m_PosY, m_AimAngle, 255, 255, 53, 255);
@@ -643,29 +581,31 @@ void Player::Draw()
 
     if (m_BlockActive)
     {
-        if (m_ParryActive) DrawMesh(m_BlockRangeMesh, 1.0f, 5.0f, m_PosX, m_PosY, m_CurrentAngle, 255, 0, 0, 255);   
+        if (m_ParryActive) DrawMesh(m_BlockRangeMesh, 1.0f, 5.0f, m_PosX, m_PosY, m_CurrentAngle, 255, 0, 0, 255);
     }
 
     // Player health bar
-    f32 barWidth = m_Size * 2.0f * m_CombatStats.health / m_CombatStats.maxHealth;
+    f32 barWidth = m_Size * 2.0f * (m_CombatStats.health / m_CombatStats.maxHealth);
     f32 barHeight = m_Size / 3.0f;
-    f32 dbarWidth = m_Size * 2.0f * (m_CombatStats.health / m_CombatStats.maxHealth + m_healthDepletionPercentage / 100.0f);
+    f32 dbarWidth = m_Size * 2.0f * AEClamp((m_CombatStats.health / m_CombatStats.maxHealth) + (m_healthDepletionPercentage / 100.0f), 0.0f, 1.0f);
+
     f32 dRate = 100.0f * dt;
-    if (m_healthDepletionPercentage >= 0.0f) { m_healthDepletionPercentage -= dRate; };
+    if (m_healthDepletionPercentage > 0.0f) {
+        m_healthDepletionPercentage -= dRate;
+        if (m_healthDepletionPercentage < 0.0f) {
+            m_healthDepletionPercentage = 0.0f;
+        }
+    }
 
     if (m_CombatStats.health >= 0) {
         DrawMesh(m_playerHealthBarMesh, dbarWidth, barHeight, m_PosX - m_Size, m_PosY + m_Size + barHeight / 2.0f + 40.0f, 0.0f, 230.0f, 80.0f, 80.0f, 255.0f); // Depleting bar
         DrawMesh(m_playerHealthBarMesh, barWidth, barHeight, m_PosX - m_Size, m_PosY + m_Size + barHeight / 2.0f + 40.0f, 0.0f, 80.0f, 220.0f, 180.0f, 255.0f); // Instant bar
     }
 
-<<<<<<< Updated upstream
-    if (!m_AttackActive)
-=======
     // Player dash particles
     DrawDashParticles();
 
-    if (m_AttackActive)
->>>>>>> Stashed changes
+    if (!m_AttackActive)
     {
         DrawTexturePlayer(m_PlayerSprite, static_cast<int>(m_CurrentDirection), m_PlayerSprite.GetPlayerSpriteMesh(), m_PlayerSprite.GetPlayerSpriteSheet(), m_PlayerSprite.GetPixelScale(),
             m_PlayerSprite.GetPixelScale(), m_PosX, m_PosY, 0.0f, sizeMultiplier);
@@ -695,8 +635,6 @@ void Player::Free()
         AEGfxMeshFree(m_playerHealthBarMesh);
         m_playerHealthBarMesh = nullptr;
     }
-<<<<<<< Updated upstream
-=======
     if (m_BatMesh) {
         AEGfxMeshFree(m_BatMesh);
         m_BatMesh = nullptr;
@@ -711,26 +649,31 @@ void Player::Free()
     }
 }
 
-namespace {
-    static f32 NormalizeAnglePi(f32 a)
+namespace
+{
+    float NormalizeAnglePi(float angle)
     {
-        while (a > PI)  a -= 2 * PI;
-        while (a < -PI) a += 2 * PI;
-        return a;
+        while (angle > PI)  angle -= 2.0f * PI;
+        while (angle < -PI) angle += 2.0f * PI;
+        return angle;
     }
 
-    static bool IsAngleWithinSector(f32 testAngle, f32 startAngle, f32 endAngle)
+    bool IsAngleWithinDirectedSweep(float testAngle, float fromAngle, float toAngle)
     {
-        const f32 sectorSpan = NormalizeAnglePi(endAngle - startAngle);
-        const f32 testSpan = NormalizeAnglePi(testAngle - startAngle);
+        testAngle = NormalizeAnglePi(testAngle);
+        fromAngle = NormalizeAnglePi(fromAngle);
+        toAngle = NormalizeAnglePi(toAngle);
 
-        if (sectorSpan >= 0.0f)
-            return testSpan >= 0.0f && testSpan <= sectorSpan;
+        float deltaSweep = NormalizeAnglePi(toAngle - fromAngle);
+        float deltaTest = NormalizeAnglePi(testAngle - fromAngle);
 
-        return testSpan <= 0.0f && testSpan >= sectorSpan;
+        if (deltaSweep >= 0.0f)
+            return deltaTest >= 0.0f && deltaTest <= deltaSweep;
+        else
+            return deltaTest <= 0.0f && deltaTest >= deltaSweep;
     }
 
-    static f32 EaseInOutSine(f32 t)
+    f32 EaseInOutSine(f32 t)
     {
         t = AEClamp(t, 0.0f, 1.0f);
         return 0.5f - 0.5f * cosf(t * PI);
@@ -741,7 +684,7 @@ void Player::DrawBat(float angle)
 {
     if (!m_BatMesh || !m_BatTexture) return;
 
-    static constexpr float BAT_WIDTH  = 35.0f;
+    static constexpr float BAT_WIDTH = 35.0f;
     static constexpr float BAT_LENGTH = 175.0f;
 
     // Mesh extends along +Y, but atan2 angles measure from +X — subtract PI/2
@@ -764,7 +707,6 @@ void Player::DrawBat(float angle)
 
     AEGfxSetTransform(transform.m);
     AEGfxMeshDraw(m_BatMesh, AE_GFX_MDM_TRIANGLES);
->>>>>>> Stashed changes
 }
 
 // Dash particles
@@ -889,12 +831,12 @@ void Player::StartAttack(Combat::CombatData::AttackData& attackData, std::vector
     m_AttackFrameAccumulator = 0.0f;
     m_AttackCurrentFrame = 0;
     m_AttackProgress = 0.0f;
-    
+
     a_TotalFrames = a_StartUpFrames + a_ActiveFrames + a_RecoveryFrames;
 
     // 60-degree cone
     m_CurrentAngle = m_AimAngle;
-    if (!m_CombatFlags.attackQueued) 
+    if (!m_CombatFlags.attackQueued)
     {
         m_StartAngle = m_AimAngle - AEDegToRad(attackData.startAngle);
         m_EndAngle = m_AimAngle + AEDegToRad(attackData.endAngle);
@@ -955,7 +897,7 @@ void Player::StartDash(float moveX, float moveY, float dirX, float dirY)
         float halfW = GRID_W * 0.5f;
         float halfH = GRID_H * 0.5f;
         //blinkDist = sqrt(halfW * halfW + halfH * halfH);
-        
+
         blinkDist = sqrt(halfW * halfW + halfH * halfH) * 1.75f;
     }
     else
@@ -1051,7 +993,7 @@ void Player::ResetCombatVariables()
     {
 
     }
-    else if(!m_CombatFlags.attackQueued || m_AttackChainIterator >= m_AttackChain.size())
+    else if (!m_CombatFlags.attackQueued || m_AttackChainIterator >= m_AttackChain.size())
     {
         m_AttackChainIterator = 0;
     }
@@ -1088,35 +1030,6 @@ void Player::EvaluateCurrentDirection()
     else
         m_CurrentDirection = PlayerDirection::DIRECTION_DOWN_RIGHT;
 }
-
-<<<<<<< Updated upstream
-namespace
-{
-    float NormalizeAnglePi(float angle)
-    {
-        while (angle > PI)  angle -= 2.0f * PI;
-        while (angle < -PI) angle += 2.0f * PI;
-        return angle;
-    }
-
-    bool IsAngleWithinDirectedSweep(float testAngle, float fromAngle, float toAngle)
-    {
-        testAngle = NormalizeAnglePi(testAngle);
-        fromAngle = NormalizeAnglePi(fromAngle);
-        toAngle = NormalizeAnglePi(toAngle);
-
-        float deltaSweep = NormalizeAnglePi(toAngle - fromAngle);
-        float deltaTest = NormalizeAnglePi(testAngle - fromAngle);
-
-        if (deltaSweep >= 0.0f)
-            return deltaTest >= 0.0f && deltaTest <= deltaSweep;
-        else
-            return deltaTest <= 0.0f && deltaTest >= deltaSweep;
-    }
-}
-=======
-
->>>>>>> Stashed changes
 
 AEVec2 Player::GetParryDirection() const
 {

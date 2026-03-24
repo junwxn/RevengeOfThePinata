@@ -113,7 +113,7 @@ public:
     void SetPosition(float x, float y) { m_PosX = x; m_PosY = y; }
     void SetAimVector(float x, float y) { m_AimVector.x = x, m_AimVector.y = y; }
     void SetAimAngle(float angle) { m_AimAngle = angle; }
-    void SetHDP(f32 dmg) { m_healthDepletionPercentage += dmg; }
+    void SetHDP(f32 dmg) { m_healthDepletionPercentage = (dmg / m_CombatStats.maxHealth) * 100.0f; }
 
     // Speed multiplier for augment effects
     float m_SpeedMultiplier = 1.0f;
@@ -172,13 +172,13 @@ private:
     // -------------------------- //
     Combat::CombatStats m_CombatStats
     {
-        500.0f, // health
+        1000.0f, // health
         40.0f, // attack
         5.0f, // defense
         0.0f, // crit chance
         0.0f, // crit multiplier
         0.0f, // attack multiplier
-        10.0f // max health
+        1000.0f // max health
     };
 
     Combat::CombatFlags m_CombatFlags
@@ -366,6 +366,11 @@ private:
     AEVec2 m_VectorNormalizedMP{};
     AEVec2 m_AimVector{};
     f32 m_AimAngle{};
+
+    // Bat sprite (standalone weapon)
+    AEGfxTexture* m_BatTexture = nullptr;
+    AEGfxVertexList* m_BatMesh = nullptr;
+    void DrawBat(float angle);
 
     // Non-owning pointer to the active map; set via SetMap().
     const MapSystem* m_pMap = nullptr;
