@@ -52,6 +52,7 @@ AEGfxVertexList* CreateAttackRangeMesh(f32 attackRange, u32 color);
 AEGfxVertexList* CreateRingMesh(int segments, f32 thickness);
 
 AEGfxVertexList* CreateSpriteRectMesh(u32 color, float newU, float newV);
+AEGfxVertexList* CreateBatMesh(u32 color);
 
 // Generic Draw function that can draw ANY mesh (Circle or Rect)
 // This replaces specific DrawCircle/DrawRect functions by letting you pass the mesh you want to draw.

@@ -9,6 +9,7 @@
 #include "BossLevel.h"
 #include "Victory.h"
 #include "GameOver.h"
+#include "TestLevel.h"
 
 int current = 0, previous = 0, next = 0;
 
@@ -88,6 +89,14 @@ void GSM_Update() {
 		fpDraw = GameOver_Draw;
 		fpFree = GameOver_Free;
 		fpUnload = GameOver_Unload;
+		break;
+	case GS_TEST:
+		fpLoad = TestLevel_Load;
+		fpInitialize = TestLevel_Init;
+		fpUpdate = TestLevel_Update;
+		fpDraw = TestLevel_Draw;
+		fpFree = TestLevel_Free;
+		fpUnload = TestLevel_Unload;
 		break;
 	case GS_RESTART:
 		break;

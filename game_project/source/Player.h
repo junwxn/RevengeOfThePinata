@@ -341,6 +341,11 @@ private:
     AEMtx33 blockScale{}, blockRot{}, blockTrans{}, blockTransform{};
     AEMtx33 pointScale{}, pointRot{}, pointTrans{}, pointTransform{};
 
+    // Bat sprite (standalone weapon)
+    AEGfxTexture*    m_BatTexture = nullptr;
+    AEGfxVertexList* m_BatMesh    = nullptr;
+    void DrawBat(float angle);
+
     // Mouse Aiming
     double m_DistMagMP{};
     AEVec2 m_VectorNormalizedMP{};

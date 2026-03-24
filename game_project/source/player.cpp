@@ -59,6 +59,12 @@ void Player::Init()
     m_pMesh = CreateCircleMesh(1.0f, 32, 0x50A655);
     m_playerHealthBarMesh = CreateRectMesh(0xFF0000);
 
+    // Bat weapon sprite
+    if (m_BatMesh) { AEGfxMeshFree(m_BatMesh); m_BatMesh = nullptr; }
+    if (m_BatTexture) { AEGfxTextureUnload(m_BatTexture); m_BatTexture = nullptr; }
+    m_BatMesh = CreateBatMesh(0xFFFFFFFF);
+    m_BatTexture = AEGfxTextureLoad("Assets/Sprites/bat.png");
+
     m_PlayerSprite.Sprite_Init();
     m_PlayerSpriteSheet = m_PlayerSprite.GetPlayerSpriteSheet();
     m_PlayerCombatSpriteSheet = m_PlayerSprite.GetPlayerCombatSpriteSheet();
@@ -628,8 +634,11 @@ void Player::Draw()
     // Player Mesh
     DrawMesh(m_pMesh, m_Size, isoHeight, m_PosX, m_PosY, 0.0f, 44, 145, 57, 255);
     
-    // Aiming Pointer
-    if (!m_AttackActive) {
+    // Aiming Pointer (hide during block/parry)
+    if (m_BlockActive) {
+        // no yellow line while blocking/parrying
+    }
+    else if (!m_AttackActive) {
         DrawMesh(m_AttackRangeMesh, 1.0f, 5.0f, m_PosX, m_PosY, m_AimAngle, 255, 255, 53, 255);
     }
     else {
@@ -653,15 +662,47 @@ void Player::Draw()
         DrawMesh(m_playerHealthBarMesh, barWidth, barHeight, m_PosX - m_Size, m_PosY + m_Size + barHeight / 2.0f + 5.0f, 0.0f, 80, 200, 120, 255); // Instant bar
     }
 
-    if (!m_AttackActive)
+    if (m_AttackActive)
     {
-        DrawTexturePlayer(m_PlayerSprite, static_cast<int>(m_CurrentDirection), m_PlayerSprite.GetPlayerSpriteMesh(), m_PlayerSprite.GetPlayerSpriteSheet(), m_PlayerSprite.GetPixelScale(),
-            m_PlayerSprite.GetPixelScale(), m_PosX, m_PosY, 0.0f, sizeMultiplier);
+        float batAngle = m_CurrentAngle;
+        bool batInFront = sinf(batAngle) < 0.0f;
+
+        if (!batInFront) DrawBat(batAngle);
+
+        DrawTexturePlayer(m_PlayerSprite, static_cast<int>(m_CurrentDirection),
+            m_PlayerSprite.GetPlayerSpriteMesh(), m_PlayerSprite.GetPlayerSpriteSheet(),
+            m_PlayerSprite.GetPixelScale(), m_PlayerSprite.GetPixelScale(),
+            m_PosX, m_PosY, 0.0f, sizeMultiplier);
+
+        if (batInFront) DrawBat(batAngle);
+    }
+    else if (m_BlockActive)
+    {
+        float batAngle = m_CurrentAngle;
+        bool batInFront = sinf(batAngle) < 0.0f;
+
+        if (!batInFront) DrawBat(batAngle);
+
+        DrawTexturePlayer(m_PlayerSprite, static_cast<int>(m_CurrentDirection),
+            m_PlayerSprite.GetPlayerSpriteMesh(), m_PlayerSprite.GetPlayerSpriteSheet(),
+            m_PlayerSprite.GetPixelScale(), m_PlayerSprite.GetPixelScale(),
+            m_PosX, m_PosY, 0.0f, sizeMultiplier);
+
+        if (batInFront) DrawBat(batAngle);
     }
     else
     {
-        DrawTexturePlayer(m_PlayerSprite, static_cast<int>(m_CurrentDirection), m_PlayerSprite.GetPlayerCombatSpriteMesh(), m_PlayerSprite.GetPlayerCombatSpriteSheet(), m_PlayerSprite.GetPixelScale(),
-            m_PlayerSprite.GetPixelScale(), m_PosX, m_PosY, 0.0f, sizeMultiplier);
+        float batAngle = m_AimAngle;
+        bool batInFront = sinf(batAngle) < 0.0f;
+
+        if (!batInFront) DrawBat(batAngle);
+
+        DrawTexturePlayer(m_PlayerSprite, static_cast<int>(m_CurrentDirection),
+            m_PlayerSprite.GetPlayerSpriteMesh(), m_PlayerSprite.GetPlayerSpriteSheet(),
+            m_PlayerSprite.GetPixelScale(), m_PlayerSprite.GetPixelScale(),
+            m_PosX, m_PosY, 0.0f, sizeMultiplier);
+
+        if (batInFront) DrawBat(batAngle);
     }
 }
 
@@ -683,6 +724,43 @@ void Player::Free()
         AEGfxMeshFree(m_playerHealthBarMesh);
         m_playerHealthBarMesh = nullptr;
     }
+    if (m_BatMesh) {
+        AEGfxMeshFree(m_BatMesh);
+        m_BatMesh = nullptr;
+    }
+    if (m_BatTexture) {
+        AEGfxTextureUnload(m_BatTexture);
+        m_BatTexture = nullptr;
+    }
+}
+
+void Player::DrawBat(float angle)
+{
+    if (!m_BatMesh || !m_BatTexture) return;
+
+    static constexpr float BAT_WIDTH  = 35.0f;
+    static constexpr float BAT_LENGTH = 190.0f;
+
+    // Mesh extends along +Y, but atan2 angles measure from +X — subtract PI/2
+    float drawAngle = angle - PI * 0.5f;
+
+    AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
+    AEGfxSetColorToMultiply(1.0f, 1.0f, 1.0f, 1.0f);
+    AEGfxSetColorToAdd(0.0f, 0.0f, 0.0f, 0.0f);
+    AEGfxSetBlendMode(AE_GFX_BM_BLEND);
+    AEGfxSetTransparency(1.0f);
+    AEGfxTextureSet(m_BatTexture, 0.0f, 0.0f);
+
+    AEMtx33 scale, rotate, translate, transform;
+    AEMtx33Scale(&scale, BAT_WIDTH, BAT_LENGTH);
+    AEMtx33Rot(&rotate, drawAngle);
+    AEMtx33Trans(&translate, m_PosX, m_PosY);
+
+    AEMtx33Concat(&transform, &rotate, &scale);
+    AEMtx33Concat(&transform, &translate, &transform);
+
+    AEGfxSetTransform(transform.m);
+    AEGfxMeshDraw(m_BatMesh, AE_GFX_MDM_TRIANGLES);
 }
 
 void Player::StartAttack(Combat::CombatData::AttackData& attackData, std::vector<std::unique_ptr<Enemy>> const& wave)

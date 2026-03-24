@@ -227,6 +227,12 @@ void MainMenu_Update(float dt) {
 			menuScreen = MENU_MAIN;
 	}
 
+	// Debug: T for test level
+	if (AEInputCheckTriggered(AEVK_T)) {
+		g_PlayerAttackCharges = DEFAULT_ATTACK_CHARGES;
+		next = GS_TEST;
+	}
+
 	if (!AESysDoesWindowExist())
 		next = GS_QUIT;
 

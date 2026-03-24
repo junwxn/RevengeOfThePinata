@@ -82,6 +82,24 @@ AEGfxVertexList* CreateSpriteRectMesh(u32 color, float newU, float newV) {
 }
 
 
+AEGfxVertexList* CreateBatMesh(u32 color) {
+    // Bottom-anchored quad: handle at origin, bat extends along +Y
+    // Full texture UVs for a single-image texture
+    AEGfxMeshStart();
+
+    AEGfxTriAdd(
+        -0.5f, 0.0f, color, 0.0f, 1.0f,   // bottom-left  (handle, texture bottom)
+        -0.5f, 1.0f, color, 0.0f, 0.0f,   // top-left     (head, texture top)
+         0.5f, 1.0f, color, 1.0f, 0.0f);  // top-right
+
+    AEGfxTriAdd(
+        -0.5f, 0.0f, color, 0.0f, 1.0f,   // bottom-left
+         0.5f, 1.0f, color, 1.0f, 0.0f,   // top-right
+         0.5f, 0.0f, color, 1.0f, 1.0f);  // bottom-right
+
+    return AEGfxMeshEnd();
+}
+
 AEGfxVertexList* CreateTriangleMesh(u32 color) {
     AEGfxMeshStart();
     AEGfxTriAdd( // Triangle 1
