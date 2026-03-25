@@ -14,6 +14,7 @@
 #include "Audio.h"
 #include "Debug.h"
 #include "Shadow.h"
+#include "Transition.h"
 
 // load variables
 static AEGfxTexture* TexBlock2;
@@ -150,7 +151,7 @@ void Level3_Init() {
 
 void Level3_Update(float dt) {
 	if (!AESysDoesWindowExist()) {
-		next = GS_QUIT;
+		Transition_Start(GS_QUIT);
 		return;
 	}
 
@@ -158,7 +159,7 @@ void Level3_Update(float dt) {
 	Debug_Update();
 
 	// Player death -> Game Over screen
-	if (!player.GetIsAlive()) { next = GS_GAMEOVER; return; }
+	if (!player.GetIsAlive()) { Transition_Start(GS_GAMEOVER); return; }
 
 	// Pick the active wave for player combat
 	std::vector<std::unique_ptr<Enemy>>* activeWavePtr = &Wave1;
@@ -268,7 +269,7 @@ void Level3_Update(float dt) {
 			preventingmovement = true;
 		}
 		if (augments.GetAugmentSelected()) {
-			next = GS_BOSSLEVEL;
+			Transition_Start(GS_BOSSLEVEL);
 		}
 	}
 	else {
@@ -276,7 +277,7 @@ void Level3_Update(float dt) {
 	}
 
 	if (0 == AESysDoesWindowExist()) {
-		next = GS_QUIT;
+		Transition_Start(GS_QUIT);
 	}
 
 	if (AEInputCheckTriggered(AEVK_K)) {
@@ -286,7 +287,7 @@ void Level3_Update(float dt) {
 	}
 
 	if (AEInputCheckTriggered(AEVK_N)) {
-		next = GS_BOSSLEVEL;
+		Transition_Start(GS_BOSSLEVEL);
 	}
 }
 
@@ -356,7 +357,7 @@ void Level3_Draw() {
 }
 
 void Level3_Free() {
-	if (next != GS_RESTART) g_PlayerAttackCharges = player.GetAttackCharges();
+	g_PlayerAttackCharges = player.GetAttackCharges();
 	Wave1.clear();
 	Wave2.clear();
 	Wave3.clear();

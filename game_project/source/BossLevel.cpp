@@ -222,7 +222,7 @@ void BossLevel_Draw() {
 }
 
 void BossLevel_Free() {
-	if (next != GS_BOSSLEVEL) g_PlayerAttackCharges = player.GetAttackCharges();
+	g_PlayerAttackCharges = player.GetAttackCharges();
 	Wave1.clear();
 	player.Free();
 	AugmentEffects_Free();

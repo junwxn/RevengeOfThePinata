@@ -15,6 +15,7 @@
 #include "Debug.h"
 #include "Shadow.h"
 #include "Projectile.h"
+#include "Transition.h"
 
 // load variables
 static AEGfxTexture* TexBlock2;
@@ -140,7 +141,7 @@ void Level2_Init() {
 
 void Level2_Update(float dt) {
 	if (!AESysDoesWindowExist()) {
-		next = GS_QUIT;
+		Transition_Start(GS_QUIT);
 		return;
 	}
 
@@ -148,7 +149,7 @@ void Level2_Update(float dt) {
 	Debug_Update();
 
 	// Player death -> Game Over screen
-	if (!player.GetIsAlive()) { next = GS_GAMEOVER; return; }
+	if (!player.GetIsAlive()) { Transition_Start(GS_GAMEOVER); return; }
 
 	// Use Wave1 for player combat reference
 	auto& activeWave = wave1Active ? Wave1 : Wave2;
@@ -238,7 +239,7 @@ void Level2_Update(float dt) {
 			preventingmovement = true;
 		}
 		if (augments.GetAugmentSelected()) {
-			next = GS_LEVEL3;
+			Transition_Start(GS_LEVEL3);
 		}
 	}
 	else {
@@ -246,7 +247,7 @@ void Level2_Update(float dt) {
 	}
 
 	if (0 == AESysDoesWindowExist()) {
-		next = GS_QUIT;
+		Transition_Start(GS_QUIT);
 	}
 
 	if (AEInputCheckTriggered(AEVK_K)) {
@@ -255,7 +256,7 @@ void Level2_Update(float dt) {
 	}
 
 	if (AEInputCheckTriggered(AEVK_N)) {
-		next = GS_LEVEL3;
+		Transition_Start(GS_LEVEL3);
 	}
 }
 
@@ -314,7 +315,7 @@ void Level2_Draw() {
 }
 
 void Level2_Free() {
-	if (next != GS_RESTART) g_PlayerAttackCharges = player.GetAttackCharges();
+	g_PlayerAttackCharges = player.GetAttackCharges();
 	Wave1.clear();
 	Wave2.clear();
 	player.Free();
