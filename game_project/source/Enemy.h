@@ -381,7 +381,7 @@ protected:
     f32 m_maxThrowRange{ 500.0f };
     f32 m_projectileSpeed{ 500.0f };
     f32 m_projectileRadius{ 8.0f };
-    f32 m_projectileDamage{ 10.0f };
+    f32 m_projectileDamage{ 50.0f };
     f32 m_projectileLifetime{ 3.0f };
     ProjectileType m_projectileType{ ProjectileType::Reflect };
 };

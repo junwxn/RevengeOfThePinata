@@ -173,13 +173,13 @@ private:
     // -------------------------- //
     Combat::CombatStats m_CombatStats
     {
-        1000.0f, // health
+        200.0f, // health
         40.0f, // attack
         5.0f, // defense
         0.0f, // crit chance
         0.0f, // crit multiplier
         0.0f, // attack multiplier
-        1000.0f // max health
+        200.0f // max health
     };
 
     Combat::CombatFlags m_CombatFlags
