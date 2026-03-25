@@ -49,14 +49,24 @@ static void SpawnWave1() {
 	Wave1.clear();
 	AEVec2 playerPos = { player.GetX(), player.GetY() };
 
-	//AEVec2 p1 = GetRandomSpawnPos(gameMap, playerPos, 200.0f, ENEMY_SIZE);
-	//Wave1.push_back(std::make_unique<Walker>(p1, ENEMY_SIZE, 100.0f, 200.0f));
+	// Walker
+	for (int i = 0; i < 2; ++i) {
+		AEVec2 p1 = GetRandomSpawnPos(gameMap, playerPos, 200.0f, ENEMY_SIZE);
+		Wave1.push_back(std::make_unique<Walker>(p1, ENEMY_SIZE, 100.0f, 200.0f));
+	}
+	// Dasher
+	for (int i = 0; i < 1; ++i) {
+		AEVec2 p2 = GetRandomSpawnPos(gameMap, playerPos, 200.0f, ENEMY_SIZE);
+		Wave1.push_back(std::make_unique<Dasher>(p2, ENEMY_SIZE, 100.0f, 200.0f, 3.0f));
+	}
 
-	AEVec2 p2 = GetRandomSpawnPos(gameMap, playerPos, 200.0f, ENEMY_SIZE);
-	Wave1.push_back(std::make_unique<Dasher>(p2, ENEMY_SIZE, 100.0f, 200.0f, 3.0f));
+	// Thrower
+	for (int i = 0; i < 0; ++i) {
+		AEVec2 p3 = GetRandomSpawnPos(gameMap, playerPos, 200.0f, ENEMY_SIZE);
+		Wave1.push_back(std::make_unique<Thrower>(p3, ENEMY_SIZE, 80.0f, 100.0f));
+	}
 
-	AEVec2 p3 = GetRandomSpawnPos(gameMap, playerPos, 200.0f, ENEMY_SIZE);
-	Wave1.push_back(std::make_unique<Thrower>(p3, ENEMY_SIZE, 500.0f, 100.0f));
+
 
 	for (auto& enemy : Wave1) {
 		enemy->Init();
@@ -70,9 +80,21 @@ static void SpawnWave2() {
 	Wave2.clear();
 	AEVec2 playerPos = { player.GetX(), player.GetY() };
 
+	// Walker
 	for (int i = 0; i < 1; ++i) {
-		AEVec2 spawnPos = GetRandomSpawnPos(gameMap, playerPos, 200.0f, ENEMY_SIZE);
-		Wave2.push_back(std::make_unique<Walker>(spawnPos, ENEMY_SIZE, 100.0f, 100.0f));
+		AEVec2 p1 = GetRandomSpawnPos(gameMap, playerPos, 200.0f, ENEMY_SIZE);
+		Wave2.push_back(std::make_unique<Walker>(p1, ENEMY_SIZE, 100.0f, 200.0f));
+	}
+	// Dasher
+	for (int i = 0; i < 0; ++i) {
+		AEVec2 p2 = GetRandomSpawnPos(gameMap, playerPos, 200.0f, ENEMY_SIZE);
+		Wave2.push_back(std::make_unique<Dasher>(p2, ENEMY_SIZE, 100.0f, 200.0f, 3.0f));
+	}
+
+	// Thrower
+	for (int i = 0; i < 2; ++i) {
+		AEVec2 p3 = GetRandomSpawnPos(gameMap, playerPos, 200.0f, ENEMY_SIZE);
+		Wave2.push_back(std::make_unique<Thrower>(p3, ENEMY_SIZE, 80.0f, 100.0f));
 	}
 
 	for (auto& enemy : Wave2) {
