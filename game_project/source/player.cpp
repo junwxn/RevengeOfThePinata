@@ -906,7 +906,7 @@ void Player::StartDash(float moveX, float moveY, float dirX, float dirY)
     m_DashDirY = dirY;
 
     // Dash particles
-    SpawnDashParticles(8);
+    SpawnDashParticles(200);
 
     // Store pre-dash position for poison trail
     float preDashX = m_PosX;
@@ -994,7 +994,7 @@ void Player::ApplyDashStep()
     }
 
     // Dash particles
-    SpawnDashParticles(1);
+    SpawnDashParticles(200);
 }
 
 void Player::ResetCombatVariables()
