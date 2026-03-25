@@ -225,6 +225,7 @@ void BossLevel_Free() {
 	g_PlayerAttackCharges = player.GetAttackCharges();
 	Wave1.clear();
 	player.Free();
+	Projectile::Free();
 	AugmentEffects_Free();
 	g_Events.ClearAll();
 }

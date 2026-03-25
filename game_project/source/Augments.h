@@ -74,17 +74,17 @@ private:
     AugmentID m_cardIDs[3] = { AugmentID::NONE, AugmentID::NONE, AugmentID::NONE };
 
     // Visual Assets
-    AEGfxTexture* m_candyTex;
+    AEGfxTexture* m_candyTex = nullptr;
 
-    AEGfxTexture* m_amplifieddamageTex;
-    AEGfxTexture* m_attackmomentumTex;
-    AEGfxTexture* m_chainattackTex;
-    AEGfxTexture* m_damagingmarkTex;
-    AEGfxTexture* m_dashmomentumTex;
-    AEGfxTexture* m_parrychargesTex;
-    AEGfxTexture* m_poisontrailTex;
-    AEGfxTexture* m_quickparryTex;
-    AEGfxTexture* m_shielddashTex;
+    AEGfxTexture* m_amplifieddamageTex = nullptr;
+    AEGfxTexture* m_attackmomentumTex = nullptr;
+    AEGfxTexture* m_chainattackTex = nullptr;
+    AEGfxTexture* m_damagingmarkTex = nullptr;
+    AEGfxTexture* m_dashmomentumTex = nullptr;
+    AEGfxTexture* m_parrychargesTex = nullptr;
+    AEGfxTexture* m_poisontrailTex = nullptr;
+    AEGfxTexture* m_quickparryTex = nullptr;
+    AEGfxTexture* m_shielddashTex = nullptr;
 
 
     AEGfxVertexList* augmentMesh = nullptr;

@@ -362,6 +362,7 @@ void Level3_Free() {
 	Wave2.clear();
 	Wave3.clear();
 	player.Free();
+	Projectile::Free();
 	augments.Free();
 	AugmentEffects_Free();
 	g_Events.ClearAll();

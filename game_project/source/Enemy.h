@@ -138,9 +138,9 @@ public:
 protected:
     float sizeMultiplier{ 1.5f };
     Sprite m_EnemySprite;
-    AEGfxTexture* m_EnemySpriteSheet;
-    AEGfxTexture* m_EnemyWindupSpriteSheet;
-    AEGfxTexture* m_EnemyAttackSpriteSheet;
+    AEGfxTexture* m_EnemySpriteSheet = nullptr;
+    AEGfxTexture* m_EnemyWindupSpriteSheet = nullptr;
+    AEGfxTexture* m_EnemyAttackSpriteSheet = nullptr;
 
     // Enemy stats --------------------
     AEVec2 m_pos{};
