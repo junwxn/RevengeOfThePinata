@@ -223,7 +223,7 @@ void Augments::Update(f32 playerX, f32 playerY, f32 dt) {
         }
 
         // temp
-        if (IsMouseInside(mouseWX, mouseWY, cards_x1 + (cardWidth * 0.5), cards_y, cardWidth, cardHeight))
+        /*if (IsMouseInside(mouseWX, mouseWY, cards_x1 + (cardWidth * 0.5), cards_y, cardWidth, cardHeight))
         {
             std::cout << "Red picked\n";
         }
@@ -236,7 +236,7 @@ void Augments::Update(f32 playerX, f32 playerY, f32 dt) {
         if (IsMouseInside(mouseWX, mouseWY, cards_x3 + (cardWidth * 0.5), cards_y, cardWidth, cardHeight))
         {
             std::cout << "Green picked\n";
-        }
+        }*/
 
         //DrawMesh(cardMesh, 400, 600, cards_x1, playerY - cards_y, 0.0f, 255, 0, 0, 255); // Red Card (Left)
         //DrawMesh(cardMesh, 400, 600, cards_x2, playerY - cards_y, 0.0f, 0, 0, 255, 255); // Blue Card (Right)
@@ -305,16 +305,16 @@ void Augments::Draw(float camX, float camY) {
     float hoverOffset = sinf(hoverTime) * hoverPower;
 
     DrawTexture(
-        candySprite,       // sprite object
-        0,                 // currentDirection/frame (0 if one frame)
-        candyMesh,         // your quad mesh
-        m_candyTex,        // the candy PNG texture
-        augSize * 1.75,    // width of candy
-        augSize * 1.75,    // height of candy
-        augPosX,           // x position
-        hoverPosY + hoverOffset, // y position with hover
-        0.0f,              // rotation (0 = no rotation)
-        1.0f               // size multiplier (1.0 = normal)
+        candySprite,                // sprite object
+        0,                          // currentDirection/frame (0 = one frame)
+        candyMesh,                  // mesh
+        m_candyTex,                 // candy texture
+        augSize * 1.75,             // width of candy
+        augSize * 1.75,             // height of candy
+        augPosX,                    // x position
+        hoverPosY + hoverOffset,    // y position with hover
+        0.0f,                       // rotation (0 = no rotation)
+        1.0f                        // size multiplier (1.0 = normal)
     );
 
     //DrawMesh(candyMesh, augSize, augSize, augPosX, augPosY, 0.0f, 255, 255, 255, 255);

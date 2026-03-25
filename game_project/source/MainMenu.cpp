@@ -336,9 +336,10 @@ void MainMenu_Draw() {
 			"Space - Dash",
 			"LMB - Attack",
 			"RMB - Block / Parry",
-			"Mouse - Aim"
+			"Mouse - Aim",
+			"X - Interact" // Interact w augmentball
 		};
-		for (int i = 0; i < 5; i++) {
+		for (int i = 0; i < 6; i++) {
 			float tw, th;
 			float ly = 120.0f - i * 60.0f;
 			AEGfxGetPrintSize(fontBody, lines[i], 1.0f, &tw, &th);
