@@ -14,6 +14,7 @@
 #include "Audio.h"
 #include "Debug.h"
 #include "Shadow.h"
+#include "Transition.h"
 
 // load variables
 static AEGfxTexture* TexBlock2;
@@ -47,18 +48,21 @@ static void SpawnWave1_L3() {
 	Wave1.clear();
 	AEVec2 playerPos = { player.GetX(), player.GetY() };
 
-	// 5 Walkers + 3 Dashers
+	// Walker
+	for (int i = 0; i < 2; ++i) {
+		AEVec2 p1 = GetRandomSpawnPos(gameMap, playerPos, 200.0f, ENEMY_SIZE);
+		Wave1.push_back(std::make_unique<Walker>(p1, ENEMY_SIZE, 100.0f, 200.0f));
+	}
+	// Dasher
+	for (int i = 0; i < 0; ++i) {
+		AEVec2 p2 = GetRandomSpawnPos(gameMap, playerPos, 200.0f, ENEMY_SIZE);
+		Wave1.push_back(std::make_unique<Dasher>(p2, ENEMY_SIZE, 100.0f, 200.0f, 3.0f));
+	}
+
+	// Thrower
 	for (int i = 0; i < 5; ++i) {
-		AEVec2 p = GetRandomSpawnPos(gameMap, playerPos, 200.0f, ENEMY_SIZE);
-		Wave1.push_back(std::make_unique<Walker>(p, ENEMY_SIZE, 150.0f, 240.0f));
-	}
-	for (int i = 0; i < 3; ++i) {
-		AEVec2 p = GetRandomSpawnPos(gameMap, playerPos, 200.0f, ENEMY_SIZE);
-		Wave1.push_back(std::make_unique<Dasher>(p, ENEMY_SIZE, 120.0f, 270.0f, 3.0f));
-	}
-	for (auto& enemy : Wave1) {
-		enemy->Init();
-		enemy->SetMap(&gameMap);
+		AEVec2 p3 = GetRandomSpawnPos(gameMap, playerPos, 200.0f, ENEMY_SIZE);
+		Wave1.push_back(std::make_unique<Thrower>(p3, ENEMY_SIZE, 80.0f, 100.0f));
 	}
 }
 
@@ -66,14 +70,21 @@ static void SpawnWave2_L3() {
 	Wave2.clear();
 	AEVec2 playerPos = { player.GetX(), player.GetY() };
 
-	// 8 Dashers
-	for (int i = 0; i < 8; ++i) {
-		AEVec2 p = GetRandomSpawnPos(gameMap, playerPos, 200.0f, ENEMY_SIZE);
-		Wave2.push_back(std::make_unique<Dasher>(p, ENEMY_SIZE, 120.0f, 270.0f, 3.0f));
+	// Walker
+	for (int i = 0; i < 0; ++i) {
+		AEVec2 p1 = GetRandomSpawnPos(gameMap, playerPos, 200.0f, ENEMY_SIZE);
+		Wave2.push_back(std::make_unique<Walker>(p1, ENEMY_SIZE, 100.0f, 200.0f));
 	}
-	for (auto& enemy : Wave2) {
-		enemy->Init();
-		enemy->SetMap(&gameMap);
+	// Dasher
+	for (int i = 0; i < 8; ++i) {
+		AEVec2 p2 = GetRandomSpawnPos(gameMap, playerPos, 200.0f, ENEMY_SIZE);
+		Wave2.push_back(std::make_unique<Dasher>(p2, ENEMY_SIZE, 100.0f, 200.0f, 3.0f));
+	}
+
+	// Thrower
+	for (int i = 0; i < 0; ++i) {
+		AEVec2 p3 = GetRandomSpawnPos(gameMap, playerPos, 200.0f, ENEMY_SIZE);
+		Wave2.push_back(std::make_unique<Thrower>(p3, ENEMY_SIZE, 80.0f, 100.0f));
 	}
 }
 
@@ -81,18 +92,21 @@ static void SpawnWave3_L3() {
 	Wave3.clear();
 	AEVec2 playerPos = { player.GetX(), player.GetY() };
 
-	// 5 Walkers + 5 Dashers
-	for (int i = 0; i < 5; ++i) {
-		AEVec2 p = GetRandomSpawnPos(gameMap, playerPos, 200.0f, ENEMY_SIZE);
-		Wave3.push_back(std::make_unique<Walker>(p, ENEMY_SIZE, 150.0f, 240.0f));
+	// Walker
+	for (int i = 0; i < 2; ++i) {
+		AEVec2 p1 = GetRandomSpawnPos(gameMap, playerPos, 200.0f, ENEMY_SIZE);
+		Wave3.push_back(std::make_unique<Walker>(p1, ENEMY_SIZE, 100.0f, 200.0f));
 	}
-	for (int i = 0; i < 5; ++i) {
-		AEVec2 p = GetRandomSpawnPos(gameMap, playerPos, 200.0f, ENEMY_SIZE);
-		Wave3.push_back(std::make_unique<Dasher>(p, ENEMY_SIZE, 120.0f, 270.0f, 3.0f));
+	// Dasher
+	for (int i = 0; i < 4; ++i) {
+		AEVec2 p2 = GetRandomSpawnPos(gameMap, playerPos, 200.0f, ENEMY_SIZE);
+		Wave3.push_back(std::make_unique<Dasher>(p2, ENEMY_SIZE, 100.0f, 200.0f, 3.0f));
 	}
-	for (auto& enemy : Wave3) {
-		enemy->Init();
-		enemy->SetMap(&gameMap);
+
+	// Thrower
+	for (int i = 0; i < 4; ++i) {
+		AEVec2 p3 = GetRandomSpawnPos(gameMap, playerPos, 200.0f, ENEMY_SIZE);
+		Wave3.push_back(std::make_unique<Thrower>(p3, ENEMY_SIZE, 80.0f, 100.0f));
 	}
 }
 
@@ -150,7 +164,7 @@ void Level3_Init() {
 
 void Level3_Update(float dt) {
 	if (!AESysDoesWindowExist()) {
-		next = GS_QUIT;
+		Transition_Start(GS_QUIT);
 		return;
 	}
 
@@ -158,7 +172,7 @@ void Level3_Update(float dt) {
 	Debug_Update();
 
 	// Player death -> Game Over screen
-	if (!player.GetIsAlive()) { next = GS_GAMEOVER; return; }
+	if (!player.GetIsAlive()) { Transition_Start(GS_GAMEOVER); return; }
 
 	// Pick the active wave for player combat
 	std::vector<std::unique_ptr<Enemy>>* activeWavePtr = &Wave1;
@@ -268,7 +282,7 @@ void Level3_Update(float dt) {
 			preventingmovement = true;
 		}
 		if (augments.GetAugmentSelected()) {
-			next = GS_BOSSLEVEL;
+			Transition_Start(GS_BOSSLEVEL);
 		}
 	}
 	else {
@@ -276,7 +290,7 @@ void Level3_Update(float dt) {
 	}
 
 	if (0 == AESysDoesWindowExist()) {
-		next = GS_QUIT;
+		Transition_Start(GS_QUIT);
 	}
 
 	if (AEInputCheckTriggered(AEVK_K)) {
@@ -286,7 +300,7 @@ void Level3_Update(float dt) {
 	}
 
 	if (AEInputCheckTriggered(AEVK_N)) {
-		next = GS_BOSSLEVEL;
+		Transition_Start(GS_BOSSLEVEL);
 	}
 }
 
@@ -356,11 +370,12 @@ void Level3_Draw() {
 }
 
 void Level3_Free() {
-	if (next != GS_RESTART) g_PlayerAttackCharges = player.GetAttackCharges();
+	g_PlayerAttackCharges = player.GetAttackCharges();
 	Wave1.clear();
 	Wave2.clear();
 	Wave3.clear();
 	player.Free();
+	Projectile::Free();
 	augments.Free();
 	AugmentEffects_Free();
 	g_Events.ClearAll();

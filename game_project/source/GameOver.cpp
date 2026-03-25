@@ -96,7 +96,7 @@ void GameOver_Update(float dt) {
 	}
 
 	if (AEInputCheckTriggered(AEVK_LBUTTON)) {
-		if (buttons[0].hovered) next = previous;
+		if (buttons[0].hovered) Transition_Start(static_cast<GS_STATES>(current));
 		if (buttons[1].hovered) Transition_Start(GS_MAINMENU);
 	}
 

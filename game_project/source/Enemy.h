@@ -137,10 +137,16 @@ public:
 
 protected:
     float sizeMultiplier{ 1.5f };
+
     Sprite m_EnemySprite;
-    AEGfxTexture* m_EnemySpriteSheet;
-    AEGfxTexture* m_EnemyWindupSpriteSheet;
-    AEGfxTexture* m_EnemyAttackSpriteSheet;
+    AEGfxTexture* m_EnemySpriteSheet = nullptr;
+    AEGfxTexture* m_EnemyWindupSpriteSheet = nullptr;
+    AEGfxTexture* m_EnemyAttackSpriteSheet = nullptr;
+
+    Sprite m_DasherSprite;
+    AEGfxTexture* m_DasherSpriteSheet;
+    AEGfxTexture* m_DasherWindupSpriteSheet;
+    AEGfxTexture* m_DasherAttackSpriteSheet;
 
     // Enemy stats --------------------
     AEVec2 m_pos{};
@@ -342,6 +348,7 @@ protected:
     void PerformDash(AEVec2 const& direction, f32 distToPlayer);
     void ChildUpdate(f32 dt, Combat::System& combat, Player& player,
         std::vector<std::unique_ptr<Enemy>>& enemies) override;
+    void Draw();
 };
 
 // ---------------------
@@ -381,7 +388,7 @@ protected:
     f32 m_maxThrowRange{ 500.0f };
     f32 m_projectileSpeed{ 500.0f };
     f32 m_projectileRadius{ 8.0f };
-    f32 m_projectileDamage{ 10.0f };
+    f32 m_projectileDamage{ 50.0f };
     f32 m_projectileLifetime{ 3.0f };
     ProjectileType m_projectileType{ ProjectileType::Reflect };
 };
