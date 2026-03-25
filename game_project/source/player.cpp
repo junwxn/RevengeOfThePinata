@@ -33,9 +33,9 @@ void Player::Init()
     m_PosY = 0.0f;
     m_Speed = 300.0f;
     m_Size = PLAYER_SIZE;
-    m_DashChargesMax = 3;
-    m_DashCharges = 3;
-    m_DashRechargeTime = 5.0f / 3.0f;  // ~1.67s per charge
+    m_DashChargesMax = 1;
+    m_DashCharges = 1;
+    m_DashRechargeTime = 5.0f;  // ~1.67s per charge
     m_DashRechargeTimer = 0.0f;
 
     m_CurrentState = PlayerState::STATE_IDLE;

@@ -135,7 +135,7 @@ void HUD_Draw(const Player* player, float camX, float camY) {
 	float dashTotalW   = maxDash * dashBoxSize + (maxDash - 1) * dashBoxGap;
 	float dashStartX   = -780.0f + 100.0f; // left side, after HP label area
 	// Position to the right of attack charges
-	dashStartX = startX + totalW + 40.0f; // 40px gap after attack charges
+	dashStartX = startX + totalW + 75.0f; // 40px gap after attack charges
 
 	for (int i = 0; i < maxDash; ++i) {
 		float dx = dashStartX + i * (dashBoxSize + dashBoxGap);
