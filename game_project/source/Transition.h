@@ -1,0 +1,21 @@
+#pragma once
+#include "GameStateManager.h"
+#include "GameStateList.h"
+
+enum class TransitionPhase
+{
+	TRANSITION_NONE,
+	TRANSITION_OUT,
+	TRANSITION_IN
+};
+
+void Transition_Init();
+void Transition_Start(GS_STATES nextState);
+void Transition_Update(float dt);
+void Transition_Draw();
+
+bool Transition_IsActive();
+bool Transition_IsSwitchReady();
+int Transition_GetState();
+void Transition_BeginFadeIn();
+void Transition_Reset();

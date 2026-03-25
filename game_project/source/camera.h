@@ -15,6 +15,8 @@ public:
 	void Init(f32 startX, f32 startY);
 	void Update(f32 dt, f32 playerX, f32 playerY, bool preventing_movement);
 
+	f32 GetRenderX() const { return m_X + m_shakeOffsetX; }
+	f32 GetRenderY() const { return m_Y + m_shakeOffsetY; }
 	float GetX() const { return m_X; }
 	float GetY() const { return m_Y; }
 

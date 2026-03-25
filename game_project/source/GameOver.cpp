@@ -3,6 +3,7 @@
 #include "GameStateManager.h"
 #include "Player.h"
 #include "Utils.h"
+#include "Transition.h"
 
 static AEGfxVertexList* rectMesh = nullptr;
 static s8 fontTitle = -1;
@@ -72,7 +73,7 @@ void GameOver_Init() {
 
 void GameOver_Update(float dt) {
 	if (!AESysDoesWindowExist()) {
-		next = GS_QUIT;
+		Transition_Start(GS_QUIT);
 		return;
 	}
 
@@ -96,16 +97,16 @@ void GameOver_Update(float dt) {
 
 	if (AEInputCheckTriggered(AEVK_LBUTTON)) {
 		if (buttons[0].hovered) next = previous;
-		if (buttons[1].hovered) next = GS_MAINMENU;
+		if (buttons[1].hovered) Transition_Start(GS_MAINMENU);
 	}
 
 	if (AEInputCheckTriggered(AEVK_ESCAPE)) {
-		next = GS_MAINMENU;
+		Transition_Start(GS_MAINMENU);
 	}
 }
 
 void GameOver_Draw() {
-	AESysFrameStart();
+	//AESysFrameStart();
 	AEGfxSetBackgroundColor(0.06f, 0.01f, 0.01f);
 
 	AEGfxSetRenderMode(AE_GFX_RM_COLOR);
@@ -181,7 +182,7 @@ void GameOver_Draw() {
 		AEGfxPrint(fontBody, buttons[i].label, nx, ny, 1.0f, 1.0f, 1.0f, 1.0f, ease);
 	}
 
-	AESysFrameEnd();
+	//AESysFrameEnd();
 }
 
 void GameOver_Free() {
