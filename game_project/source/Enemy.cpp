@@ -70,6 +70,11 @@ void Enemy::Init() {
     m_EnemySpriteSheet = m_EnemySprite.GetSpriteSheet();
     m_EnemyWindupSpriteSheet = m_EnemySprite.GetEnemyWindupSpriteSheet();
     m_EnemyAttackSpriteSheet = m_EnemySprite.GetEnemyAttackSpriteSheet();
+
+    m_DasherSprite.Sprite_Init();
+    m_DasherSpriteSheet = m_DasherSprite.GetSpriteSheet();
+    m_DasherWindupSpriteSheet = m_DasherSprite.GetEnemyWindupSpriteSheet();
+    m_DasherAttackSpriteSheet = m_DasherSprite.GetEnemyAttackSpriteSheet();
 }
 
 void Enemy::BaseUpdate(f32 dt, Combat::System& combat, Player& player) {
@@ -240,6 +245,13 @@ void Enemy::Draw() {
             m_EnemySprite.GetPixelScale(),
             m_EnemySprite.GetPixelScale(),
             m_pos.x, m_pos.y, 0.0f, sizeMultiplier);
+
+        DrawTexture(m_DasherSprite, static_cast<int>(m_CurrentDirection),
+            m_DasherSprite.GetEnemyAttackSpriteMesh(),
+            m_DasherSprite.GetEnemyAttackSpriteSheet(),
+            m_DasherSprite.GetPixelScale(),
+            m_DasherSprite.GetPixelScale(),
+            m_pos.x, m_pos.y, 0.0f, sizeMultiplier);
     }
     else if (isAnyWindup) {
         // Winding up — tint yellow to show charging
@@ -250,9 +262,17 @@ void Enemy::Draw() {
             m_EnemySprite.GetPixelScale(),
             m_EnemySprite.GetPixelScale(),
             m_pos.x, m_pos.y, 0.0f, sizeMultiplier);
+
+        DrawTexture(m_DasherSprite, static_cast<int>(m_CurrentDirection),
+            m_DasherSprite.GetEnemyWindupSpriteMesh(),
+            m_DasherSprite.GetEnemyWindupSpriteSheet(),
+            m_DasherSprite.GetPixelScale(),
+            m_DasherSprite.GetPixelScale(),
+            m_pos.x, m_pos.y, 0.0f, sizeMultiplier);
     }
     else if (m_CombatFlags.parried) {
         DrawMesh(m_enemyMesh, m_size, isoHeight, m_pos.x, m_pos.y, 0.0f, 255, 0, 0, 255);
+        //DrawMesh(m_enemyMesh, m_size, isoHeight, m_pos.x, m_pos.y, 0.0f, 255, 0, 0, 255);
     }
     else {
         //DrawMesh(m_enemyMesh, m_size, isoHeight, m_pos.x, m_pos.y, 0.0f, 44, 255, 255, 255);
@@ -261,6 +281,13 @@ void Enemy::Draw() {
             m_EnemySprite.GetSpriteSheet(),
             m_EnemySprite.GetPixelScale(),
             m_EnemySprite.GetPixelScale(),
+            m_pos.x, m_pos.y, 0.0f, sizeMultiplier);
+
+        DrawTexture(m_DasherSprite, static_cast<int>(m_CurrentDirection),
+            m_DasherSprite.GetSpriteMesh(),
+            m_DasherSprite.GetSpriteSheet(),
+            m_DasherSprite.GetPixelScale(),
+            m_DasherSprite.GetPixelScale(),
             m_pos.x, m_pos.y, 0.0f, sizeMultiplier);
     }
 
@@ -861,6 +888,91 @@ void Dasher::ChildUpdate(f32 dt, Combat::System& combat, Player& player,
         m_moveDir = { 0.0f, 0.0f };
     }
 
+}
+
+void Dasher::Draw()
+{
+    f32 dt = (f32)AEFrameRateControllerGetFrameTime();
+    Shadow_Draw(m_pos.x, m_pos.y, m_size);
+
+    AEGfxSetRenderMode(AE_GFX_RM_COLOR);
+
+    f32 isoHeight = m_size;
+
+    bool isDashWindup = (m_CurrentState == EnemyState::STATE_DASH_WINDUP);
+    bool isAnyWindup = (m_WindingUp || isDashWindup);
+
+    // -------------------------
+    // Dasher-specific sprites
+    // -------------------------
+    if (isAnyWindup && m_WindUpTimer < 0.2f && !isDashWindup) {
+        DrawTexture(m_DasherSprite, static_cast<int>(m_CurrentDirection),
+            m_DasherSprite.GetDasherAttackSpriteMesh(),
+            m_DasherSprite.GetDasherAttackSpriteSheet(),
+            m_DasherSprite.GetPixelScale(),
+            m_DasherSprite.GetPixelScale(),
+            m_pos.x, m_pos.y, 0.0f, sizeMultiplier);
+    }
+    else if (isAnyWindup) {
+        DrawTexture(m_DasherSprite, static_cast<int>(m_CurrentDirection),
+            m_DasherSprite.GetDasherWindupSpriteMesh(),
+            m_DasherSprite.GetDasherWindupSpriteSheet(),
+            m_DasherSprite.GetPixelScale(),
+            m_DasherSprite.GetPixelScale(),
+            m_pos.x, m_pos.y, 0.0f, sizeMultiplier);
+    }
+    else if (m_CombatFlags.parried) {
+        DrawMesh(m_enemyMesh, m_size, isoHeight, m_pos.x, m_pos.y, 0.0f, 255, 0, 0, 255);
+    }
+    else {
+        DrawTexture(m_DasherSprite, static_cast<int>(m_CurrentDirection),
+            m_DasherSprite.GetDasherSpriteMesh(),
+            m_DasherSprite.GetDasherSpriteSheet(),
+            m_DasherSprite.GetPixelScale(),
+            m_DasherSprite.GetPixelScale(),
+            m_pos.x, m_pos.y, 0.0f, sizeMultiplier);
+    }
+
+    // Enemy sword
+    f32 swordAngle = m_AttackActive ? m_CurrentAngle : m_AimAngle;
+    DrawMesh(m_AttackRangeMesh, 1.0f, 5.0f, m_pos.x, m_pos.y, swordAngle,
+        44, 255, 255, 255);
+
+    // Enemy health bar
+    f32 barWidth = m_size * 2.0f * (m_CombatStats.health / m_CombatStats.maxHealth);
+    f32 barHeight = m_size / 3.0f;
+    f32 dbarWidth = m_size * 2.0f * AEClamp(
+        (m_CombatStats.health / m_CombatStats.maxHealth) + (m_healthDepletionPercentage / 100.0f),
+        0.0f, 1.0f);
+
+    f32 dRate = 100.0f * dt;
+    if (m_healthDepletionPercentage > 0.0f) {
+        m_healthDepletionPercentage -= dRate;
+        if (m_healthDepletionPercentage < 0.0f) {
+            m_healthDepletionPercentage = 0.0f;
+        }
+    }
+
+    DrawMesh(m_enemyHealthBarMesh, dbarWidth, barHeight,
+        m_pos.x - m_size, m_pos.y + m_size + barHeight / 2.0f + 25.0f,
+        0.0f, 255, 175, 65, 255);
+
+    DrawMesh(m_enemyHealthBarMesh, barWidth, barHeight,
+        m_pos.x - m_size, m_pos.y + m_size + barHeight / 2.0f + 25.0f,
+        0.0f, 210, 70, 75, 255);
+
+    // Damaging Mark
+    if (m_marked && !m_markDetonating && m_markMesh) {
+        float bobOffset = sinf(m_markTimer * 5.0f) * 4.0f;
+        float daggerY = m_pos.y + m_size + 40.0f + bobOffset;
+        DrawMesh(m_markMesh, 14.0f, 20.0f, m_pos.x, daggerY, 0.0f, 255, 255, 255, 255);
+    }
+    else if (m_markDetonating && m_markMesh) {
+        float t = m_markDetonateTimer / 0.3f;
+        float hoverY = m_pos.y + m_size + 40.0f;
+        float daggerY = m_pos.y + (hoverY - m_pos.y) * t;
+        DrawMesh(m_markMesh, 14.0f, 20.0f, m_pos.x, daggerY, 0.0f, 255, 80, 80, 255);
+    }
 }
 
 // ---------------------

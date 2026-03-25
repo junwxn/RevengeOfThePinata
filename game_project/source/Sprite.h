@@ -12,6 +12,7 @@ class Sprite
 		void Sprite_Update(float dt);
 
 		// Enemy Spritesheet
+		// Base 1
 		AEGfxTexture* GetSpriteSheet() { return pEnemySpriteSheet; }
 		AEGfxTexture* GetEnemyWindupSpriteSheet() { return pEnemyWindup_SpriteSheet; }
 		AEGfxTexture* GetEnemyAttackSpriteSheet() { return pEnemyAttack_SpriteSheet; }
@@ -19,6 +20,15 @@ class Sprite
 		AEGfxVertexList* GetEnemyWindupSpriteMesh() { return pEnemyWindup_SpriteMesh; }
 		AEGfxVertexList* GetEnemyAttackSpriteMesh() { return pEnemyAttack_SpriteMesh; }
 
+		// Dasher
+		AEGfxTexture* GetDasherSpriteSheet() { return pDasherSpriteSheet; }
+		AEGfxTexture* GetDasherWindupSpriteSheet() { return pDasherWindup_SpriteSheet; }
+		AEGfxTexture* GetDasherAttackSpriteSheet() { return pDasherAttack_SpriteSheet; }
+		AEGfxVertexList* GetDasherSpriteMesh() { return pDasherSpriteMesh; }
+		AEGfxVertexList* GetDasherWindupSpriteMesh() { return pDasherWindup_SpriteMesh; }
+		AEGfxVertexList* GetDasherAttackSpriteMesh() { return pDasherAttack_SpriteMesh; }
+
+		// Player
 		AEGfxTexture* GetPlayerSpriteSheet() { return pPlayerSpriteSheet; }
 		AEGfxVertexList* GetPlayerSpriteMesh() { return pPlayerSpriteMesh; }
 
@@ -54,6 +64,7 @@ class Sprite
 
 	private:
 		// Enemy Spritesheet
+		// Base
 		AEGfxTexture* pEnemySpriteSheet{nullptr};
 		AEGfxVertexList* pSpriteMesh{nullptr};
 
@@ -62,6 +73,16 @@ class Sprite
 
 		AEGfxTexture* pEnemyAttack_SpriteSheet{ nullptr };
 		AEGfxVertexList* pEnemyAttack_SpriteMesh{ nullptr };
+
+		// Dasher
+		AEGfxTexture* pDasherSpriteSheet{ nullptr };
+		AEGfxVertexList* pDasherSpriteMesh{ nullptr };
+
+		AEGfxTexture* pDasherWindup_SpriteSheet{ nullptr };
+		AEGfxVertexList* pDasherWindup_SpriteMesh{ nullptr };
+
+		AEGfxTexture* pDasherAttack_SpriteSheet{ nullptr };
+		AEGfxVertexList* pDasherAttack_SpriteMesh{ nullptr };
 
 		// Player Spritesheet
 		AEGfxTexture* pPlayerSpriteSheet{ nullptr };

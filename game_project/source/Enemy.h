@@ -137,10 +137,16 @@ public:
 
 protected:
     float sizeMultiplier{ 1.5f };
+
     Sprite m_EnemySprite;
     AEGfxTexture* m_EnemySpriteSheet = nullptr;
     AEGfxTexture* m_EnemyWindupSpriteSheet = nullptr;
     AEGfxTexture* m_EnemyAttackSpriteSheet = nullptr;
+
+    Sprite m_DasherSprite;
+    AEGfxTexture* m_DasherSpriteSheet;
+    AEGfxTexture* m_DasherWindupSpriteSheet;
+    AEGfxTexture* m_DasherAttackSpriteSheet;
 
     // Enemy stats --------------------
     AEVec2 m_pos{};
@@ -342,6 +348,7 @@ protected:
     void PerformDash(AEVec2 const& direction, f32 distToPlayer);
     void ChildUpdate(f32 dt, Combat::System& combat, Player& player,
         std::vector<std::unique_ptr<Enemy>>& enemies) override;
+    void Draw();
 };
 
 // ---------------------

@@ -115,7 +115,7 @@ void GSM_Initialize(int startingState)
 
 	GSM_MapFunctionsToCurrentState();
 
-	std::cout << "Initial load of state: " << current << std::endl;
+	//std::cout << "Initial load of state: " << current << std::endl;
 
 	if (fpLoad) fpLoad();
 	if (fpInitialize) fpInitialize();
@@ -125,12 +125,12 @@ void GSM_Update(float dt)
 {
 	if (Transition_IsActive())
 	{
-		std::cout << "Transition active\n";
+		//std::cout << "Transition active\n";
 		Transition_Update(dt);
 
 		if (Transition_IsSwitchReady())
 		{
-			std::cout << "Transition switching state\n";
+			//std::cout << "Transition switching state\n";
 
 			if (fpFree) fpFree();
 			if (fpUnload) fpUnload();

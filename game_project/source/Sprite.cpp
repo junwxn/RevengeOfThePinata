@@ -4,6 +4,8 @@
 
 Sprite::~Sprite()
 {
+	// Enemy
+	// Base
 	if (pSpriteMesh) {
 		AEGfxMeshFree(pSpriteMesh);
 		pSpriteMesh = nullptr;
@@ -29,6 +31,33 @@ Sprite::~Sprite()
 		pEnemyAttack_SpriteSheet = nullptr;
 	}
 
+	// Dasher
+	if (pDasherSpriteMesh) {
+		AEGfxMeshFree(pDasherSpriteMesh);
+		pDasherSpriteMesh = nullptr;
+	}
+	if (pDasherSpriteSheet) {
+		AEGfxTextureUnload(pDasherSpriteSheet);
+		pDasherSpriteSheet = nullptr;
+	}
+	if (pDasherWindup_SpriteMesh) {
+		AEGfxMeshFree(pDasherWindup_SpriteMesh);
+		pDasherWindup_SpriteMesh = nullptr;
+	}
+	if (pDasherWindup_SpriteSheet) {
+		AEGfxTextureUnload(pDasherWindup_SpriteSheet);
+		pDasherWindup_SpriteSheet = nullptr;
+	}
+	if (pDasherAttack_SpriteMesh) {
+		AEGfxMeshFree(pDasherAttack_SpriteMesh);
+		pDasherAttack_SpriteMesh = nullptr;
+	}
+	if (pDasherAttack_SpriteSheet) {
+		AEGfxTextureUnload(pDasherAttack_SpriteSheet);
+		pDasherAttack_SpriteSheet = nullptr;
+	}
+
+	// Player
 	if (pPlayerSpriteMesh) {
 		AEGfxMeshFree(pPlayerSpriteMesh);
 		pPlayerSpriteMesh = nullptr;
@@ -91,6 +120,43 @@ void Sprite::Sprite_Load()
 		return;
 	}
 
+	// Dasher
+	if (pDasherSpriteSheet) {
+		AEGfxTextureUnload(pDasherSpriteSheet);
+		pDasherSpriteSheet = nullptr;
+	}
+
+	pDasherSpriteSheet = AEGfxTextureLoad("Assets/Sprites/BlackKid_SpriteSheet.png");
+	if (!pDasherSpriteSheet)
+	{
+		std::cout << "ERROR LOADING ENEMY SPRITE SHEET" << std::endl;
+		return;
+	}
+
+	if (pDasherWindup_SpriteSheet) {
+		AEGfxTextureUnload(pDasherWindup_SpriteSheet);
+		pDasherWindup_SpriteSheet = nullptr;
+	}
+
+	pDasherWindup_SpriteSheet = AEGfxTextureLoad("Assets/Sprites/BlackKid_Windup_SpriteSheet.png");
+	if (!pDasherWindup_SpriteSheet)
+	{
+		std::cout << "ERROR LOADING ENEMY WINDUP SPRITE SHEET" << std::endl;
+		return;
+	}
+
+	if (pDasherAttack_SpriteSheet) {
+		AEGfxTextureUnload(pDasherAttack_SpriteSheet);
+		pDasherAttack_SpriteSheet = nullptr;
+	}
+
+	pDasherAttack_SpriteSheet = AEGfxTextureLoad("Assets/Sprites/BlackKid_Attack_SpriteSheet.png");
+	if (!pDasherAttack_SpriteSheet)
+	{
+		std::cout << "ERROR LOADING ENEMY ATTACK SPRITE SHEET" << std::endl;
+		return;
+	}
+
 	//////////////////////
 	// PLAYER SPRITE SHEET
 	//////////////////////
@@ -141,6 +207,20 @@ void Sprite::Sprite_Init()
 		pEnemyAttack_SpriteMesh = nullptr;
 	}
 
+	// Dasher
+	if (pDasherSpriteMesh) {
+		AEGfxMeshFree(pDasherSpriteMesh);
+		pDasherSpriteMesh = nullptr;
+	}
+	if (pDasherWindup_SpriteMesh) {
+		AEGfxMeshFree(pDasherWindup_SpriteMesh);
+		pDasherWindup_SpriteMesh = nullptr;
+	}
+	if (pDasherAttack_SpriteMesh) {
+		AEGfxMeshFree(pDasherAttack_SpriteMesh);
+		pDasherAttack_SpriteMesh = nullptr;
+	}
+
 	/////////////////////
 	// Player Spritesheet
 	/////////////////////
@@ -162,6 +242,11 @@ void Sprite::Sprite_Init()
 	pSpriteMesh = CreateSpriteRectMesh(0xAEF359, 8.0f, 7.0f);
 	pEnemyWindup_SpriteMesh = CreateSpriteRectMesh(0xAEF359, 8.0f, 7.0f);
 	pEnemyAttack_SpriteMesh = CreateSpriteRectMesh(0xAEF359, 8.0f, 7.0f);
+
+	// Dasher Spritesheet
+	pDasherSpriteMesh = CreateSpriteRectMesh(0xAEF359, 8.0f, 7.0f);
+	pDasherWindup_SpriteMesh = CreateSpriteRectMesh(0xAEF359, 8.0f, 7.0f);
+	pDasherAttack_SpriteMesh = CreateSpriteRectMesh(0xAEF359, 8.0f, 7.0f);
 
 	// Player Spritesheet
 	pPlayerSpriteMesh = CreateSpriteRectMesh(0xAEF359, 10.0f, 8.0f);
