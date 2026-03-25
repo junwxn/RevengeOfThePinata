@@ -223,7 +223,7 @@ void Augments::Update(f32 playerX, f32 playerY, f32 dt) {
         }
 
         // temp
-        if (IsMouseInside(mouseWX, mouseWY, cards_x1 + (cardWidth * 0.5), cards_y, cardWidth, cardHeight))
+        /*if (IsMouseInside(mouseWX, mouseWY, cards_x1 + (cardWidth * 0.5), cards_y, cardWidth, cardHeight))
         {
             std::cout << "Red picked\n";
         }
@@ -236,7 +236,7 @@ void Augments::Update(f32 playerX, f32 playerY, f32 dt) {
         if (IsMouseInside(mouseWX, mouseWY, cards_x3 + (cardWidth * 0.5), cards_y, cardWidth, cardHeight))
         {
             std::cout << "Green picked\n";
-        }
+        }*/
 
         //DrawMesh(cardMesh, 400, 600, cards_x1, playerY - cards_y, 0.0f, 255, 0, 0, 255); // Red Card (Left)
         //DrawMesh(cardMesh, 400, 600, cards_x2, playerY - cards_y, 0.0f, 0, 0, 255, 255); // Blue Card (Right)
