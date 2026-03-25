@@ -64,6 +64,11 @@ static void SpawnWave1_L3() {
 		AEVec2 p3 = GetRandomSpawnPos(gameMap, playerPos, 200.0f, ENEMY_SIZE);
 		Wave1.push_back(std::make_unique<Thrower>(p3, ENEMY_SIZE, 80.0f, 100.0f));
 	}
+
+	for (auto& enemy : Wave1) {
+		enemy->Init();
+		enemy->SetMap(&gameMap);
+	}
 }
 
 static void SpawnWave2_L3() {
@@ -86,6 +91,11 @@ static void SpawnWave2_L3() {
 		AEVec2 p3 = GetRandomSpawnPos(gameMap, playerPos, 200.0f, ENEMY_SIZE);
 		Wave2.push_back(std::make_unique<Thrower>(p3, ENEMY_SIZE, 80.0f, 100.0f));
 	}
+
+	for (auto& enemy : Wave2) {
+		enemy->Init();
+		enemy->SetMap(&gameMap);
+	}
 }
 
 static void SpawnWave3_L3() {
@@ -107,6 +117,11 @@ static void SpawnWave3_L3() {
 	for (int i = 0; i < 4; ++i) {
 		AEVec2 p3 = GetRandomSpawnPos(gameMap, playerPos, 200.0f, ENEMY_SIZE);
 		Wave3.push_back(std::make_unique<Thrower>(p3, ENEMY_SIZE, 80.0f, 100.0f));
+	}
+
+	for (auto& enemy : Wave3) {
+		enemy->Init();
+		enemy->SetMap(&gameMap);
 	}
 }
 
@@ -391,4 +406,5 @@ void Level3_Unload() {
 	Pause_Unload();
 	HUD_Unload();
 	Debug_Unload();
+	AEAudioStopGroup(gAudio.audioGroup.BGM);
 }

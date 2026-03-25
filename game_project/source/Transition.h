@@ -10,6 +10,7 @@ enum class TransitionPhase
 };
 
 void Transition_Init();
+void Transition_Free();
 void Transition_Start(GS_STATES nextState);
 void Transition_Update(float dt);
 void Transition_Draw();

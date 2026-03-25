@@ -12,6 +12,7 @@
 #include "Debug.h"
 #include "Shadow.h"
 #include "Transition.h"
+#include "Audio.h"
 
 // load variables
 static AEGfxTexture* TexBlock2;
@@ -252,4 +253,5 @@ void BossLevel_Unload() {
 	Pause_Unload();
 	HUD_Unload();
 	Debug_Unload();
+	AEAudioStopGroup(gAudio.audioGroup.BGM);
 }

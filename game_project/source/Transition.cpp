@@ -82,6 +82,22 @@ void Transition_Init()
     g_BlackBackgroundMesh = AEGfxMeshEnd();
 }
 
+void Transition_Free()
+{
+    if (g_TransitionMesh) {
+        AEGfxMeshFree(g_TransitionMesh);
+        g_TransitionMesh = nullptr;
+    }
+    if (g_BlackBackgroundMesh) {
+        AEGfxMeshFree(g_BlackBackgroundMesh);
+        g_BlackBackgroundMesh = nullptr;
+    }
+    if (g_TransitionSpriteSheet) {
+        AEGfxTextureUnload(g_TransitionSpriteSheet);
+        g_TransitionSpriteSheet = nullptr;
+    }
+}
+
 void Transition_Start(GS_STATES nextState)
 {
     std::cout << "Transition_Start called -> " << nextState << std::endl;

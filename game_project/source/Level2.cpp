@@ -343,4 +343,5 @@ void Level2_Unload() {
 	Pause_Unload();
 	HUD_Unload();
 	Debug_Unload();
+	AEAudioStopGroup(gAudio.audioGroup.BGM);
 }
