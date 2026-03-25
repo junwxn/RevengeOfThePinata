@@ -11,13 +11,14 @@
 #include "Audio.h"
 #include <queue>
 
-
-//std::ostream& operator<<(std::ostream& os, CombatOutcome outcome) {
-//    if (outcome == CombatOutcome::OUTCOME_HIT) return os << "OUTCOME_HIT";
-//    else if (outcome == CombatOutcome::OUTCOME_BLOCKED) return os << "OUTCOME_BLOCKED";
-//    else if (outcome == CombatOutcome::OUTCOME_PARRIED) return os << "OUTCOME_PARRIED";
-//    return os << static_cast<int>(outcome);
-//}
+// Helper Functions
+namespace {
+    static f32 EaseInOutSine(f32 t)
+        {
+        t = AEClamp(t, 0.0f, 1.0f);
+        return 0.5f - 0.5f * cosf(t * PI);
+    }
+}
 
 std::ostream& operator<<(std::ostream& os, AEVec2 vector) {
     return os << vector.x << " " << vector.y << std::endl;
@@ -148,7 +149,10 @@ void Enemy::BaseUpdate(f32 dt, Combat::System& combat, Player& player) {
 
     // Start attack -------------------
     // Wind-up: charge before swinging
-    if (!m_AttackActive && m_AllowAttack && !m_WindingUp && m_CombatSystem.CanStartAttack_Enemy(player, *this))
+    if (m_CurrentState != EnemyState::STATE_DASH_WINDUP &&
+        m_CurrentState != EnemyState::STATE_DASH &&
+        !m_AttackActive && m_AllowAttack && !m_WindingUp &&
+        m_CombatSystem.CanStartAttack_Enemy(player, *this))
     {
         m_WindingUp = true;
         m_WindUpTimer = m_WindUpDuration;
@@ -225,29 +229,39 @@ void Enemy::Draw() {
 
     // Draw Meshes --------------------
     // Enemy
-    if (m_WindingUp && m_WindUpTimer < 0.2f) {
-        // Flash red just before attacking (last 0.2s of wind-up)
-        float flash = sinf(m_WindUpTimer * 40.0f);
-        float r = (flash > 0.0f) ? 255.0f : 180.0f;
-        //DrawMesh(m_enemyMesh, m_size, isoHeight, m_pos.x, m_pos.y, 0.0f, r, 0, 0, 255);
+    bool isDashWindup = (m_CurrentState == EnemyState::STATE_DASH_WINDUP);
+    bool isAnyWindup = (m_WindingUp || isDashWindup);
 
-        DrawTexture(m_EnemySprite, static_cast<int>(m_CurrentDirection), m_EnemySprite.GetEnemyAttackSpriteMesh(), m_EnemySprite.GetEnemyAttackSpriteSheet(), m_EnemySprite.GetPixelScale(),
-            m_EnemySprite.GetPixelScale(), m_pos.x, m_pos.y, 0.0f, sizeMultiplier);
+    if (isAnyWindup && m_WindUpTimer < 0.2f && !isDashWindup) {
+        // Flash red just before attacking (last 0.2s of wind-up)
+        DrawTexture(m_EnemySprite, static_cast<int>(m_CurrentDirection),
+            m_EnemySprite.GetEnemyAttackSpriteMesh(),
+            m_EnemySprite.GetEnemyAttackSpriteSheet(),
+            m_EnemySprite.GetPixelScale(),
+            m_EnemySprite.GetPixelScale(),
+            m_pos.x, m_pos.y, 0.0f, sizeMultiplier);
     }
-    else if (m_WindingUp) {
+    else if (isAnyWindup) {
         // Winding up — tint yellow to show charging
         //DrawMesh(m_enemyMesh, m_size, isoHeight, m_pos.x, m_pos.y, 0.0f, 255, 200, 0, 255);
-
-        DrawTexture(m_EnemySprite, static_cast<int>(m_CurrentDirection), m_EnemySprite.GetEnemyWindupSpriteMesh(), m_EnemySprite.GetEnemyWindupSpriteSheet(), m_EnemySprite.GetPixelScale(),
-            m_EnemySprite.GetPixelScale(), m_pos.x, m_pos.y, 0.0f, sizeMultiplier);
+        DrawTexture(m_EnemySprite, static_cast<int>(m_CurrentDirection),
+            m_EnemySprite.GetEnemyWindupSpriteMesh(),
+            m_EnemySprite.GetEnemyWindupSpriteSheet(),
+            m_EnemySprite.GetPixelScale(),
+            m_EnemySprite.GetPixelScale(),
+            m_pos.x, m_pos.y, 0.0f, sizeMultiplier);
     }
     else if (m_CombatFlags.parried) {
         DrawMesh(m_enemyMesh, m_size, isoHeight, m_pos.x, m_pos.y, 0.0f, 255, 0, 0, 255);
     }
     else {
         //DrawMesh(m_enemyMesh, m_size, isoHeight, m_pos.x, m_pos.y, 0.0f, 44, 255, 255, 255);
-        DrawTexture(m_EnemySprite, static_cast<int>(m_CurrentDirection), m_EnemySprite.GetSpriteMesh(), m_EnemySprite.GetSpriteSheet(), m_EnemySprite.GetPixelScale(),
-            m_EnemySprite.GetPixelScale(), m_pos.x, m_pos.y, 0.0f, sizeMultiplier);
+        DrawTexture(m_EnemySprite, static_cast<int>(m_CurrentDirection),
+            m_EnemySprite.GetSpriteMesh(),
+            m_EnemySprite.GetSpriteSheet(),
+            m_EnemySprite.GetPixelScale(),
+            m_EnemySprite.GetPixelScale(),
+            m_pos.x, m_pos.y, 0.0f, sizeMultiplier);
     }
 
     // Enemy sword
@@ -256,14 +270,20 @@ void Enemy::Draw() {
         44, 255, 255, 255);
 
     // Enemy health bar
-    f32 barWidth = m_size * 2.0f * m_CombatStats.health / m_CombatStats.maxHealth;
+    f32 barWidth = m_size * 2.0f * (m_CombatStats.health / m_CombatStats.maxHealth);
     f32 barHeight = m_size / 3.0f;
-    f32 dbarWidth = m_size * 2.0f * (m_CombatStats.health / m_CombatStats.maxHealth + m_healthDepletionPercentage / m_CombatStats.maxHealth);
-    f32 dRate = m_CombatStats.maxHealth * dt;
-    if (m_healthDepletionPercentage >= 0.0f) { m_healthDepletionPercentage -= dRate; };
+    f32 dbarWidth = m_size * 2.0f * AEClamp((m_CombatStats.health / m_CombatStats.maxHealth) + (m_healthDepletionPercentage / 100.0f), 0.0f, 1.0f);
 
-    DrawMesh(m_enemyHealthBarMesh, dbarWidth, barHeight, m_pos.x - m_size, m_pos.y + m_size + barHeight / 2.0f + 10.0f, 0.0f, 255, 175, 65, 255); // Depleting bar
-    DrawMesh(m_enemyHealthBarMesh, barWidth, barHeight, m_pos.x - m_size, m_pos.y + m_size + barHeight / 2.0f + 10.0f, 0.0f, 210, 70, 75, 255); // Instant bar
+    f32 dRate = 100.0f * dt;
+    if (m_healthDepletionPercentage > 0.0f) {
+        m_healthDepletionPercentage -= dRate;
+        if (m_healthDepletionPercentage < 0.0f) {
+            m_healthDepletionPercentage = 0.0f;
+        }
+    }
+
+    DrawMesh(m_enemyHealthBarMesh, dbarWidth, barHeight, m_pos.x - m_size, m_pos.y + m_size + barHeight / 2.0f + 25.0f, 0.0f, 255, 175, 65, 255); // Depleting bar
+    DrawMesh(m_enemyHealthBarMesh, barWidth, barHeight, m_pos.x - m_size, m_pos.y + m_size + barHeight / 2.0f + 25.0f, 0.0f, 210, 70, 75, 255); // Instant bar
 
     // Damaging Mark: draw dagger above marked/detonating enemies
     if (m_marked && !m_markDetonating && m_markMesh) {
@@ -597,18 +617,28 @@ void Enemy::MoveTowardTarget(AEVec2 const& targetPos, f32 dt) {
  //-----------------------
 void Walker::ChildUpdate(f32 dt, Combat::System& combat, Player& player,
     std::vector<std::unique_ptr<Enemy>>& enemies) {
+    (void)combat;
     (void)enemies;
+
     AEVec2 playerPos{ player.GetX(), player.GetY() };
-    AEVec2Sub(&m_enemyToPlayerDir, &playerPos, &m_pos);
-    AEVec2Normalize(&m_enemyToPlayerDir, &m_enemyToPlayerDir);
+    AEVec2 toPlayer;
+    AEVec2Sub(&toPlayer, &playerPos, &m_pos);
+
+    f32 distToPlayer = AEVec2Length(&toPlayer);
+    if (distToPlayer > 0.001f) {
+        AEVec2Scale(&m_enemyToPlayerDir, &toPlayer, 1.0f / distToPlayer);
+    }
 
     // Point sword towards player
     m_AimAngle = atan2(-m_enemyToPlayerDir.y, -m_enemyToPlayerDir.x);
 
-    // Seek player via A* pathfinding
-    if (!AreCirclesIntersecting(player.GetX(), player.GetY(), player.GetSize(),
-                                m_pos.x, m_pos.y, m_size)) {
+    const f32 desiredStopDistance = m_AttackRange * 0.6f;
+
+    if (distToPlayer > desiredStopDistance) {
         MoveTowardTarget(playerPos, dt);
+    }
+    else {
+        m_moveDir = { 0.0f, 0.0f };
     }
 }
 
@@ -620,63 +650,84 @@ Dasher::Dasher(AEVec2 pos, f32 size, f32 hp, f32 speed, f32 dashCD)
 {
     // Stagger initial timers so grouped Dashers don't all lunge at once
     m_dashTimer = static_cast<f32>(rand()) / RAND_MAX * m_dashCD;
+    m_CurrentState = EnemyState::STATE_IDLE;
 }
 
-//void Dasher::PerformDash(AEVec2 const& direction) {
-//    m_moveDir = direction;
-//    if (!m_pMap) {
-//        m_pos.x += direction.x * m_dashDistance;
-//        m_pos.y += direction.y * m_dashDistance;
-//        return;
-//    }
-//
-//    // Step-wise collision (same pattern as player dash)
-//    const int steps = static_cast<int>(m_dashDistance / 16.0f) + 1;
-//    float stepVelX = direction.x * m_dashDistance / steps;
-//    float stepVelY = direction.y * m_dashDistance / steps;
-//    for (int i = 0; i < steps; ++i) {
-//        float prevX = m_pos.x, prevY = m_pos.y;
-//        ResolveCollision(m_pos.x, m_pos.y, stepVelX, stepVelY, m_size, *m_pMap);
-//        if (m_pos.x == prevX && m_pos.y == prevY) break;
-//    }
-//}
-
-void Dasher::StartDash(AEVec2 const& direction)
+void Dasher::StartDash(AEVec2 const& direction, f32 distToPlayer)
 {
-    m_DashActive = true;
-    m_MovementState.recovered = false;
-    m_DashFrameAccumulator = 0.0f;
-    m_DashCurrentFrame = 0;
+    m_WindingUp = false;
+    m_WindUpTimer = 0.0f;
+    m_AllowAttack = false;
 
-    m_DashDir = direction;
     m_moveDir = direction;
+    m_dashActive = true;
+    m_dashFrameAccumulator = 0.0f;
+    m_dashCurrentFrame = 0;
 
-    m_DashStepX = (direction.x * m_dashDistance) / static_cast<float>(m_ActiveFrames);
-    m_DashStepY = (direction.y * m_dashDistance) / static_cast<float>(m_ActiveFrames);
+    m_dashDirX = direction.x;
+    m_dashDirY = direction.y;
 
-    m_dashTimer = m_dashCD;
+    // Land around the middle of attack range
+    const f32 desiredEndDistance = m_AttackRange * m_dashEndRangeFactor;
+    f32 actualDashDistance = distToPlayer - desiredEndDistance;
+
+    actualDashDistance = AEClamp(actualDashDistance, 0.0f, m_dashDistance);
+
+    m_dashTotalX = direction.x * actualDashDistance;
+    m_dashTotalY = direction.y * actualDashDistance;
+
+    m_CurrentState = EnemyState::STATE_DASH;
 }
 
-void Dasher::ApplyDashStep()
+void Dasher::PerformDash(AEVec2 const& direction, f32 distToPlayer)
 {
-    float dashVelX = m_DashStepX;
-    float dashVelY = m_DashStepY;
+    StartDash(direction, distToPlayer);
+}
+
+void Dasher::ApplyDashStep(Player& player)
+{
+    (void)player;
+
+    const int activeStart = m_dashStartFrames;
+
+    int currentActiveFrame = m_dashCurrentFrame - activeStart;
+    int previousActiveFrame = currentActiveFrame - 1;
+
+    f32 prevLinearT = static_cast<f32>(previousActiveFrame) / static_cast<f32>(m_dashActiveFrames);
+    f32 currLinearT = static_cast<f32>(currentActiveFrame) / static_cast<f32>(m_dashActiveFrames);
+
+    prevLinearT = AEClamp(prevLinearT, 0.0f, 1.0f);
+    currLinearT = AEClamp(currLinearT, 0.0f, 1.0f);
+
+    f32 prevCurveT = EaseInOutSine(prevLinearT);
+    f32 currCurveT = EaseInOutSine(currLinearT);
+
+    f32 deltaT = currCurveT - prevCurveT;
+
+    f32 dashVelX = m_dashTotalX * deltaT;
+    f32 dashVelY = m_dashTotalY * deltaT;
 
     if (m_pMap)
     {
-        const int steps = 2;
-        float stepVelX = dashVelX / steps;
-        float stepVelY = dashVelY / steps;
+        const int steps = 8;
+        f32 stepVelX = dashVelX / steps;
+        f32 stepVelY = dashVelY / steps;
 
         for (int i = 0; i < steps; ++i)
         {
-            float prevX = m_pos.x;
-            float prevY = m_pos.y;
+            f32 prevX = m_pos.x;
+            f32 prevY = m_pos.y;
 
             ResolveCollision(m_pos.x, m_pos.y, stepVelX, stepVelY, m_size, *m_pMap);
 
             if (m_pos.x == prevX && m_pos.y == prevY)
-                break;
+            {
+                m_dashActive = false;
+                m_AllowAttack = true;
+                m_CurrentState = EnemyState::STATE_IDLE;
+                m_dashTimer = m_dashCD;
+                return;
+            }
         }
     }
     else
@@ -686,76 +737,130 @@ void Dasher::ApplyDashStep()
     }
 }
 
-void Dasher::UpdateDash(float dt, Combat::System& combat)
+void Dasher::UpdateDash(f32 dt, Player& player)
 {
-    if (!m_DashActive)
+    if (!m_dashActive)
         return;
 
-    m_DashFrameAccumulator += dt;
+    m_dashFrameAccumulator += dt;
 
-    while (m_DashFrameAccumulator >= combat.GetOneFPS() &&
-        m_DashCurrentFrame <= m_TotalFrames)
+    while (m_dashFrameAccumulator >= m_CombatSystem.GetOneFPS() &&
+        m_dashCurrentFrame <= m_dashTotalFrames)
     {
-        ++m_DashCurrentFrame;
-        m_DashFrameAccumulator -= combat.GetOneFPS();
+        ++m_dashCurrentFrame;
+        m_dashFrameAccumulator -= m_CombatSystem.GetOneFPS();
 
-        if (m_DashCurrentFrame >= m_StartFrames &&
-            m_DashCurrentFrame < m_StartFrames + m_ActiveFrames)
+        if (m_dashCurrentFrame >= m_dashStartFrames &&
+            m_dashCurrentFrame < m_dashStartFrames + m_dashActiveFrames)
         {
-            ApplyDashStep();
+            ApplyDashStep(player);
+
+            if (!m_dashActive)
+                return;
         }
     }
 
-    if (m_DashCurrentFrame >= m_TotalFrames)
+    if (m_dashCurrentFrame >= m_dashTotalFrames)
     {
-        m_DashActive = false;
-        m_DashCurrentFrame = 0;
-        m_DashFrameAccumulator = 0.0f;
+        m_dashActive = false;
+        m_dashTimer = m_dashCD;
+        m_CurrentState = EnemyState::STATE_IDLE;
+        m_AllowAttack = true;
+
+        if (m_dashAttackQueued && m_CombatSystem.CanStartAttack_Enemy(player, *this))
+        {
+            m_dashAttackQueued = false;
+            m_WindingUp = false;
+            m_WindUpTimer = 0.0f;
+            m_AllowAttack = false;
+            m_CurrentState = EnemyState::STATE_ATTACK;
+
+            StartAttack(m_DashFollowupAttackData);
+        }
+        else
+        {
+            m_dashAttackQueued = false;
+        }
     }
 }
 
 void Dasher::ChildUpdate(f32 dt, Combat::System& combat, Player& player,
-    std::vector<std::unique_ptr<Enemy>>& enemies) {
+    std::vector<std::unique_ptr<Enemy>>& enemies)
+{
+    (void)combat;
     (void)enemies;
+
     AEVec2 playerPos{ player.GetX(), player.GetY() };
     AEVec2Sub(&m_enemyToPlayerDir, &playerPos, &m_pos);
     f32 dist = AEVec2Length(&m_enemyToPlayerDir);
+
     if (dist > 0.001f)
         AEVec2Normalize(&m_enemyToPlayerDir, &m_enemyToPlayerDir);
 
-    // Point sword towards player
     m_AimAngle = atan2(-m_enemyToPlayerDir.y, -m_enemyToPlayerDir.x);
 
-    // Skip movement if stunned, winding up, or attacking
-    if (m_CombatFlags.stunned || m_WindingUp || m_AttackActive) return;
+    if (m_CombatFlags.stunned)
+        return;
 
-    // Tick dash cooldown
-    m_dashTimer -= dt;
-
-    if (m_dashTimer <= 0.0f) m_MovementState.recovered = true;
-
-    if (!m_MovementState.recovered || m_DashActive) m_AllowDash = false;
-    else m_AllowDash = true;
-
-    // Update an ongoing dash first
-    if (m_DashActive)
+    if (m_CurrentState != EnemyState::STATE_DASH_WINDUP &&
+        m_CurrentState != EnemyState::STATE_DASH)
     {
-        UpdateDash(dt, combat);
+        m_dashTimer -= dt;
+    }
+
+    // windup
+    if (m_CurrentState == EnemyState::STATE_DASH_WINDUP)
+    {
+        m_moveDir = { 0.0f, 0.0f };
+        m_dashWindupTimer -= dt;
+
+        if (m_dashWindupTimer <= 0.0f)
+        {
+            AEVec2 dashToPlayer{ player.GetX() - m_pos.x, player.GetY() - m_pos.y };
+            f32 dashDistToPlayer = AEVec2Length(&dashToPlayer);
+
+            StartDash(m_lockedDashDir, dashDistToPlayer);
+            UpdateDash(dt, player);
+        }
         return;
     }
 
-    // Dash if cooldown ready and player in range
-    if (m_AllowDash && dist >= m_dashMinRange && dist <= m_dashRange) {
-        StartDash(m_enemyToPlayerDir);
-        m_dashTimer = m_dashCD;
+    // active dash
+    if (m_CurrentState == EnemyState::STATE_DASH)
+    {
+        UpdateDash(dt, player);
         return;
     }
 
-    // Walk toward player via A* pathfinding (same as Walker/Boss)
-    if (!AreCirclesIntersecting(player.GetX(), player.GetY(), player.GetSize(),
-                                m_pos.x, m_pos.y, m_size)) {
+    // trigger dash
+    if (m_dashTimer <= 0.0f &&
+        dist >= m_dashMinRange &&
+        dist <= m_dashRange &&
+        !m_AttackActive &&
+        !m_WindingUp)
+    {
+        m_lockedDashDir = m_enemyToPlayerDir; // lock once here
+        m_CurrentState = EnemyState::STATE_DASH_WINDUP;
+        m_dashWindupTimer = m_dashWindupDuration;
+        m_moveDir = { 0.0f, 0.0f };
+        return;
+    }
+
+    // normal chase
+    if (m_WindingUp || m_AttackActive)
+        return;
+
+    const f32 desiredStopDistance = m_AttackRange * 0.6f;
+
+    if (dist > desiredStopDistance) {
+        m_CurrentState = EnemyState::STATE_MOVING;
         MoveTowardTarget(playerPos, dt);
     }
+    else {
+        m_CurrentState = EnemyState::STATE_IDLE;
+        m_moveDir = { 0.0f, 0.0f };
+    }
+
 }
 
 // ---------------------
