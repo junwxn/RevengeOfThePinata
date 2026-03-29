@@ -149,7 +149,7 @@ void Level2_Init() {
 
 void Level2_Update(float dt) {
 	if (!AESysDoesWindowExist()) {
-		Transition_Start(GS_QUIT);
+		Transition_StartImmediate(GS_QUIT);
 		return;
 	}
 
@@ -157,7 +157,7 @@ void Level2_Update(float dt) {
 	Debug_Update();
 
 	// Player death -> Game Over screen
-	if (!player.GetIsAlive()) { Transition_Start(GS_GAMEOVER); return; }
+	if (!player.GetIsAlive()) { Transition_StartImmediate(GS_GAMEOVER); return; }
 
 	// Use Wave1 for player combat reference
 	auto& activeWave = wave1Active ? Wave1 : Wave2;
@@ -255,7 +255,7 @@ void Level2_Update(float dt) {
 	}
 
 	if (0 == AESysDoesWindowExist()) {
-		Transition_Start(GS_QUIT);
+		Transition_StartImmediate(GS_QUIT);
 	}
 
 	if (AEInputCheckTriggered(AEVK_K)) {

@@ -162,7 +162,7 @@ void Level1_Init() {
 }
 void Level1_Update(float dt) {
 	if (!AESysDoesWindowExist()) {
-		Transition_Start(GS_QUIT);
+		Transition_StartImmediate(GS_QUIT);
 		return;
 	}
 
@@ -171,7 +171,7 @@ void Level1_Update(float dt) {
 	Debug_Update();
 
 	// Player death -> Game Over screen
-	if (!player.GetIsAlive()) { Transition_Start(GS_GAMEOVER); return; }
+	if (!player.GetIsAlive()) { Transition_StartImmediate(GS_GAMEOVER); return; }
 
 	auto& activeWave = wave1Active ? Wave1 : Wave2;
 	player.Update(dt, CombatSystem, activeWave, camera.GetX(), camera.GetY(), preventingmovement);
@@ -314,7 +314,7 @@ void Level1_Update(float dt) {
 	}
 
 	if (0 == AESysDoesWindowExist()) {
-		Transition_Start(GS_QUIT);
+		Transition_StartImmediate(GS_QUIT);
 	}
 
 	if (AEInputCheckTriggered(AEVK_K)) {

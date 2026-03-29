@@ -73,7 +73,7 @@ void GameOver_Init() {
 
 void GameOver_Update(float dt) {
 	if (!AESysDoesWindowExist()) {
-		Transition_Start(GS_QUIT);
+		Transition_StartImmediate(GS_QUIT);
 		return;
 	}
 

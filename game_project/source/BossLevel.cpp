@@ -107,7 +107,7 @@ void BossLevel_Init() {
 
 void BossLevel_Update(float dt) {
 	if (!AESysDoesWindowExist()) {
-		Transition_Start(GS_QUIT);
+		Transition_StartImmediate(GS_QUIT);
 		return;
 	}
 
@@ -115,7 +115,7 @@ void BossLevel_Update(float dt) {
 	Debug_Update();
 
 	// Player death -> Game Over screen
-	if (!player.GetIsAlive()) { Transition_Start(GS_GAMEOVER); return; }
+	if (!player.GetIsAlive()) { Transition_StartImmediate(GS_GAMEOVER); return; }
 
 	player.Update(dt, CombatSystem, Wave1, camera.GetX(), camera.GetY(), preventingmovement);
 
@@ -140,7 +140,7 @@ void BossLevel_Update(float dt) {
 
 	// Boss defeated — go straight to victory (no augments)
 	if (bossDefeated) {
-		Transition_Start(GS_VICTORY);
+		Transition_StartImmediate(GS_VICTORY);
 	}
 
 	// map boundaries
@@ -175,14 +175,14 @@ void BossLevel_Update(float dt) {
 	AugmentEffects_Update(dt, player, Wave1);
 
 	if (0 == AESysDoesWindowExist()) {
-		Transition_Start(GS_QUIT);
+		Transition_StartImmediate(GS_QUIT);
 	}
 	if (AEInputCheckTriggered(AEVK_K)) {
 		Wave1.clear();
 	}
 
 	if (AEInputCheckTriggered(AEVK_N)) {
-		Transition_Start(GS_VICTORY);
+		Transition_StartImmediate(GS_VICTORY);
 	}
 }
 
