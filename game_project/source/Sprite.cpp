@@ -57,6 +57,32 @@ Sprite::~Sprite()
 		pDasherAttack_SpriteSheet = nullptr;
 	}
 
+	// Boss
+	if (pBossSpriteMesh) {
+		AEGfxMeshFree(pBossSpriteMesh);
+		pBossSpriteMesh = nullptr;
+	}
+	if (pBossSpriteSheet) {
+		AEGfxTextureUnload(pBossSpriteSheet);
+		pBossSpriteSheet = nullptr;
+	}
+	if (pBossWindup_SpriteMesh) {
+		AEGfxMeshFree(pBossWindup_SpriteMesh);
+		pBossWindup_SpriteMesh = nullptr;
+	}
+	if (pBossWindup_SpriteSheet) {
+		AEGfxTextureUnload(pBossWindup_SpriteSheet);
+		pBossWindup_SpriteSheet = nullptr;
+	}
+	if (pBossAttack_SpriteMesh) {
+		AEGfxMeshFree(pBossAttack_SpriteMesh);
+		pBossAttack_SpriteMesh = nullptr;
+	}
+	if (pBossAttack_SpriteSheet) {
+		AEGfxTextureUnload(pBossAttack_SpriteSheet);
+		pBossAttack_SpriteSheet = nullptr;
+	}
+
 	// Player
 	if (pPlayerSpriteMesh) {
 		AEGfxMeshFree(pPlayerSpriteMesh);
@@ -113,7 +139,7 @@ void Sprite::Sprite_Load()
 		pEnemyAttack_SpriteSheet = nullptr;
 	}
 
-	pEnemyAttack_SpriteSheet = AEGfxTextureLoad("Assets/Sprites/Enemy_Attack_SpriteSheet.png");
+	pEnemyAttack_SpriteSheet = AEGfxTextureLoad("Assets/Sprites/Enemy_Attack_SpriteSheet2.png");
 	if (!pEnemyAttack_SpriteSheet)
 	{
 		std::cout << "ERROR LOADING ENEMY ATTACK SPRITE SHEET" << std::endl;
@@ -150,10 +176,47 @@ void Sprite::Sprite_Load()
 		pDasherAttack_SpriteSheet = nullptr;
 	}
 
-	pDasherAttack_SpriteSheet = AEGfxTextureLoad("Assets/Sprites/BlackKid_Attack_SpriteSheet.png");
+	pDasherAttack_SpriteSheet = AEGfxTextureLoad("Assets/Sprites/BlackKid_Attack_SpriteSheet2.png");
 	if (!pDasherAttack_SpriteSheet)
 	{
 		std::cout << "ERROR LOADING ENEMY ATTACK SPRITE SHEET" << std::endl;
+		return;
+	}
+
+	// Boss
+	if (pBossSpriteSheet) {
+		AEGfxTextureUnload(pBossSpriteSheet);
+		pBossSpriteSheet = nullptr;
+	}
+
+	pBossSpriteSheet = AEGfxTextureLoad("Assets/Sprites/ChineseKid_SpriteSheet.png");
+	if (!pBossSpriteSheet)
+	{
+		std::cout << "ERROR LOADING BOSS SPRITE SHEET" << std::endl;
+		return;
+	}
+
+	if (pBossWindup_SpriteSheet) {
+		AEGfxTextureUnload(pBossWindup_SpriteSheet);
+		pBossWindup_SpriteSheet = nullptr;
+	}
+
+	pBossWindup_SpriteSheet = AEGfxTextureLoad("Assets/Sprites/ChineseKid_Windup_SpriteSheet.png");
+	if (!pBossWindup_SpriteSheet)
+	{
+		std::cout << "ERROR LOADING BOSS WINDUP SPRITE SHEET" << std::endl;
+		return;
+	}
+
+	if (pBossAttack_SpriteSheet) {
+		AEGfxTextureUnload(pBossAttack_SpriteSheet);
+		pBossAttack_SpriteSheet = nullptr;
+	}
+
+	pBossAttack_SpriteSheet = AEGfxTextureLoad("Assets/Sprites/ChineseKid_Attack_SpriteSheet2.png");
+	if (!pBossAttack_SpriteSheet)
+	{
+		std::cout << "ERROR LOADING BOSS ATTACK SPRITE SHEET" << std::endl;
 		return;
 	}
 
@@ -221,6 +284,20 @@ void Sprite::Sprite_Init()
 		pDasherAttack_SpriteMesh = nullptr;
 	}
 
+	// Boss
+	if (pBossSpriteMesh) {
+		AEGfxMeshFree(pBossSpriteMesh);
+		pBossSpriteMesh = nullptr;
+	}
+	if (pBossWindup_SpriteMesh) {
+		AEGfxMeshFree(pBossWindup_SpriteMesh);
+		pBossWindup_SpriteMesh = nullptr;
+	}
+	if (pBossAttack_SpriteMesh) {
+		AEGfxMeshFree(pBossAttack_SpriteMesh);
+		pBossAttack_SpriteMesh = nullptr;
+	}
+
 	/////////////////////
 	// Player Spritesheet
 	/////////////////////
@@ -247,6 +324,11 @@ void Sprite::Sprite_Init()
 	pDasherSpriteMesh = CreateSpriteRectMesh(0xAEF359, 8.0f, 7.0f);
 	pDasherWindup_SpriteMesh = CreateSpriteRectMesh(0xAEF359, 8.0f, 7.0f);
 	pDasherAttack_SpriteMesh = CreateSpriteRectMesh(0xAEF359, 8.0f, 7.0f);
+
+	// Boss Spritesheet
+	pBossSpriteMesh = CreateSpriteRectMesh(0xAEF359, 8.0f, 7.0f);
+	pBossWindup_SpriteMesh = CreateSpriteRectMesh(0xAEF359, 8.0f, 7.0f);
+	pBossAttack_SpriteMesh = CreateSpriteRectMesh(0xAEF359, 8.0f, 7.0f);
 
 	// Player Spritesheet
 	pPlayerSpriteMesh = CreateSpriteRectMesh(0xAEF359, 10.0f, 8.0f);

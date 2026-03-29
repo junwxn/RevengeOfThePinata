@@ -221,6 +221,34 @@ void DrawTexture(Sprite& spriteObj, int currentDirection, AEGfxVertexList* pMesh
     AEGfxMeshDraw(pMesh, AE_GFX_MDM_TRIANGLES);
 }
 
+void DrawTexture(Sprite& spriteObj,
+    AEGfxVertexList* pMesh, AEGfxTexture* pTexture,
+    float width, float height, float x, float y, float rot, float sizeMultiplier)
+{
+    float scaleWidth{ width * sizeMultiplier };
+    float scaleHeight{ height * sizeMultiplier };
+
+    AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
+    AEGfxSetColorToMultiply(1.0f, 1.0f, 1.0f, 1.0f);
+    AEGfxSetColorToAdd(0.0f, 0.0f, 0.0f, 0.0f);
+    AEGfxSetBlendMode(AE_GFX_BM_BLEND);
+    AEGfxSetTransparency(1.0f);
+
+    // Use whatever UVs were already set on the sprite object
+    AEGfxTextureSet(pTexture, spriteObj.GetU(), spriteObj.GetV());
+
+    AEMtx33 scale, rotate, translate, transform;
+    AEMtx33Scale(&scale, scaleWidth, scaleHeight);
+    AEMtx33Rot(&rotate, rot);
+    AEMtx33Trans(&translate, x, y);
+
+    AEMtx33Concat(&transform, &rotate, &scale);
+    AEMtx33Concat(&transform, &translate, &transform);
+
+    AEGfxSetTransform(transform.m);
+    AEGfxMeshDraw(pMesh, AE_GFX_MDM_TRIANGLES);
+}
+
 void DrawTexturePlayer(Sprite& spriteObj, int currentDirection,
     AEGfxVertexList* pMesh, AEGfxTexture* pTexture,
     float width, float height, float x, float y, float rot, float sizeMultiplier)
