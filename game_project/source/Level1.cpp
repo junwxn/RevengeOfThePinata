@@ -302,7 +302,7 @@ void Level1_Update(float dt) {
 			preventingmovement = true;
 		}
 		if (augments.GetAugmentSelected()) {
-			Transition_Start(GS_LEVEL2);
+			Transition_Start(GS_LEVEL2, TransitionSheet::LEVEL2);
 		}
 		if (AEInputCheckTriggered(AEVK_P)) {
 			std::cout << "AUGMENTS TRIGGERED AGAIN" << std::endl;
@@ -323,7 +323,7 @@ void Level1_Update(float dt) {
 	}
 
 	if (AEInputCheckTriggered(AEVK_N)) {
-		Transition_Start(GS_LEVEL2);
+		Transition_Start(GS_LEVEL2, TransitionSheet::LEVEL2);
 	}
 }
 void Level1_Draw() {
