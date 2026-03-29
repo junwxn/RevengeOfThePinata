@@ -330,20 +330,13 @@ bool MapSystem::isSolid(float worldX, float worldY) const {
 // The cardinal probes are critical in isometric space because the diamond-shaped
 // tiles can slip between the four diagonal corners when approached head-on.
 static bool IsBoxSolid(float cx, float cy, float probeX, float probeY,
-                        const MapSystem& map)
+    const MapSystem& map)
 {
-    // Centre
     if (map.isSolid(cx, cy)) return true;
-    // 4 cardinal edge midpoints
     if (map.isSolid(cx + probeX, cy)) return true;
     if (map.isSolid(cx - probeX, cy)) return true;
     if (map.isSolid(cx, cy + probeY)) return true;
     if (map.isSolid(cx, cy - probeY)) return true;
-    // 4 diagonal corners
-    if (map.isSolid(cx + probeX, cy + probeY)) return true;
-    if (map.isSolid(cx - probeX, cy + probeY)) return true;
-    if (map.isSolid(cx + probeX, cy - probeY)) return true;
-    if (map.isSolid(cx - probeX, cy - probeY)) return true;
     return false;
 }
 
@@ -412,6 +405,105 @@ void ResolveCollision(float& posX, float& posY,
     if (neClear) { posX = slideNE_posX; posY = slideNE_posY; }
     else if (nwClear) { posX = slideNW_posX; posY = slideNW_posY; }
     // else: fully stuck against a corner, don't move
+}
+
+void ResolvePlayerCollision(float& posX, float& posY,
+    float velX, float velY,
+    float radius,
+    const MapSystem& map)
+{
+    const float probeX = radius * 0.9f;
+    const float probeY = radius * (GRID_H / GRID_W) * 0.9f;
+
+    const float newX = posX + velX;
+    const float newY = posY + velY;
+
+    if (!IsBoxSolid(newX, newY, probeX, probeY, map)) {
+        posX = newX;
+        posY = newY;
+        return;
+    }
+
+    const bool xClear = (velX != 0.0f) && !IsBoxSolid(newX, posY, probeX, probeY, map);
+    const bool yClear = (velY != 0.0f) && !IsBoxSolid(posX, newY, probeX, probeY, map);
+
+    if (xClear && !yClear) {
+        posX = newX;
+        return;
+    }
+
+    if (yClear && !xClear) {
+        posY = newY;
+        return;
+    }
+
+    if (xClear && yClear) {
+        posX = newX;
+        posY = newY;
+        return;
+    }
+
+    const float halfW = GRID_W * 0.5f;
+    const float halfH = GRID_H * 0.5f;
+    const float isoLen = sqrtf(halfW * halfW + halfH * halfH);
+
+    const float neX = halfW / isoLen;
+    const float neY = halfH / isoLen;
+    const float nwX = -halfW / isoLen;
+    const float nwY = halfH / isoLen;
+
+    const float inputLen = sqrtf(velX * velX + velY * velY);
+    if (inputLen <= 0.0001f) return;
+
+    const float dotNE = velX * neX + velY * neY;
+    const float dotNW = velX * nwX + velY * nwY;
+
+    const float absNE = fabsf(dotNE);
+    const float absNW = fabsf(dotNW);
+
+    if (absNE >= absNW) {
+        const float sign = (dotNE >= 0.0f) ? 1.0f : -1.0f;
+
+        const float slideX = neX * inputLen * sign;
+        const float slideY = neY * inputLen * sign;
+
+        if (!IsBoxSolid(posX + slideX, posY + slideY, probeX, probeY, map)) {
+            posX += slideX;
+            posY += slideY;
+            return;
+        }
+
+        const float fallbackX = neX * fabsf(dotNE) * sign;
+        const float fallbackY = neY * fabsf(dotNE) * sign;
+
+        if (!IsBoxSolid(posX + fallbackX, posY + fallbackY, probeX, probeY, map)) {
+            posX += fallbackX;
+            posY += fallbackY;
+            return;
+        }
+    }
+
+    {
+        const float sign = (dotNW >= 0.0f) ? 1.0f : -1.0f;
+
+        const float slideX = nwX * inputLen * sign;
+        const float slideY = nwY * inputLen * sign;
+
+        if (!IsBoxSolid(posX + slideX, posY + slideY, probeX, probeY, map)) {
+            posX += slideX;
+            posY += slideY;
+            return;
+        }
+
+        const float fallbackX = nwX * fabsf(dotNW) * sign;
+        const float fallbackY = nwY * fabsf(dotNW) * sign;
+
+        if (!IsBoxSolid(posX + fallbackX, posY + fallbackY, probeX, probeY, map)) {
+            posX += fallbackX;
+            posY += fallbackY;
+            return;
+        }
+    }
 }
 
 // ---------------------------------------------------------------------------

@@ -494,7 +494,7 @@ void Player::Update(float dt, Combat::System& combat, std::vector<std::unique_pt
                 float velX = dirX * m_Speed * m_SpeedMultiplier * dt;
                 float velY = dirY * m_Speed * m_SpeedMultiplier * dt;
                 if (m_pMap) {
-                    ResolveCollision(m_PosX, m_PosY, velX, velY, m_Size, *m_pMap);
+                    ResolvePlayerCollision(m_PosX, m_PosY, velX, velY, m_Size, *m_pMap);
                 }
                 else {
                     m_PosX += velX;
@@ -981,7 +981,7 @@ void Player::ApplyDashStep()
             float prevX = m_PosX;
             float prevY = m_PosY;
 
-            ResolveCollision(m_PosX, m_PosY, stepVelX, stepVelY, m_Size, *m_pMap);
+            ResolvePlayerCollision(m_PosX, m_PosY, stepVelX, stepVelY, m_Size, *m_pMap);
 
             if (m_PosX == prevX && m_PosY == prevY)
                 break;

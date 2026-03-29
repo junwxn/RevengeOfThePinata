@@ -93,6 +93,10 @@ void ResolveCollision(float& posX, float& posY,
                       float velX, float velY,
                       float radius,
                       const MapSystem& map);
+void ResolvePlayerCollision(float& posX, float& posY,
+    float velX, float velY,
+    float radius,
+    const MapSystem& map);
 
 // ---------------------------------------------------------------------------
 // Returns a random walkable world position that is at least minDist pixels
