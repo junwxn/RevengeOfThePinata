@@ -9,7 +9,7 @@
 #include "Transition.h"
 
 // --- Enums & Structs ---
-enum MenuScreen { MENU_MAIN, MENU_CONTROLS, MENU_CREDITS, MENU_TUTORIAL_PROMPT, MENU_SETTINGS };
+enum MenuScreen { MENU_MAIN, MENU_CONTROLS, MENU_CREDITS, MENU_TUTORIAL_PROMPT, MENU_SETTINGS, MENU_CONFIRMATION };
 
 struct Button {
 	float x, y, w, h;
@@ -21,7 +21,7 @@ struct Button {
 // --- File-scoped statics ---
 static AEGfxVertexList* rectMesh = nullptr;
 static s8 fontTitle = -1;
-static s8 fontBody  = -1;
+static s8 fontBody = -1;
 
 static MenuScreen menuScreen;
 static Button mainButtons[5];
@@ -33,23 +33,27 @@ static float titleBob;
 static float bgHue;
 static float entranceTimer;
 
+static Sprite logoSprite;
+static AEGfxTexture* digipenLogo = nullptr;
+static AEGfxVertexList* digipenLogoMesh = nullptr;
+
 // --- Helpers ---
 static float Clamp01(float x) { return x < 0.0f ? 0.0f : (x > 1.0f ? 1.0f : x); }
 static float Smoothstep(float t) { t = Clamp01(t); return t * t * (3.0f - 2.0f * t); }
 static float Lerp(float a, float b, float t) { return a + (b - a) * t; }
 
 static void HsvToRgb(float h, float s, float v, float& r, float& g, float& b) {
-	float c  = v * s;
+	float c = v * s;
 	float hp = fmodf(h / 60.0f, 6.0f);
-	float x  = c * (1.0f - fabsf(fmodf(hp, 2.0f) - 1.0f));
-	float m  = v - c;
+	float x = c * (1.0f - fabsf(fmodf(hp, 2.0f) - 1.0f));
+	float m = v - c;
 	float r1 = 0, g1 = 0, b1 = 0;
-	if      (hp < 1) { r1 = c; g1 = x; }
+	if (hp < 1) { r1 = c; g1 = x; }
 	else if (hp < 2) { r1 = x; g1 = c; }
 	else if (hp < 3) { g1 = c; b1 = x; }
 	else if (hp < 4) { g1 = x; b1 = c; }
 	else if (hp < 5) { r1 = x; b1 = c; }
-	else             { r1 = c; b1 = x; }
+	else { r1 = c; b1 = x; }
 	r = r1 + m;
 	g = g1 + m;
 	b = b1 + m;
@@ -57,7 +61,7 @@ static void HsvToRgb(float h, float s, float v, float& r, float& g, float& b) {
 
 static bool IsInside(float wx, float wy, const Button& btn) {
 	return wx >= btn.x - btn.w * 0.5f && wx <= btn.x + btn.w * 0.5f &&
-	       wy >= btn.y - btn.h * 0.5f && wy <= btn.y + btn.h * 0.5f;
+		wy >= btn.y - btn.h * 0.5f && wy <= btn.y + btn.h * 0.5f;
 }
 
 static void DrawStyledButton(float cx, float cy, float baseW, float baseH, float hT, float alpha) {
@@ -84,9 +88,11 @@ static void DrawPanel(float cx, float cy, float w, float h, float alpha) {
 
 // ========== LOAD ==========
 void MainMenu_Load() {
-	rectMesh  = CreateRectMesh(0xFFFFFFFF);
+	rectMesh = CreateRectMesh(0xFFFFFFFF);
+	digipenLogoMesh = CreateSpriteRectMesh(0xFFFFFFFF, 1.0f, 1.0f);
 	fontTitle = AEGfxCreateFont("Assets/fonts/Stick-Regular.ttf", 145);
-	fontBody  = AEGfxCreateFont("Assets/fonts/Stick-Regular.ttf", 36);
+	fontBody = AEGfxCreateFont("Assets/fonts/Stick-Regular.ttf", 36);
+	digipenLogo = AEGfxTextureLoad("Assets/DigiPen_BLACK.png");
 	//gAudio.Audio_Init();
 }
 
@@ -105,43 +111,43 @@ void MainMenu_Init() {
 		mainButtons[i].h       = 60.0f;
 		mainButtons[i].label   = labels[i];
 		mainButtons[i].hovered = false;
-		mainButtons[i].hoverT  = 0.0f;
+		mainButtons[i].hoverT = 0.0f;
 	}
 
-	backButton.x       = 0.0f;
-	backButton.y       = -350.0f;
-	backButton.w       = 240.0f;
-	backButton.h       = 55.0f;
-	backButton.label   = "Back";
+	backButton.x = 0.0f;
+	backButton.y = -350.0f;
+	backButton.w = 240.0f;
+	backButton.h = 55.0f;
+	backButton.label = "Back";
 	backButton.hovered = false;
-	backButton.hoverT  = 0.0f;
+	backButton.hoverT = 0.0f;
 
-	yesButton.x       = -110.0f;
-	yesButton.y       = -120.0f;
-	yesButton.w       = 160.0f;
-	yesButton.h       = 55.0f;
-	yesButton.label   = "Yes";
+	yesButton.x = -110.0f;
+	yesButton.y = -120.0f;
+	yesButton.w = 160.0f;
+	yesButton.h = 55.0f;
+	yesButton.label = "Yes";
 	yesButton.hovered = false;
-	yesButton.hoverT  = 0.0f;
+	yesButton.hoverT = 0.0f;
 
-	noButton.x       = 110.0f;
-	noButton.y       = -120.0f;
-	noButton.w       = 160.0f;
-	noButton.h       = 55.0f;
-	noButton.label   = "No";
+	noButton.x = 110.0f;
+	noButton.y = -120.0f;
+	noButton.w = 160.0f;
+	noButton.h = 55.0f;
+	noButton.label = "No";
 	noButton.hovered = false;
-	noButton.hoverT  = 0.0f;
+	noButton.hoverT = 0.0f;
 
-	muteButton.x       = -700.0f;
-	muteButton.y       = -380.0f;
-	muteButton.w       = 160.0f;
-	muteButton.h       = 50.0f;
-	muteButton.label   = gAudio.IsMuted() ? "Unmute" : "Mute";
+	muteButton.x = -700.0f;
+	muteButton.y = -380.0f;
+	muteButton.w = 160.0f;
+	muteButton.h = 50.0f;
+	muteButton.label = gAudio.IsMuted() ? "Unmute" : "Mute";
 	muteButton.hovered = false;
-	muteButton.hoverT  = 0.0f;
+	muteButton.hoverT = 0.0f;
 
 	titleBob = 0.0f;
-	bgHue    = 0.0f;
+	bgHue = 0.0f;
 
 	//AEAudio bgm = AEAudioLoadMusic("Assets/Audio/BGM/mainMenu.wav");
 	//AEAudioGroup bgmGroup = AEAudioCreateGroup();
@@ -152,7 +158,7 @@ void MainMenu_Init() {
 
 // ========== UPDATE ==========
 void MainMenu_Update(float dt) {
-	
+
 	// Mouse → world coords (window is 1600x900, origin at center)
 	// Mouse -> world coords
 	s32 mx, my;
@@ -172,6 +178,14 @@ void MainMenu_Update(float dt) {
 		for (int i = 0; i < 5; i++)
 			mainButtons[i].hovered = false;
 		backButton.hovered = IsInside(worldX, worldY, backButton);
+		yesButton.hovered = IsInside(worldX, worldY, yesButton);
+		noButton.hovered = IsInside(worldX, worldY, noButton);
+	}
+	else if (menuScreen == MENU_CONFIRMATION) {
+		for (int i = 0; i < 4; i++)
+			mainButtons[i].hovered = false;
+
+		backButton.hovered = false;
 		yesButton.hovered = IsInside(worldX, worldY, yesButton);
 		noButton.hovered = IsInside(worldX, worldY, noButton);
 	}
@@ -211,12 +225,20 @@ void MainMenu_Update(float dt) {
 			if (mainButtons[1].hovered) menuScreen = MENU_CONTROLS;
 			if (mainButtons[2].hovered) menuScreen = MENU_CREDITS;
 			if (mainButtons[3].hovered) menuScreen = MENU_SETTINGS;
-			if (mainButtons[4].hovered) /*next = GS_QUIT*/ Transition_Start(GS_QUIT);
+			if (mainButtons[4].hovered) menuScreen = MENU_CONFIRMATION;
 		}
 		else if (menuScreen == MENU_TUTORIAL_PROMPT) {
 			if (yesButton.hovered) { g_PlayerAttackCharges = DEFAULT_ATTACK_CHARGES; /*next = GS_TUTORIAL;*/ Transition_Start(GS_TUTORIAL); }
-			if (noButton.hovered)  { g_PlayerAttackCharges = DEFAULT_ATTACK_CHARGES; /*next = GS_LEVEL1;*/ Transition_Start(GS_LEVEL1); }
+			if (noButton.hovered) { g_PlayerAttackCharges = DEFAULT_ATTACK_CHARGES; /*next = GS_LEVEL1;*/ Transition_Start(GS_LEVEL1); }
 			if (backButton.hovered) menuScreen = MENU_MAIN;
+		}
+		else if (menuScreen == MENU_CONFIRMATION) {
+			if (yesButton.hovered) {
+				Transition_StartImmediate(GS_QUIT);
+			}
+			if (noButton.hovered) {
+				menuScreen = MENU_MAIN;
+			}
 		}
 		else {
 			if (backButton.hovered) menuScreen = MENU_MAIN;
@@ -225,8 +247,12 @@ void MainMenu_Update(float dt) {
 
 	// ESC: back from sub-screens
 	if (AEInputCheckTriggered(AEVK_ESCAPE)) {
-		if (menuScreen != MENU_MAIN)
+		if (menuScreen == MENU_CONFIRMATION) {
 			menuScreen = MENU_MAIN;
+		}
+		else if (menuScreen != MENU_MAIN) {
+			menuScreen = MENU_MAIN;
+		}
 	}
 
 	// Debug: T for test level
@@ -236,7 +262,7 @@ void MainMenu_Update(float dt) {
 	}
 
 	if (!AESysDoesWindowExist())
-		Transition_Start(GS_QUIT);
+		Transition_StartImmediate(GS_QUIT);
 
 	// Animation
 	titleBob += dt;
@@ -268,8 +294,8 @@ void MainMenu_Draw() {
 			float ease = Smoothstep((entranceTimer - delay) * 2.5f);
 			float yOff = (1.0f - ease) * 30.0f;
 			DrawStyledButton(mainButtons[i].x, mainButtons[i].y - yOff,
-			                 mainButtons[i].w, mainButtons[i].h,
-			                 mainButtons[i].hoverT, ease);
+				mainButtons[i].w, mainButtons[i].h,
+				mainButtons[i].hoverT, ease);
 		}
 	}
 	else if (menuScreen == MENU_TUTORIAL_PROMPT) {
@@ -283,25 +309,41 @@ void MainMenu_Draw() {
 
 		// Back button below the panel
 		DrawStyledButton(backButton.x, backButton.y,
-		                 backButton.w, backButton.h,
-		                 backButton.hoverT, 1.0f);
+			backButton.w, backButton.h,
+			backButton.hoverT, 1.0f);
+	}
+	else if (menuScreen == MENU_CONFIRMATION) {
+		DrawMesh(rectMesh, 1600, 900, -800, 0, 0, 0, 0, 0, 180);
+		DrawPanel(0, -100, 550, 250, 1.0f);
+
+		DrawStyledButton(yesButton.x, yesButton.y,
+			yesButton.w, yesButton.h,
+			yesButton.hoverT, 1.0f);
+
+		DrawStyledButton(noButton.x, noButton.y,
+			noButton.w, noButton.h,
+			noButton.hoverT, 1.0f);
 	}
 	else {
 		// Sub-screen: dark overlay + bordered panel
 		DrawMesh(rectMesh, 1600, 900, -800, 0, 0, 0, 0, 0, 180);
-		DrawPanel(0, -50, 500, 450, 1.0f);
+
+		if (menuScreen == MENU_CREDITS)
+			DrawPanel(0, -20, 1400, 760, 1.0f);
+		else
+			DrawPanel(0, -50, 1200, 700, 1.0f);
 
 		// Back button (styled)
 		DrawStyledButton(backButton.x, backButton.y,
-		                 backButton.w, backButton.h,
-		                 backButton.hoverT, 1.0f);
+			backButton.w, backButton.h,
+			backButton.hoverT, 1.0f);
 	}
 
 	// --- Text ---
 	AEGfxSetBlendMode(AE_GFX_BM_BLEND);
 
 	// Title: "Revenge of the Pinata" in gold with sine bob
-	{
+	if (menuScreen != MENU_CREDITS) {
 		float bobY = 200.0f + sinf(titleBob * 2.0f) * 15.0f;
 		const char* title = "Revenge of the Pinata";
 		float tw, th;
@@ -350,29 +392,119 @@ void MainMenu_Draw() {
 		float tw, th;
 		AEGfxGetPrintSize(fontBody, backButton.label, 1.0f, &tw, &th);
 		AEGfxPrint(fontBody, backButton.label,
-		           backButton.x / 800.0f - tw * 0.5f,
-		           backButton.y / 450.0f - th * 0.5f,
-		           1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
+			backButton.x / 800.0f - tw * 0.5f,
+			backButton.y / 450.0f - th * 0.5f,
+			1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
 	}
 	else if (menuScreen == MENU_CREDITS) {
-		const char* lines[] = {
-			"GAM150 Team Project",
-			"Team Members",
-			"Made with AlphaEngine"
-		};
-		for (int i = 0; i < 3; i++) {
-			float tw, th;
-			float ly = 120.0f - i * 70.0f;
-			AEGfxGetPrintSize(fontBody, lines[i], 1.0f, &tw, &th);
-			AEGfxPrint(fontBody, lines[i], -tw * 0.5f, ly / 450.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
-		}
-		// Back button label
 		float tw, th;
+
+		// Top middle "Credits" - moved upward
+		{
+			const char* header = "Credits";
+			AEGfxGetPrintSize(fontBody, header, 1.5f, &tw, &th);
+			AEGfxPrint(fontBody, header, -tw * 0.5f, 270.0f / 450.0f,
+				1.5f, 1.0f, 1.0f, 1.0f, 1.0f);
+		}
+
+		// DigiPen logo
+		if (digipenLogo && digipenLogoMesh) {
+			DrawTexture(logoSprite, 0,
+				digipenLogoMesh,
+				digipenLogo,
+				320.0f, 120.0f,
+				-20.0f, 170.0f,
+				0.0f,
+				1.0f);
+		}
+
+		// Column headers - stretched further outward
+		{
+			const char* leftHeader = "Team Members";
+			AEGfxGetPrintSize(fontBody, leftHeader, 0.9f, &tw, &th);
+			AEGfxPrint(fontBody, leftHeader, (-470.0f / 800.0f) - tw * 0.5f, 35.0f / 450.0f,
+				0.9f, 1.0f, 1.0f, 1.0f, 1.0f);
+		}
+		{
+			const char* midHeader = "President";
+			AEGfxGetPrintSize(fontBody, midHeader, 0.9f, &tw, &th);
+			AEGfxPrint(fontBody, midHeader, (0.0f / 800.0f) - tw * 0.5f, 15.0f / 450.0f,
+				0.9f, 1.0f, 1.0f, 1.0f, 1.0f);
+		}
+		{
+			const char* rightHeader = "Instructors";
+			AEGfxGetPrintSize(fontBody, rightHeader, 0.9f, &tw, &th);
+			AEGfxPrint(fontBody, rightHeader, (470.0f / 800.0f) - tw * 0.5f, 35.0f / 450.0f,
+				0.9f, 1.0f, 1.0f, 1.0f, 1.0f);
+		}
+
+		// Left column - moved up and farther left
+		{
+			const char* leftLines[] = {
+				"Chiu Jun Wen",
+				"Nigel Lim Kai Yu",
+				"Charles Yap",
+				"Chew Zheng Hui, Timothy Caleb"
+			};
+			for (int i = 0; i < 4; ++i) {
+				float ly = -10.0f - i * 42.0f;
+				AEGfxGetPrintSize(fontBody, leftLines[i], 0.72f, &tw, &th);
+				AEGfxPrint(fontBody, leftLines[i],
+					(-470.0f / 800.0f) - tw * 0.5f, ly / 450.0f,
+					0.72f, 1.0f, 1.0f, 1.0f, 1.0f);
+			}
+		}
+
+		// Middle column
+		{
+			const char* midLines[] = {
+				"Claude Comair"
+			};
+			for (int i = 0; i < 1; ++i) {
+				float ly = -30.0f - i * 42.0f;
+				AEGfxGetPrintSize(fontBody, midLines[i], 0.72f, &tw, &th);
+				AEGfxPrint(fontBody, midLines[i],
+					(0.0f / 800.0f) - tw * 0.5f, ly / 450.0f,
+					0.72f, 1.0f, 1.0f, 1.0f, 1.0f);
+			}
+		}
+
+		// Right column - moved up and farther right
+		{
+			const char* rightLines[] = {
+				"Gerald Wong Han Feng",
+				"Dr. Soroor Malekmohammadai",
+				"Tommy Tan Chee Wei"
+			};
+			for (int i = 0; i < 3; ++i) {
+				float ly = -10.0f - i * 42.0f;
+				AEGfxGetPrintSize(fontBody, rightLines[i], 0.72f, &tw, &th);
+				AEGfxPrint(fontBody, rightLines[i],
+					(470.0f / 800.0f) - tw * 0.5f, ly / 450.0f,
+					0.72f, 1.0f, 1.0f, 1.0f, 1.0f);
+			}
+		}
+
+		// Bottom middle text - moved upward a little
+		{
+			const char* bottom1 = "GAM150 Team Project";
+			AEGfxGetPrintSize(fontBody, bottom1, 0.82f, &tw, &th);
+			AEGfxPrint(fontBody, bottom1, -tw * 0.5f, -235.0f / 450.0f,
+				0.82f, 1.0f, 1.0f, 1.0f, 1.0f);
+		}
+		{
+			const char* bottom2 = "Made with AlphaEngine";
+			AEGfxGetPrintSize(fontBody, bottom2, 0.76f, &tw, &th);
+			AEGfxPrint(fontBody, bottom2, -tw * 0.5f, -272.0f / 450.0f,
+				0.76f, 1.0f, 1.0f, 1.0f, 1.0f);
+		}
+
+		// Back button label
 		AEGfxGetPrintSize(fontBody, backButton.label, 1.0f, &tw, &th);
 		AEGfxPrint(fontBody, backButton.label,
-		           backButton.x / 800.0f - tw * 0.5f,
-		           backButton.y / 450.0f - th * 0.5f,
-		           1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
+			backButton.x / 800.0f - tw * 0.5f,
+			backButton.y / 450.0f - th * 0.5f,
+			1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
 	}
 	else if (menuScreen == MENU_TUTORIAL_PROMPT) {
 		// Prompt text
@@ -387,27 +519,27 @@ void MainMenu_Draw() {
 			float tw, th;
 			AEGfxGetPrintSize(fontBody, yesButton.label, 1.0f, &tw, &th);
 			AEGfxPrint(fontBody, yesButton.label,
-			           yesButton.x / 800.0f - tw * 0.5f,
-			           yesButton.y / 450.0f - th * 0.5f,
-			           1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
+				yesButton.x / 800.0f - tw * 0.5f,
+				yesButton.y / 450.0f - th * 0.5f,
+				1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
 		}
 		// No button label
 		{
 			float tw, th;
 			AEGfxGetPrintSize(fontBody, noButton.label, 1.0f, &tw, &th);
 			AEGfxPrint(fontBody, noButton.label,
-			           noButton.x / 800.0f - tw * 0.5f,
-			           noButton.y / 450.0f - th * 0.5f,
-			           1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
+				noButton.x / 800.0f - tw * 0.5f,
+				noButton.y / 450.0f - th * 0.5f,
+				1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
 		}
 		// Back button label
 		{
 			float tw, th;
 			AEGfxGetPrintSize(fontBody, backButton.label, 1.0f, &tw, &th);
 			AEGfxPrint(fontBody, backButton.label,
-			           backButton.x / 800.0f - tw * 0.5f,
-			           backButton.y / 450.0f - th * 0.5f,
-			           1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
+				backButton.x / 800.0f - tw * 0.5f,
+				backButton.y / 450.0f - th * 0.5f,
+				1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
 		}
 	} 
 	else if (menuScreen == MENU_SETTINGS) {
@@ -434,21 +566,41 @@ void MainMenu_Draw() {
 			backButton.y / 450.0f - th * 0.5f,
 			1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
 	}
+	else if (menuScreen == MENU_CONFIRMATION) {
+		const char* prompt = "Are you sure?";
+		float tw, th;
+
+		AEGfxGetPrintSize(fontBody, prompt, 0.8f, &tw, &th);
+		AEGfxPrint(fontBody, prompt, -tw * 0.5f, -30.0f / 450.0f,
+			0.8f, 1.0f, 1.0f, 1.0f, 1.0f);
+
+		AEGfxGetPrintSize(fontBody, yesButton.label, 1.0f, &tw, &th);
+		AEGfxPrint(fontBody, yesButton.label,
+			yesButton.x / 800.0f - tw * 0.5f,
+			yesButton.y / 450.0f - th * 0.5f,
+			1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
+
+		AEGfxGetPrintSize(fontBody, noButton.label, 1.0f, &tw, &th);
+		AEGfxPrint(fontBody, noButton.label,
+			noButton.x / 800.0f - tw * 0.5f,
+			noButton.y / 450.0f - th * 0.5f,
+			1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
+	}
 
 	// Mute button (always visible)
 	AEGfxSetRenderMode(AE_GFX_RM_COLOR);
 	AEGfxSetBlendMode(AE_GFX_BM_BLEND);
 	DrawStyledButton(muteButton.x, muteButton.y,
-	                 muteButton.w, muteButton.h,
-	                 muteButton.hoverT, 1.0f);
+		muteButton.w, muteButton.h,
+		muteButton.hoverT, 1.0f);
 	{
 		float tw, th;
 		AEGfxSetBlendMode(AE_GFX_BM_BLEND);
 		AEGfxGetPrintSize(fontBody, muteButton.label, 1.0f, &tw, &th);
 		AEGfxPrint(fontBody, muteButton.label,
-		           muteButton.x / 800.0f - tw * 0.5f,
-		           muteButton.y / 450.0f - th * 0.5f,
-		           1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
+			muteButton.x / 800.0f - tw * 0.5f,
+			muteButton.y / 450.0f - th * 0.5f,
+			1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
 	}
 
 	//AESysFrameEnd();
@@ -471,6 +623,14 @@ void MainMenu_Unload() {
 	if (fontBody >= 0) {
 		AEGfxDestroyFont(fontBody);
 		fontBody = -1;
+	}
+	if (digipenLogoMesh) {
+		AEGfxMeshFree(digipenLogoMesh);
+		digipenLogoMesh = nullptr;
+	}
+	if (digipenLogo) {
+		AEGfxTextureUnload(digipenLogo);
+		digipenLogo = nullptr;
 	}
 	AEAudioStopGroup(gAudio.audioGroup.BGM);
 }

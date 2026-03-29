@@ -20,3 +20,4 @@ bool Transition_IsSwitchReady();
 int Transition_GetState();
 void Transition_BeginFadeIn();
 void Transition_Reset();
+void Transition_StartImmediate(GS_STATES nextState);

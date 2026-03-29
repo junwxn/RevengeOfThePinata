@@ -6,6 +6,8 @@
 #include "Player.h"
 #include "Transition.h"
 
+enum PauseScreen { PAUSE_MAIN, PAUSE_CONFIRM_MAINMENU, PAUSE_CONFIRM_RESTART };
+
 // --- Button struct ---
 struct PauseButton {
 	float x, y, w, h;
@@ -24,6 +26,10 @@ static PauseButton muteButton;
 static float entranceTimer = 0.0f;
 static float pauseAnimTimer = 0.0f;
 
+static PauseScreen pauseScreen = PAUSE_MAIN;
+static PauseButton yesButton;
+static PauseButton noButton;
+
 // --- Helpers ---
 static float Clamp01(float x) { return x < 0.0f ? 0.0f : (x > 1.0f ? 1.0f : x); }
 static float Smoothstep(float t) { t = Clamp01(t); return t * t * (3.0f - 2.0f * t); }
@@ -31,7 +37,7 @@ static float Lerp(float a, float b, float t) { return a + (b - a) * t; }
 
 static bool IsInside(float wx, float wy, const PauseButton& b) {
 	return wx >= b.x - b.w * 0.5f && wx <= b.x + b.w * 0.5f &&
-	       wy >= b.y - b.h * 0.5f && wy <= b.y + b.h * 0.5f;
+		wy >= b.y - b.h * 0.5f && wy <= b.y + b.h * 0.5f;
 }
 
 static void DrawStyledButton(float cx, float cy, float baseW, float baseH, float hT, float alpha, float camX, float camY) {
@@ -50,7 +56,7 @@ static void DrawStyledButton(float cx, float cy, float baseW, float baseH, float
 }
 
 void Pause_Load() {
-	rectMesh  = CreateRectMesh(0xFFFFFFFF);
+	rectMesh = CreateRectMesh(0xFFFFFFFF);
 	pauseFont = AEGfxCreateFont("Assets/fonts/Stick-Regular.ttf", 36);
 }
 
@@ -61,36 +67,66 @@ void Pause_Init() {
 	pauseAnimTimer = 0.0f;
 	const char* labels[] = { "Resume", "Main Menu", "Restart" };
 	for (int i = 0; i < 3; i++) {
-		buttons[i].x       = 0.0f;
-		buttons[i].y       = 20.0f - 80.0f * i;
-		buttons[i].w       = 300.0f;
-		buttons[i].h       = 60.0f;
-		buttons[i].label   = labels[i];
+		buttons[i].x = 0.0f;
+		buttons[i].y = 20.0f - 80.0f * i;
+		buttons[i].w = 300.0f;
+		buttons[i].h = 60.0f;
+		buttons[i].label = labels[i];
 		buttons[i].hovered = false;
-		buttons[i].hoverT  = 0.0f;
+		buttons[i].hoverT = 0.0f;
 	}
 
-	muteButton.x       = -700.0f;
-	muteButton.y       = -380.0f;
-	muteButton.w       = 160.0f;
-	muteButton.h       = 50.0f;
-	muteButton.label   = gAudio.IsMuted() ? "Unmute" : "Mute";
+	muteButton.x = -700.0f;
+	muteButton.y = -380.0f;
+	muteButton.w = 160.0f;
+	muteButton.h = 50.0f;
+	muteButton.label = gAudio.IsMuted() ? "Unmute" : "Mute";
 	muteButton.hovered = false;
-	muteButton.hoverT  = 0.0f;
+	muteButton.hoverT = 0.0f;
+
+	pauseScreen = PAUSE_MAIN;
+
+	yesButton.x = -110.0f;
+	yesButton.y = -130.0f;
+	yesButton.w = 160.0f;
+	yesButton.h = 55.0f;
+	yesButton.label = "Yes";
+	yesButton.hovered = false;
+	yesButton.hoverT = 0.0f;
+
+	noButton.x = 110.0f;
+	noButton.y = -130.0f;
+	noButton.w = 160.0f;
+	noButton.h = 55.0f;
+	noButton.label = "No";
+	noButton.hovered = false;
+	noButton.hoverT = 0.0f;
 }
 
 bool Pause_Update(bool isPlayerAlive) {
 	// Toggle pause
 	if (AEInputCheckTriggered(AEVK_ESCAPE)) {
-		paused = !paused;
+		if (paused && pauseScreen != PAUSE_MAIN) {
+			pauseScreen = PAUSE_MAIN;
+		}
+		else {
+			paused = !paused;
+			if (!paused)
+				pauseScreen = PAUSE_MAIN;
+		}
 	}
 	if (!isPlayerAlive) paused = true;
 
 	// Reset entrance timer when pause is newly activated
 	if (paused && !wasPaused) {
 		entranceTimer = 0.0f;
+		pauseScreen = PAUSE_MAIN;
+
 		for (int i = 0; i < 3; i++)
 			buttons[i].hoverT = 0.0f;
+
+		yesButton.hoverT = 0.0f;
+		noButton.hoverT = 0.0f;
 	}
 	wasPaused = paused;
 
@@ -106,8 +142,21 @@ bool Pause_Update(bool isPlayerAlive) {
 	float worldX = (float)mx - 800.0f;
 	float worldY = 450.0f - (float)my;
 
-	for (int i = 0; i < 3; i++)
-		buttons[i].hovered = IsInside(worldX, worldY, buttons[i]);
+	if (pauseScreen == PAUSE_MAIN) {
+		for (int i = 0; i < 3; i++)
+			buttons[i].hovered = IsInside(worldX, worldY, buttons[i]);
+
+		yesButton.hovered = false;
+		noButton.hovered = false;
+	}
+	else {
+		for (int i = 0; i < 3; i++)
+			buttons[i].hovered = false;
+
+		yesButton.hovered = IsInside(worldX, worldY, yesButton);
+		noButton.hovered = IsInside(worldX, worldY, noButton);
+	}
+
 	muteButton.hovered = IsInside(worldX, worldY, muteButton);
 
 	// Smooth hover transitions
@@ -118,14 +167,44 @@ bool Pause_Update(bool isPlayerAlive) {
 	muteButton.hoverT += (muteButton.hovered ? 1.0f : -1.0f) * dt * 6.0f;
 	muteButton.hoverT = Clamp01(muteButton.hoverT);
 
+	yesButton.hoverT += (yesButton.hovered ? 1.0f : -1.0f) * dt * 6.0f;
+	yesButton.hoverT = Clamp01(yesButton.hoverT);
+
+	noButton.hoverT += (noButton.hovered ? 1.0f : -1.0f) * dt * 6.0f;
+	noButton.hoverT = Clamp01(noButton.hoverT);
+
 	if (AEInputCheckTriggered(AEVK_LBUTTON)) {
 		if (muteButton.hovered) {
 			gAudio.ToggleMute();
 			muteButton.label = gAudio.IsMuted() ? "Unmute" : "Mute";
 		}
-		if (buttons[0].hovered) paused = false;        // Resume
-		if (buttons[1].hovered) Transition_Start(GS_MAINMENU);    // Main Menu
-		if (buttons[2].hovered) { g_PlayerAttackCharges = DEFAULT_ATTACK_CHARGES; Transition_Start(static_cast<GS_STATES>(current)); }     // Restart
+
+		if (pauseScreen == PAUSE_MAIN) {
+			if (buttons[0].hovered) paused = false; // Resume
+			if (buttons[1].hovered) pauseScreen = PAUSE_CONFIRM_MAINMENU; // Main Menu -> confirmation popup
+			if (buttons[2].hovered) pauseScreen = PAUSE_CONFIRM_RESTART; // Restart -> confirmation popup
+		}
+		else if (pauseScreen == PAUSE_CONFIRM_MAINMENU) {
+			if (yesButton.hovered) {
+				paused = false;
+				pauseScreen = PAUSE_MAIN;
+				Transition_Start(GS_MAINMENU);
+			}
+			if (noButton.hovered) {
+				pauseScreen = PAUSE_MAIN;
+			}
+		}
+		else if (pauseScreen == PAUSE_CONFIRM_RESTART) {
+			if (yesButton.hovered) {
+				paused = false;
+				pauseScreen = PAUSE_MAIN;
+				g_PlayerAttackCharges = DEFAULT_ATTACK_CHARGES;
+				Transition_Start(static_cast<GS_STATES>(current));
+			}
+			if (noButton.hovered) {
+				pauseScreen = PAUSE_MAIN;
+			}
+		}
 	}
 
 	return true;
@@ -140,7 +219,7 @@ void Pause_Draw(float camX, float camY) {
 	// Helper: draw mesh at screen-space position, offset by camera so it stays fixed
 	auto drawPause = [&](float w, float h, float x, float y, float rot, float r, float g, float b, float a) {
 		DrawMesh(rectMesh, w, h, x + camX, y + camY, rot, r, g, b, a);
-	};
+		};
 
 	float panelEase = Smoothstep(entranceTimer * 3.0f);
 
@@ -155,13 +234,28 @@ void Pause_Draw(float camX, float camY) {
 	drawPause(panelW, panelH, -panelW * 0.5f, -30, 0, 20, 15, 35, 220 * panelEase);
 
 	// Styled buttons with entrance stagger
-	for (int i = 0; i < 3; i++) {
-		float delay = i * 0.08f + 0.1f;
-		float ease = Smoothstep((entranceTimer - delay) * 3.0f);
-		float yOff = (1.0f - ease) * 30.0f;
-		DrawStyledButton(buttons[i].x, buttons[i].y - yOff,
-		                 buttons[i].w, buttons[i].h,
-		                 buttons[i].hoverT, ease, camX, camY);
+	if (pauseScreen == PAUSE_MAIN) {
+		for (int i = 0; i < 3; i++) {
+			float delay = i * 0.08f + 0.1f;
+			float ease = Smoothstep((entranceTimer - delay) * 3.0f);
+			float yOff = (1.0f - ease) * 30.0f;
+			DrawStyledButton(buttons[i].x, buttons[i].y - yOff,
+				buttons[i].w, buttons[i].h,
+				buttons[i].hoverT, ease, camX, camY);
+		}
+	}
+	else if (pauseScreen == PAUSE_CONFIRM_MAINMENU || pauseScreen == PAUSE_CONFIRM_RESTART) {
+		drawPause(1600, 900, -800, 0, 0, 0, 0, 0, 210);
+		drawPause(554.0f, 254.0f, -277.0f, -130.0f, 0, 80, 50, 120, 255);
+		drawPause(550.0f, 250.0f, -275.0f, -130.0f, 0, 20, 15, 35, 220);
+
+		DrawStyledButton(yesButton.x, yesButton.y,
+			yesButton.w, yesButton.h,
+			yesButton.hoverT, 1.0f, camX, camY);
+
+		DrawStyledButton(noButton.x, noButton.y,
+			noButton.w, noButton.h,
+			noButton.hoverT, 1.0f, camX, camY);
 	}
 
 	// Text
@@ -175,29 +269,67 @@ void Pause_Draw(float camX, float camY) {
 	AEGfxPrint(pauseFont, "PAUSED", -tw * 0.5f, (200.0f + titleBob) / 450.0f, 2.0f, 1.0f, 0.85f, 0.0f, titleEase);
 
 	// Button labels with entrance stagger
-	for (int i = 0; i < 3; i++) {
-		float delay = i * 0.08f + 0.1f;
-		float ease = Smoothstep((entranceTimer - delay) * 3.0f);
-		float yOff = (1.0f - ease) * 30.0f;
-		AEGfxGetPrintSize(pauseFont, buttons[i].label, 1.0f, &tw, &th);
-		float nx = buttons[i].x / 800.0f - tw * 0.5f;
-		float ny = (buttons[i].y - yOff) / 450.0f - th * 0.5f;
-		AEGfxPrint(pauseFont, buttons[i].label, nx, ny, 1.0f, 1.0f, 1.0f, 1.0f, ease);
+	if (pauseScreen == PAUSE_MAIN) {
+		for (int i = 0; i < 3; i++) {
+			float delay = i * 0.08f + 0.1f;
+			float ease = Smoothstep((entranceTimer - delay) * 3.0f);
+			float yOff = (1.0f - ease) * 30.0f;
+			AEGfxGetPrintSize(pauseFont, buttons[i].label, 1.0f, &tw, &th);
+			float nx = buttons[i].x / 800.0f - tw * 0.5f;
+			float ny = (buttons[i].y - yOff) / 450.0f - th * 0.5f;
+			AEGfxPrint(pauseFont, buttons[i].label, nx, ny, 1.0f, 1.0f, 1.0f, 1.0f, ease);
+		}
+	}
+	else if (pauseScreen == PAUSE_CONFIRM_MAINMENU) {
+		const char* prompt = "Return to Main Menu?";
+		AEGfxGetPrintSize(pauseFont, prompt, 0.8f, &tw, &th);
+		AEGfxPrint(pauseFont, prompt, -tw * 0.5f, -65.0f / 450.0f,
+			0.8f, 1.0f, 1.0f, 1.0f, 1.0f);
+
+		AEGfxGetPrintSize(pauseFont, yesButton.label, 1.0f, &tw, &th);
+		AEGfxPrint(pauseFont, yesButton.label,
+			yesButton.x / 800.0f - tw * 0.5f,
+			yesButton.y / 450.0f - th * 0.5f,
+			1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
+
+		AEGfxGetPrintSize(pauseFont, noButton.label, 1.0f, &tw, &th);
+		AEGfxPrint(pauseFont, noButton.label,
+			noButton.x / 800.0f - tw * 0.5f,
+			noButton.y / 450.0f - th * 0.5f,
+			1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
+	}
+	else if (pauseScreen == PAUSE_CONFIRM_RESTART) {
+		const char* prompt = "Restart the Level?";
+		AEGfxGetPrintSize(pauseFont, prompt, 0.8f, &tw, &th);
+		AEGfxPrint(pauseFont, prompt, -tw * 0.5f, -65.0f / 450.0f,
+			0.8f, 1.0f, 1.0f, 1.0f, 1.0f);
+
+		AEGfxGetPrintSize(pauseFont, yesButton.label, 1.0f, &tw, &th);
+		AEGfxPrint(pauseFont, yesButton.label,
+			yesButton.x / 800.0f - tw * 0.5f,
+			yesButton.y / 450.0f - th * 0.5f,
+			1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
+
+		AEGfxGetPrintSize(pauseFont, noButton.label, 1.0f, &tw, &th);
+		AEGfxPrint(pauseFont, noButton.label,
+			noButton.x / 800.0f - tw * 0.5f,
+			noButton.y / 450.0f - th * 0.5f,
+			1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
 	}
 
 	// Mute button
 	AEGfxSetRenderMode(AE_GFX_RM_COLOR);
 	AEGfxSetBlendMode(AE_GFX_BM_BLEND);
 	DrawStyledButton(muteButton.x, muteButton.y,
-	                 muteButton.w, muteButton.h,
-	                 muteButton.hoverT, panelEase, camX, camY);
+		muteButton.w, muteButton.h,
+		muteButton.hoverT, panelEase, camX, camY);
 	{
 		AEGfxSetBlendMode(AE_GFX_BM_BLEND);
 		AEGfxGetPrintSize(pauseFont, muteButton.label, 1.0f, &tw, &th);
 		AEGfxPrint(pauseFont, muteButton.label,
-		           muteButton.x / 800.0f - tw * 0.5f,
-		           muteButton.y / 450.0f - th * 0.5f,
-		           1.0f, 1.0f, 1.0f, 1.0f, panelEase);
+			muteButton.x / 800.0f - tw * 0.5f,
+			muteButton.y / 450.0f - th * 0.5f,
+			1.0f, 1.0f, 1.0f, 1.0f, panelEase);
 	}
 
 }

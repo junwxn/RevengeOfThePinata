@@ -127,6 +127,7 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="source\Settings.cpp">
+    <ClCompile Include="source\Splash.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -246,6 +247,7 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="source\Settings.h">
+    <ClInclude Include="source\Splash.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

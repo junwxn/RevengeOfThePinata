@@ -11,6 +11,7 @@
 #include "GameOver.h"
 #include "TestLevel.h"
 #include "Transition.h"
+#include "Splash.h"
 
 int current = 0, previous = 0, next = 0;
 
@@ -22,6 +23,15 @@ void (*fpUpdate)(float) = nullptr;
 static void GSM_MapFunctionsToCurrentState()
 {
 	switch (current) {
+	case GS_SPLASH:
+		fpLoad = Splash_Load;
+		fpInitialize = Splash_Init;
+		fpUpdate = Splash_Update;
+		fpDraw = Splash_Draw;
+		fpFree = Splash_Free;
+		fpUnload = Splash_Unload;
+		break;
+
 	case GS_MAINMENU:
 		fpLoad = MainMenu_Load;
 		fpInitialize = MainMenu_Init;
@@ -125,30 +135,35 @@ void GSM_Update(float dt)
 {
 	if (Transition_IsActive())
 	{
-		//std::cout << "Transition active\n";
 		Transition_Update(dt);
+	}
 
-		if (Transition_IsSwitchReady())
-		{
-			//std::cout << "Transition switching state\n";
+	if (Transition_IsSwitchReady())
+	{
+		bool wasTransitionActive = Transition_IsActive();
 
-			if (fpFree) fpFree();
-			if (fpUnload) fpUnload();
+		if (fpFree) fpFree();
+		if (fpUnload) fpUnload();
 
-			previous = current;
-			current = Transition_GetState();
-			next = current;
+		previous = current;
+		current = Transition_GetState();
+		next = current;
 
-			GSM_MapFunctionsToCurrentState();
+		GSM_MapFunctionsToCurrentState();
 
-			if (fpLoad) fpLoad();
-			if (fpInitialize) fpInitialize();
+		if (fpLoad) fpLoad();
+		if (fpInitialize) fpInitialize();
 
+		if (wasTransitionActive)
 			Transition_BeginFadeIn();
-		}
+		else
+			Transition_Reset();
 
 		return;
 	}
+
+	if (Transition_IsActive())
+		return;
 
 	if (fpUpdate)
 		fpUpdate(dt);
