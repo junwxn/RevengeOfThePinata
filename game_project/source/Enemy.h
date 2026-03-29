@@ -359,8 +359,22 @@ class Boss : public Enemy
 {
 public:
     Boss(AEVec2 pos, f32 size, f32 hp, f32 speed);
+    int GetGrowthHits() const { return m_GrowthHits; }
+
 
 protected:
+    int m_GrowthHits = 0;
+
+    f32 m_BaseSize = 0.0f;
+    f32 m_BaseAttackRange = 0.0f;
+    f32 m_BaseAttackDamage = 0.0f;
+
+    f32 m_SizeGrowthPerHit = 3.0f;
+    f32 m_RangeGrowthPerHit = 6.0f;
+    f32 m_DamageGrowthPerHit = 3.0f;
+
+    void ApplyGrowthFromHits();
+
     void ChildUpdate(f32 dt, Combat::System& combat, Player& player,
         std::vector<std::unique_ptr<Enemy>>& enemies) override;
 };

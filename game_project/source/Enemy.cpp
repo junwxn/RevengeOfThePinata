@@ -233,6 +233,11 @@ void Enemy::Draw() {
     // Calculate isometric squashed height for drawing
         //f32 isoHeight = m_size * (GRID_H / GRID_W); // Squashed
         f32 isoHeight = m_size; // Normal
+        float spriteScale = sizeMultiplier;
+
+        if (dynamic_cast<Boss*>(this)) {
+            spriteScale *= (m_size / 35.0f); // = your boss spawn size
+        }
 
     // Draw Meshes --------------------
     // Enemy
@@ -246,7 +251,7 @@ void Enemy::Draw() {
             m_EnemySprite.GetEnemyAttackSpriteSheet(),
             m_EnemySprite.GetPixelScale(),
             m_EnemySprite.GetPixelScale(),
-            m_pos.x, m_pos.y, 0.0f, sizeMultiplier);
+            m_pos.x, m_pos.y, 0.0f, spriteScale);
     }
     //else if (isAnyWindup) {
     //    // Winding up — tint yellow to show charging
@@ -256,14 +261,14 @@ void Enemy::Draw() {
     //        m_EnemySprite.GetEnemyWindupSpriteSheet(),
     //        m_EnemySprite.GetPixelScale(),
     //        m_EnemySprite.GetPixelScale(),
-    //        m_pos.x, m_pos.y, 0.0f, sizeMultiplier);
+    //        m_pos.x, m_pos.y, 0.0f, spriteScale);
 
     //    DrawTexture(m_DasherSprite, static_cast<int>(m_CurrentDirection),
     //        m_DasherSprite.GetEnemyWindupSpriteMesh(),
     //        m_DasherSprite.GetEnemyWindupSpriteSheet(),
     //        m_DasherSprite.GetPixelScale(),
     //        m_DasherSprite.GetPixelScale(),
-    //        m_pos.x, m_pos.y, 0.0f, sizeMultiplier);
+    //        m_pos.x, m_pos.y, 0.0f, spriteScale);
     //}
     else if (m_CombatFlags.parried || m_CombatFlags.gotHit) {
         //DrawMesh(m_enemyMesh, m_size, isoHeight, m_pos.x, m_pos.y, 0.0f, 255, 0, 0, 255);
@@ -275,7 +280,7 @@ void Enemy::Draw() {
             m_EnemySprite.GetEnemyAttackSpriteSheet(),
             m_EnemySprite.GetPixelScale(),
             m_EnemySprite.GetPixelScale(),
-            m_pos.x, m_pos.y, 0.0f, sizeMultiplier);
+            m_pos.x, m_pos.y, 0.0f, spriteScale);
     }
     else {
         //DrawMesh(m_enemyMesh, m_size, isoHeight, m_pos.x, m_pos.y, 0.0f, 44, 255, 255, 255);
@@ -284,14 +289,14 @@ void Enemy::Draw() {
             m_EnemySprite.GetSpriteSheet(),
             m_EnemySprite.GetPixelScale(),
             m_EnemySprite.GetPixelScale(),
-            m_pos.x, m_pos.y, 0.0f, sizeMultiplier);
+            m_pos.x, m_pos.y, 0.0f, spriteScale);
 
         DrawTexture(m_DasherSprite, static_cast<int>(m_CurrentDirection),
             m_DasherSprite.GetSpriteMesh(),
             m_DasherSprite.GetSpriteSheet(),
             m_DasherSprite.GetPixelScale(),
             m_DasherSprite.GetPixelScale(),
-            m_pos.x, m_pos.y, 0.0f, sizeMultiplier);
+            m_pos.x, m_pos.y, 0.0f, spriteScale);
     }
 
     // Enemy sword
@@ -910,6 +915,8 @@ void Dasher::Draw()
     AEGfxSetRenderMode(AE_GFX_RM_COLOR);
 
     f32 isoHeight = m_size;
+    f32 spriteScale = sizeMultiplier * (m_size / ENEMY_SIZE);
+
 
     bool isDashWindup = (m_CurrentState == EnemyState::STATE_DASH_WINDUP);
     bool isAnyWindup = (m_WindingUp || isDashWindup);
@@ -923,7 +930,7 @@ void Dasher::Draw()
             m_DasherSprite.GetDasherAttackSpriteSheet(),
             m_DasherSprite.GetPixelScale(),
             m_DasherSprite.GetPixelScale(),
-            m_pos.x, m_pos.y, 0.0f, sizeMultiplier);
+            m_pos.x, m_pos.y, 0.0f, spriteScale);
     }
     //else if (isAnyWindup) {
     //    DrawTexture(m_DasherSprite, static_cast<int>(m_CurrentDirection),
@@ -931,7 +938,7 @@ void Dasher::Draw()
     //        m_DasherSprite.GetDasherWindupSpriteSheet(),
     //        m_DasherSprite.GetPixelScale(),
     //        m_DasherSprite.GetPixelScale(),
-    //        m_pos.x, m_pos.y, 0.0f, sizeMultiplier);
+    //        m_pos.x, m_pos.y, 0.0f, spriteScale);
     //}
     else if (m_CombatFlags.parried || m_CombatFlags.gotHit) {
         //DrawMesh(m_enemyMesh, m_size, isoHeight, m_pos.x, m_pos.y, 0.0f, 255, 0, 0, 255);
@@ -942,7 +949,7 @@ void Dasher::Draw()
             m_DasherSprite.GetDasherAttackSpriteSheet(),
             m_DasherSprite.GetPixelScale(),
             m_DasherSprite.GetPixelScale(),
-            m_pos.x, m_pos.y, 0.0f, sizeMultiplier);
+            m_pos.x, m_pos.y, 0.0f, spriteScale);
     }
     else {
         DrawTexture(m_DasherSprite, static_cast<int>(m_CurrentDirection),
@@ -950,7 +957,7 @@ void Dasher::Draw()
             m_DasherSprite.GetDasherSpriteSheet(),
             m_DasherSprite.GetPixelScale(),
             m_DasherSprite.GetPixelScale(),
-            m_pos.x, m_pos.y, 0.0f, sizeMultiplier);
+            m_pos.x, m_pos.y, 0.0f, spriteScale);
     }
 
     // Enemy sword
@@ -1001,39 +1008,68 @@ void Dasher::Draw()
 Boss::Boss(AEVec2 pos, f32 size, f32 hp, f32 speed)
     : Enemy(pos, size, hp, speed)
 {
-    // Boss has higher stats
+    // Boss starts smaller / weaker
+    m_size = size;
     m_CombatStats.health = hp;
     m_CombatStats.maxHealth = hp;
-    m_CombatStats.attack = 50.0f;
+    m_CombatStats.attack = 15.0f;
     m_CombatStats.defense = 10.0f;
-    m_AttackRange = 175.0f;
-    m_Damage = 40;
-    m_AttackData.damage = 40;
-    m_AttackStartUpFrames = 10;
-    m_AttackActiveFrames = 20;
-    m_AttackRecoveryFrames = 20;
+
+    m_AttackRange = 80.0f;
+    m_Damage = 15;
+    m_AttackData.damage = 15;
+
+    m_AttackStartUpFrames = 12;
+    m_AttackActiveFrames = 28;
+    m_AttackRecoveryFrames = 16;
+    m_WindUpDuration = 0.25f;
+
     m_AttackTotalFrames = m_AttackStartUpFrames + m_AttackActiveFrames + m_AttackRecoveryFrames;
     m_AttackData.startUp = m_AttackStartUpFrames;
     m_AttackData.active = m_AttackActiveFrames;
     m_AttackData.recovery = m_AttackRecoveryFrames;
     m_AttackData.total = m_AttackTotalFrames;
-    m_WindUpDuration = 1.0f; // Boss winds up longer
+
+    m_GrowthHits = 0;
+    m_BaseSize = m_size;
+    m_BaseAttackRange = m_AttackRange;
+    m_BaseAttackDamage = m_CombatStats.attack;
 }
 
 void Boss::ChildUpdate(f32 dt, Combat::System& combat, Player& player,
     std::vector<std::unique_ptr<Enemy>>& enemies) {
+    (void)combat;
     (void)enemies;
+
+    if (m_CombatFlags.gotHit) {
+        ++m_GrowthHits;
+
+        if (m_GrowthHits > 5) {
+            m_GrowthHits = 5;
+        }
+
+        ApplyGrowthFromHits();
+        m_CombatFlags.gotHit = false;
+    }
+
     AEVec2 playerPos{ player.GetX(), player.GetY() };
     AEVec2Sub(&m_enemyToPlayerDir, &playerPos, &m_pos);
-    AEVec2Normalize(&m_enemyToPlayerDir, &m_enemyToPlayerDir);
+
+    f32 distToPlayer = AEVec2Length(&m_enemyToPlayerDir);
+    if (distToPlayer > 0.001f) {
+        AEVec2Scale(&m_enemyToPlayerDir, &m_enemyToPlayerDir, 1.0f / distToPlayer);
+    }
 
     // Point sword towards player
     m_AimAngle = atan2(-m_enemyToPlayerDir.y, -m_enemyToPlayerDir.x);
 
-    // Seek player via A* pathfinding
+    // Seek player via A* pathfinding until inside contact range
     if (!AreCirclesIntersecting(player.GetX(), player.GetY(), player.GetSize(),
-                                m_pos.x, m_pos.y, m_size)) {
+        m_pos.x, m_pos.y, m_size)) {
         MoveTowardTarget(playerPos, dt);
+    }
+    else {
+        m_moveDir = { 0.0f, 0.0f };
     }
 }
 
@@ -1052,6 +1088,30 @@ void Enemy::EvaluateCurrentDirection()
     else if (angleDegrees >= 150 || angleDegrees < -150) m_CurrentDirection = EnemyDirection::DIRECTION_UP;
     else if (angleDegrees >= -150 && angleDegrees < -90) m_CurrentDirection = EnemyDirection::DIRECTION_UP_LEFT;
     else if (angleDegrees >= -90 && angleDegrees < -30) m_CurrentDirection = EnemyDirection::DIRECTION_DOWN_LEFT;
+}
+
+void Boss::ApplyGrowthFromHits()
+{
+    m_size = AEClamp(
+        m_BaseSize + m_SizeGrowthPerHit * static_cast<f32>(m_GrowthHits),
+        m_BaseSize, 120.0f);
+
+    m_AttackRange = AEClamp(
+        m_BaseAttackRange + m_RangeGrowthPerHit * static_cast<f32>(m_GrowthHits),
+        m_BaseAttackRange, 260.0f);
+
+    m_CombatStats.attack = AEClamp(
+        m_BaseAttackDamage + m_DamageGrowthPerHit * static_cast<f32>(m_GrowthHits),
+        m_BaseAttackDamage, 80.0f);
+
+    m_Damage = static_cast<int>(m_CombatStats.attack);
+    m_AttackData.damage = m_Damage;
+
+    if (m_AttackRangeMesh) {
+        AEGfxMeshFree(m_AttackRangeMesh);
+        m_AttackRangeMesh = nullptr;
+    }
+    m_AttackRangeMesh = CreateAttackRangeMesh(m_AttackRange, 0xFF0000);
 }
 
 // ------------------------
