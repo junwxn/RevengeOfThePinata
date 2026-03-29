@@ -126,6 +126,7 @@
     <ClCompile Include="source\TestLevel.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="source\Settings.cpp">
     <ClCompile Include="source\Splash.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -245,6 +246,7 @@
     <ClInclude Include="source\TestLevel.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="source\Settings.h">
     <ClInclude Include="source\Splash.h">
       <Filter>Header Files</Filter>
     </ClInclude>
