@@ -9,7 +9,7 @@
 #include "Transition.h"
 
 // --- Enums & Structs ---
-enum MenuScreen { MENU_MAIN, MENU_CONTROLS, MENU_CREDITS, MENU_TUTORIAL_PROMPT };
+enum MenuScreen { MENU_MAIN, MENU_CONTROLS, MENU_CREDITS, MENU_TUTORIAL_PROMPT, MENU_SETTINGS };
 
 struct Button {
 	float x, y, w, h;
@@ -24,7 +24,7 @@ static s8 fontTitle = -1;
 static s8 fontBody  = -1;
 
 static MenuScreen menuScreen;
-static Button mainButtons[4];
+static Button mainButtons[5];
 static Button backButton;
 static Button yesButton;
 static Button noButton;
@@ -97,8 +97,8 @@ void MainMenu_Init() {
 	menuScreen = MENU_MAIN;
 	AEGfxSetCamPosition(0.0f, 0.0f);
 
-	const char* labels[] = { "Play", "Controls", "Credits", "Quit" };
-	for (int i = 0; i < 4; i++) {
+	const char* labels[] = { "Play", "Controls", "Credits", "Settings", "Quit" };
+	for (int i = 0; i < 5; i++) {
 		mainButtons[i].x       = 0.0f;
 		mainButtons[i].y       = -20.0f - 85.0f * i;
 		mainButtons[i].w       = 320.0f;
@@ -162,21 +162,21 @@ void MainMenu_Update(float dt) {
 
 	// Hover detection
 	if (menuScreen == MENU_MAIN) {
-		for (int i = 0; i < 4; i++)
+		for (int i = 0; i < 5; i++)
 			mainButtons[i].hovered = IsInside(worldX, worldY, mainButtons[i]);
 		backButton.hovered = false;
 		yesButton.hovered = false;
 		noButton.hovered = false;
 	}
 	else if (menuScreen == MENU_TUTORIAL_PROMPT) {
-		for (int i = 0; i < 4; i++)
+		for (int i = 0; i < 5; i++)
 			mainButtons[i].hovered = false;
 		backButton.hovered = IsInside(worldX, worldY, backButton);
 		yesButton.hovered = IsInside(worldX, worldY, yesButton);
 		noButton.hovered = IsInside(worldX, worldY, noButton);
 	}
 	else {
-		for (int i = 0; i < 4; i++)
+		for (int i = 0; i < 5; i++)
 			mainButtons[i].hovered = false;
 		backButton.hovered = IsInside(worldX, worldY, backButton);
 		yesButton.hovered = false;
@@ -187,7 +187,7 @@ void MainMenu_Update(float dt) {
 	muteButton.hovered = IsInside(worldX, worldY, muteButton);
 
 	// Smooth hover transitions
-	for (int i = 0; i < 4; i++) {
+	for (int i = 0; i < 5; i++) {
 		mainButtons[i].hoverT += (mainButtons[i].hovered ? 1.0f : -1.0f) * dt * 6.0f;
 		mainButtons[i].hoverT = Clamp01(mainButtons[i].hoverT);
 	}
@@ -210,7 +210,8 @@ void MainMenu_Update(float dt) {
 			if (mainButtons[0].hovered) menuScreen = MENU_TUTORIAL_PROMPT;
 			if (mainButtons[1].hovered) menuScreen = MENU_CONTROLS;
 			if (mainButtons[2].hovered) menuScreen = MENU_CREDITS;
-			if (mainButtons[3].hovered) /*next = GS_QUIT*/ Transition_Start(GS_QUIT);
+			if (mainButtons[3].hovered) menuScreen = MENU_SETTINGS;
+			if (mainButtons[4].hovered) /*next = GS_QUIT*/ Transition_Start(GS_QUIT);
 		}
 		else if (menuScreen == MENU_TUTORIAL_PROMPT) {
 			if (yesButton.hovered) { g_PlayerAttackCharges = DEFAULT_ATTACK_CHARGES; /*next = GS_TUTORIAL;*/ Transition_Start(GS_TUTORIAL); }
@@ -262,7 +263,7 @@ void MainMenu_Draw() {
 		DrawPanel(0, -150, 400, 380, panelEase);
 
 		// Styled buttons with entrance stagger
-		for (int i = 0; i < 4; i++) {
+		for (int i = 0; i < 5; i++) {
 			float delay = i * 0.08f;
 			float ease = Smoothstep((entranceTimer - delay) * 2.5f);
 			float yOff = (1.0f - ease) * 30.0f;
@@ -319,7 +320,7 @@ void MainMenu_Draw() {
 
 	if (menuScreen == MENU_MAIN) {
 		// Button labels with entrance stagger
-		for (int i = 0; i < 4; i++) {
+		for (int i = 0; i < 5; i++) {
 			float delay = i * 0.08f;
 			float ease = Smoothstep((entranceTimer - delay) * 2.5f);
 			float yOff = (1.0f - ease) * 30.0f;
@@ -408,6 +409,30 @@ void MainMenu_Draw() {
 			           backButton.y / 450.0f - th * 0.5f,
 			           1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
 		}
+	} 
+	else if (menuScreen == MENU_SETTINGS) {
+		const char* lines[] = {
+			"WASD - Move",
+			"Space - Dash",
+			"LMB - Attack",
+			"RMB - Block / Parry",
+			"Mouse - Aim",
+			"X - Interact" 
+		};
+		for (int i = 0; i < 6; i++) {
+			float tw, th;
+			float ly = 120.0f - i * 60.0f;
+			AEGfxGetPrintSize(fontBody, lines[i], 1.0f, &tw, &th);
+			AEGfxPrint(fontBody, lines[i], -tw * 0.5f, ly / 450.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
+		}
+
+		// Back button label
+		float tw, th;
+		AEGfxGetPrintSize(fontBody, backButton.label, 1.0f, &tw, &th);
+		AEGfxPrint(fontBody, backButton.label,
+			backButton.x / 800.0f - tw * 0.5f,
+			backButton.y / 450.0f - th * 0.5f,
+			1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
 	}
 
 	// Mute button (always visible)
