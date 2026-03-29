@@ -15,6 +15,7 @@
 #include "Debug.h"
 #include "Shadow.h"
 #include "Projectile.h"
+#include "Transition.h"
 
 // load variables
 static AEGfxTexture* TexBlock2;
@@ -48,14 +49,24 @@ static void SpawnWave1() {
 	Wave1.clear();
 	AEVec2 playerPos = { player.GetX(), player.GetY() };
 
-	//AEVec2 p1 = GetRandomSpawnPos(gameMap, playerPos, 200.0f, ENEMY_SIZE);
-	//Wave1.push_back(std::make_unique<Walker>(p1, ENEMY_SIZE, 100.0f, 200.0f));
+	// Walker
+	for (int i = 0; i < 2; ++i) {
+		AEVec2 p1 = GetRandomSpawnPos(gameMap, playerPos, 200.0f, ENEMY_SIZE);
+		Wave1.push_back(std::make_unique<Walker>(p1, ENEMY_SIZE, 100.0f, 200.0f));
+	}
+	// Dasher
+	for (int i = 0; i < 1; ++i) {
+		AEVec2 p2 = GetRandomSpawnPos(gameMap, playerPos, 200.0f, ENEMY_SIZE);
+		Wave1.push_back(std::make_unique<Dasher>(p2, ENEMY_SIZE, 100.0f, 200.0f, 3.0f));
+	}
 
-	AEVec2 p2 = GetRandomSpawnPos(gameMap, playerPos, 200.0f, ENEMY_SIZE);
-	Wave1.push_back(std::make_unique<Dasher>(p2, ENEMY_SIZE, 100.0f, 200.0f, 3.0f));
+	// Thrower
+	for (int i = 0; i < 0; ++i) {
+		AEVec2 p3 = GetRandomSpawnPos(gameMap, playerPos, 200.0f, ENEMY_SIZE);
+		Wave1.push_back(std::make_unique<Thrower>(p3, ENEMY_SIZE, 80.0f, 100.0f));
+	}
 
-	AEVec2 p3 = GetRandomSpawnPos(gameMap, playerPos, 200.0f, ENEMY_SIZE);
-	Wave1.push_back(std::make_unique<Thrower>(p3, ENEMY_SIZE, 500.0f, 100.0f));
+
 
 	for (auto& enemy : Wave1) {
 		enemy->Init();
@@ -69,9 +80,21 @@ static void SpawnWave2() {
 	Wave2.clear();
 	AEVec2 playerPos = { player.GetX(), player.GetY() };
 
+	// Walker
 	for (int i = 0; i < 1; ++i) {
-		AEVec2 spawnPos = GetRandomSpawnPos(gameMap, playerPos, 200.0f, ENEMY_SIZE);
-		Wave2.push_back(std::make_unique<Walker>(spawnPos, ENEMY_SIZE, 100.0f, 100.0f));
+		AEVec2 p1 = GetRandomSpawnPos(gameMap, playerPos, 200.0f, ENEMY_SIZE);
+		Wave2.push_back(std::make_unique<Walker>(p1, ENEMY_SIZE, 100.0f, 200.0f));
+	}
+	// Dasher
+	for (int i = 0; i < 0; ++i) {
+		AEVec2 p2 = GetRandomSpawnPos(gameMap, playerPos, 200.0f, ENEMY_SIZE);
+		Wave2.push_back(std::make_unique<Dasher>(p2, ENEMY_SIZE, 100.0f, 200.0f, 3.0f));
+	}
+
+	// Thrower
+	for (int i = 0; i < 2; ++i) {
+		AEVec2 p3 = GetRandomSpawnPos(gameMap, playerPos, 200.0f, ENEMY_SIZE);
+		Wave2.push_back(std::make_unique<Thrower>(p3, ENEMY_SIZE, 80.0f, 100.0f));
 	}
 
 	for (auto& enemy : Wave2) {
@@ -139,7 +162,7 @@ void Level1_Init() {
 }
 void Level1_Update(float dt) {
 	if (!AESysDoesWindowExist()) {
-		next = GS_QUIT;
+		Transition_Start(GS_QUIT);
 		return;
 	}
 
@@ -148,7 +171,7 @@ void Level1_Update(float dt) {
 	Debug_Update();
 
 	// Player death -> Game Over screen
-	if (!player.GetIsAlive()) { next = GS_GAMEOVER; return; }
+	if (!player.GetIsAlive()) { Transition_Start(GS_GAMEOVER); return; }
 
 	auto& activeWave = wave1Active ? Wave1 : Wave2;
 	player.Update(dt, CombatSystem, activeWave, camera.GetX(), camera.GetY(), preventingmovement);
@@ -279,7 +302,7 @@ void Level1_Update(float dt) {
 			preventingmovement = true;
 		}
 		if (augments.GetAugmentSelected()) {
-			next = GS_LEVEL2;
+			Transition_Start(GS_LEVEL2);
 		}
 		if (AEInputCheckTriggered(AEVK_P)) {
 			std::cout << "AUGMENTS TRIGGERED AGAIN" << std::endl;
@@ -291,7 +314,7 @@ void Level1_Update(float dt) {
 	}
 
 	if (0 == AESysDoesWindowExist()) {
-		next = GS_QUIT;
+		Transition_Start(GS_QUIT);
 	}
 
 	if (AEInputCheckTriggered(AEVK_K)) {
@@ -300,7 +323,7 @@ void Level1_Update(float dt) {
 	}
 
 	if (AEInputCheckTriggered(AEVK_N)) {
-		next = GS_LEVEL2;
+		Transition_Start(GS_LEVEL2);
 	}
 }
 void Level1_Draw() {
@@ -368,7 +391,8 @@ void Level1_Draw() {
 	//AESysFrameEnd();
 }
 void Level1_Free() {
-	if (next != GS_RESTART) g_PlayerAttackCharges = player.GetAttackCharges();
+	std::cout << "FREEING LEVEL 1" << std::endl;
+	g_PlayerAttackCharges = player.GetAttackCharges();
 	Wave1.clear();
 	Wave2.clear();
 	player.Free();

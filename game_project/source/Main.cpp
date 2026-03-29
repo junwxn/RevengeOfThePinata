@@ -54,6 +54,7 @@
 #include "Audio.h"
 #include "GameStateManager.h"
 #include "GameStateList.h"
+#include "Transition.h"
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     _In_opt_ HINSTANCE hPrevInstance,
@@ -85,6 +86,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
     if (fpFree)   fpFree();
     if (fpUnload) fpUnload();
+
+    Transition_Free();
 
     gAudio.UnloadBGM();
     gAudio.UnloadCombatSFX();

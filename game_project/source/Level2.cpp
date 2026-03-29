@@ -15,6 +15,7 @@
 #include "Debug.h"
 #include "Shadow.h"
 #include "Projectile.h"
+#include "Transition.h"
 
 // load variables
 static AEGfxTexture* TexBlock2;
@@ -46,21 +47,22 @@ static void SpawnWave1_L2() {
 	Wave1.clear();
 	AEVec2 playerPos = { player.GetX(), player.GetY() };
 
-	// 3 Walkers + 2 Throwers
-	for (int i = 0; i < 2; ++i) {
-		AEVec2 p = GetRandomSpawnPos(gameMap, playerPos, 200.0f, ENEMY_SIZE);
-		Wave1.push_back(std::make_unique<Walker>(p, ENEMY_SIZE, 120.0f, 220.0f));
+	// Walker
+	for (int i = 0; i < 3; ++i) {
+		AEVec2 p1 = GetRandomSpawnPos(gameMap, playerPos, 200.0f, ENEMY_SIZE);
+		Wave1.push_back(std::make_unique<Walker>(p1, ENEMY_SIZE, 100.0f, 200.0f));
 	}
+	// Dasher
 	for (int i = 0; i < 1; ++i) {
-		AEVec2 p = GetRandomSpawnPos(gameMap, playerPos, 200.0f, ENEMY_SIZE);
-		Wave1.push_back(std::make_unique<Dasher>(p, ENEMY_SIZE, 100.0f, 250.0f, 3.0f));
-	}
-	for (int i = 0; i < 2; ++i) {
-		AEVec2 p = GetRandomSpawnPos(gameMap, playerPos, 200.0f, ENEMY_SIZE);
-		Wave1.push_back(std::make_unique<Thrower>(p, ENEMY_SIZE, 50.0f, 100.0f));
+		AEVec2 p2 = GetRandomSpawnPos(gameMap, playerPos, 200.0f, ENEMY_SIZE);
+		Wave1.push_back(std::make_unique<Dasher>(p2, ENEMY_SIZE, 100.0f, 200.0f, 3.0f));
 	}
 
-
+	// Thrower
+	for (int i = 0; i < 0; ++i) {
+		AEVec2 p3 = GetRandomSpawnPos(gameMap, playerPos, 200.0f, ENEMY_SIZE);
+		Wave1.push_back(std::make_unique<Thrower>(p3, ENEMY_SIZE, 80.0f, 100.0f));
+	}
 
 	for (auto& enemy : Wave1) {
 		enemy->Init();
@@ -72,14 +74,21 @@ static void SpawnWave2_L2() {
 	Wave2.clear();
 	AEVec2 playerPos = { player.GetX(), player.GetY() };
 
-	// 5 Walkers + 5 Dashers
-	for (int i = 0; i < 5; ++i) {
-		AEVec2 p = GetRandomSpawnPos(gameMap, playerPos, 200.0f, ENEMY_SIZE);
-		Wave2.push_back(std::make_unique<Walker>(p, ENEMY_SIZE, 120.0f, 220.0f));
+	// Walker
+	for (int i = 0; i < 1; ++i) {
+		AEVec2 p1 = GetRandomSpawnPos(gameMap, playerPos, 200.0f, ENEMY_SIZE);
+		Wave2.push_back(std::make_unique<Walker>(p1, ENEMY_SIZE, 100.0f, 200.0f));
 	}
-	for (int i = 0; i < 5; ++i) {
-		AEVec2 p = GetRandomSpawnPos(gameMap, playerPos, 200.0f, ENEMY_SIZE);
-		Wave2.push_back(std::make_unique<Dasher>(p, ENEMY_SIZE, 100.0f, 250.0f, 3.0f));
+	// Dasher
+	for (int i = 0; i < 3; ++i) {
+		AEVec2 p2 = GetRandomSpawnPos(gameMap, playerPos, 200.0f, ENEMY_SIZE);
+		Wave2.push_back(std::make_unique<Dasher>(p2, ENEMY_SIZE, 100.0f, 200.0f, 3.0f));
+	}
+
+	// Thrower
+	for (int i = 0; i < 1; ++i) {
+		AEVec2 p3 = GetRandomSpawnPos(gameMap, playerPos, 200.0f, ENEMY_SIZE);
+		Wave2.push_back(std::make_unique<Thrower>(p3, ENEMY_SIZE, 80.0f, 100.0f));
 	}
 
 	for (auto& enemy : Wave2) {
@@ -140,7 +149,7 @@ void Level2_Init() {
 
 void Level2_Update(float dt) {
 	if (!AESysDoesWindowExist()) {
-		next = GS_QUIT;
+		Transition_Start(GS_QUIT);
 		return;
 	}
 
@@ -148,7 +157,7 @@ void Level2_Update(float dt) {
 	Debug_Update();
 
 	// Player death -> Game Over screen
-	if (!player.GetIsAlive()) { next = GS_GAMEOVER; return; }
+	if (!player.GetIsAlive()) { Transition_Start(GS_GAMEOVER); return; }
 
 	// Use Wave1 for player combat reference
 	auto& activeWave = wave1Active ? Wave1 : Wave2;
@@ -238,7 +247,7 @@ void Level2_Update(float dt) {
 			preventingmovement = true;
 		}
 		if (augments.GetAugmentSelected()) {
-			next = GS_LEVEL3;
+			Transition_Start(GS_LEVEL3);
 		}
 	}
 	else {
@@ -246,7 +255,7 @@ void Level2_Update(float dt) {
 	}
 
 	if (0 == AESysDoesWindowExist()) {
-		next = GS_QUIT;
+		Transition_Start(GS_QUIT);
 	}
 
 	if (AEInputCheckTriggered(AEVK_K)) {
@@ -255,7 +264,7 @@ void Level2_Update(float dt) {
 	}
 
 	if (AEInputCheckTriggered(AEVK_N)) {
-		next = GS_LEVEL3;
+		Transition_Start(GS_LEVEL3);
 	}
 }
 
@@ -314,7 +323,7 @@ void Level2_Draw() {
 }
 
 void Level2_Free() {
-	if (next != GS_RESTART) g_PlayerAttackCharges = player.GetAttackCharges();
+	g_PlayerAttackCharges = player.GetAttackCharges();
 	Wave1.clear();
 	Wave2.clear();
 	player.Free();
@@ -334,4 +343,5 @@ void Level2_Unload() {
 	Pause_Unload();
 	HUD_Unload();
 	Debug_Unload();
+	AEAudioStopGroup(gAudio.audioGroup.BGM);
 }

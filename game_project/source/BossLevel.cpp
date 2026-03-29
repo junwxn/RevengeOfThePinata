@@ -12,6 +12,7 @@
 #include "Debug.h"
 #include "Shadow.h"
 #include "Transition.h"
+#include "Audio.h"
 
 // load variables
 static AEGfxTexture* TexBlock2;
@@ -40,9 +41,21 @@ static void SpawnBossWave() {
 	// 1 Boss (spawned on a valid tile) + 3 Walkers
 	AEVec2 bossPos = GetRandomSpawnPos(gameMap, playerPos, 200.0f, BOSS_SIZE);
 	Wave1.push_back(std::make_unique<Boss>(bossPos, BOSS_SIZE, 500.0f, 150.0f));
+	// Walker
 	for (int i = 0; i < 3; ++i) {
-		AEVec2 p = GetRandomSpawnPos(gameMap, playerPos, 200.0f, ENEMY_SIZE);
-		Wave1.push_back(std::make_unique<Walker>(p, ENEMY_SIZE, 100.0f, 200.0f));
+		AEVec2 p1 = GetRandomSpawnPos(gameMap, playerPos, 200.0f, ENEMY_SIZE);
+		Wave1.push_back(std::make_unique<Walker>(p1, ENEMY_SIZE, 100.0f, 200.0f));
+	}
+	// Dasher
+	for (int i = 0; i < 0; ++i) {
+		AEVec2 p2 = GetRandomSpawnPos(gameMap, playerPos, 200.0f, ENEMY_SIZE);
+		Wave1.push_back(std::make_unique<Dasher>(p2, ENEMY_SIZE, 100.0f, 200.0f, 3.0f));
+	}
+
+	// Thrower
+	for (int i = 0; i < 0; ++i) {
+		AEVec2 p3 = GetRandomSpawnPos(gameMap, playerPos, 200.0f, ENEMY_SIZE);
+		Wave1.push_back(std::make_unique<Thrower>(p3, ENEMY_SIZE, 80.0f, 100.0f));
 	}
 
 	for (auto& enemy : Wave1) {
@@ -222,9 +235,10 @@ void BossLevel_Draw() {
 }
 
 void BossLevel_Free() {
-	if (next != GS_BOSSLEVEL) g_PlayerAttackCharges = player.GetAttackCharges();
+	g_PlayerAttackCharges = player.GetAttackCharges();
 	Wave1.clear();
 	player.Free();
+	Projectile::Free();
 	AugmentEffects_Free();
 	g_Events.ClearAll();
 }
@@ -239,4 +253,5 @@ void BossLevel_Unload() {
 	Pause_Unload();
 	HUD_Unload();
 	Debug_Unload();
+	AEAudioStopGroup(gAudio.audioGroup.BGM);
 }

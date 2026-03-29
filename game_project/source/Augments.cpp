@@ -305,16 +305,16 @@ void Augments::Draw(float camX, float camY) {
     float hoverOffset = sinf(hoverTime) * hoverPower;
 
     DrawTexture(
-        candySprite,       // sprite object
-        0,                 // currentDirection/frame (0 if one frame)
-        candyMesh,         // your quad mesh
-        m_candyTex,        // the candy PNG texture
-        augSize * 1.75,    // width of candy
-        augSize * 1.75,    // height of candy
-        augPosX,           // x position
-        hoverPosY + hoverOffset, // y position with hover
-        0.0f,              // rotation (0 = no rotation)
-        1.0f               // size multiplier (1.0 = normal)
+        candySprite,                // sprite object
+        0,                          // currentDirection/frame (0 = one frame)
+        candyMesh,                  // mesh
+        m_candyTex,                 // candy texture
+        augSize * 1.75,             // width of candy
+        augSize * 1.75,             // height of candy
+        augPosX,                    // x position
+        hoverPosY + hoverOffset,    // y position with hover
+        0.0f,                       // rotation (0 = no rotation)
+        1.0f                        // size multiplier (1.0 = normal)
     );
 
     //DrawMesh(candyMesh, augSize, augSize, augPosX, augPosY, 0.0f, 255, 255, 255, 255);
