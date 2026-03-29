@@ -154,7 +154,8 @@ void Enemy::BaseUpdate(f32 dt, Combat::System& combat, Player& player) {
 
     // Start attack -------------------
     // Wind-up: charge before swinging
-    if (m_CurrentState != EnemyState::STATE_DASH_WINDUP &&
+    if (m_EnableMelee &&
+        m_CurrentState != EnemyState::STATE_DASH_WINDUP &&
         m_CurrentState != EnemyState::STATE_DASH &&
         !m_AttackActive && m_AllowAttack && !m_WindingUp &&
         m_CombatSystem.CanStartAttack_Enemy(player, *this))
@@ -559,7 +560,7 @@ AEVec2 Enemy::FollowPath() {
     // doesn't try to hit exact tile centers at corners.
     if (m_pMap) {
         int bestIndex = m_pathIndex;
-        int lookAhead = (std::min)(m_pathIndex + 1, static_cast<int>(m_path.size()) - 1);
+        int lookAhead = (std::min)(m_pathIndex + 4, static_cast<int>(m_path.size()) - 1);
         for (int i = lookAhead; i > m_pathIndex; --i) {
             if (HasLineOfSight(m_pos, m_path[i], m_size, *m_pMap)) {
                 bestIndex = i;
@@ -607,20 +608,29 @@ void Enemy::MoveTowardTarget(AEVec2 const& targetPos, f32 dt) {
     if (dx * dx + dy * dy < STUCK_DIST_THRESHOLD * STUCK_DIST_THRESHOLD) {
         m_stuckTimer += dt;
         if (m_stuckTimer >= STUCK_TIME_THRESHOLD) {
-            m_pathTimer = 0.0f; // force recalc next frame
+            ComputePath(targetPos);
             m_stuckTimer = 0.0f;
         }
-    } else {
+    }
+    else {
         m_stuckTimer = 0.0f;
     }
     m_lastPos = m_pos;
 
     AEVec2 dir = FollowPath();
     float len = AEVec2Length(&dir);
+
     if (len < 0.001f) {
-        // Fallback to direct seek if no valid path
-        dir = m_enemyToPlayerDir;
+        if (!m_hasValidPath) {
+            dir = m_enemyToPlayerDir;
+        }
+        else {
+            m_pathTimer = 0.0f; // force path recalc next frame
+            m_moveDir = { 0.0f, 0.0f };
+            return;
+        }
     }
+
     m_moveDir = dir;
 
     float velX = dir.x * m_speed * dt;
@@ -633,7 +643,7 @@ void Enemy::MoveTowardTarget(AEVec2 const& targetPos, f32 dt) {
         // X was blocked, let Y slide
         ResolveCollision(m_pos.x, m_pos.y, 0.0f, velY, m_size, *m_pMap);
     }
-    else if (m_pos.y == prevY && velY != 0.0f) {
+    if (m_pos.y == prevY && velY != 0.0f) {
         // Y was blocked, let X slide
         ResolveCollision(m_pos.x, m_pos.y, velX, 0.0f, m_size, *m_pMap);
     }
@@ -1044,6 +1054,7 @@ Thrower::Thrower(AEVec2 pos, f32 size, f32 hp, f32 speed) :
     m_CombatStats.maxHealth = hp;
     m_CombatStats.attack = 0.0f;
     m_CombatStats.defense = 0.0f;
+    m_EnableMelee = false;
 }
 
 void Thrower::Draw() {
@@ -1079,15 +1090,21 @@ void Thrower::ChildUpdate(f32 dt, Combat::System& combat, Player& player,
     bool hasLOS = true;
     if (m_pMap) hasLOS = HasLineOfSight_Grid(m_pos, playerPos, *m_pMap);
 
-    if (dist > m_maxThrowRange) {
+    // Chase if too far OR if we still do not have a clear throw
+    if (dist > m_maxThrowRange || !hasLOS) {
         MoveTowardTarget(playerPos, dt);
         return;
     }
 
-    if (dist >= m_minThrowRange && hasLOS && m_throwTimer <= 0.0f) {
+    // Inside preferred range band and line of sight is clear → throw
+    if (dist >= m_minThrowRange && dist <= m_maxThrowRange && m_throwTimer <= 0.0f) {
         ThrowProjectile(playerPos);
         m_throwTimer = m_throwCooldown;
+        return;
     }
+
+    // Otherwise hold position
+    m_moveDir = { 0.0f, 0.0f };
 }
 
 // Start of projectile lifetime

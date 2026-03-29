@@ -164,6 +164,7 @@ protected:
     int m_LastAttackID{ -1 };
     bool m_AttackActive{ false };
     bool m_AllowAttack{ true };
+    bool m_EnableMelee = true;
 
     AEVec2 m_KnockbackVelocity{};
 
