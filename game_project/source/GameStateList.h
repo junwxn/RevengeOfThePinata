@@ -14,5 +14,7 @@ enum GS_STATES
 	GS_QUIT,
 	GS_RESTART,
 
-	GS_NONE
+	GS_NONE,
+
+	GS_SPLASH
 };

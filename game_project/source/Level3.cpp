@@ -179,7 +179,7 @@ void Level3_Init() {
 
 void Level3_Update(float dt) {
 	if (!AESysDoesWindowExist()) {
-		Transition_Start(GS_QUIT);
+		Transition_StartImmediate(GS_QUIT);
 		return;
 	}
 
@@ -305,7 +305,7 @@ void Level3_Update(float dt) {
 	}
 
 	if (0 == AESysDoesWindowExist()) {
-		Transition_Start(GS_QUIT);
+		Transition_StartImmediate(GS_QUIT);
 	}
 
 	if (AEInputCheckTriggered(AEVK_K)) {

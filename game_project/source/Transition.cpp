@@ -98,6 +98,18 @@ void Transition_Free()
     }
 }
 
+void Transition_StartImmediate(GS_STATES nextState)
+{
+    g_PendingState = nextState;
+    g_SwitchReady = true;
+    g_TransitionPhase = TransitionPhase::TRANSITION_NONE;
+
+    g_CurrentFrame = 0;
+    g_FrameTimer = 0.0f;
+    g_U0 = 0.0f;
+    g_V0 = 0.0f;
+}
+
 void Transition_Start(GS_STATES nextState)
 {
     std::cout << "Transition_Start called -> " << nextState << std::endl;
