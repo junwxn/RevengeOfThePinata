@@ -183,17 +183,18 @@ protected:
     Combat::System m_CombatSystem;
     Combat::CombatFlags m_CombatFlags
     {
-        true,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false
+        true, // isAlive
+        false, // attackHit
+        false, // blockOn
+        false, // parryOn
+        false, // blocked
+        false, // parried
+        false, // stunned
+        false, // attackResolved
+        false, // parryResolved
+        false, // blockResolved
+        false, // attackQueued
+
     };
 
     int m_AttackStopFrames{};
@@ -334,7 +335,7 @@ protected:
     bool  m_dashAttackQueued{ false };
 
     int   m_dashStartFrames{ 0 };
-    int   m_dashActiveFrames{ 7 };
+    int   m_dashActiveFrames{ 15 };
     int   m_dashRecoveryFrames{ 3 };
     int   m_dashTotalFrames{ m_dashStartFrames + m_dashActiveFrames + m_dashRecoveryFrames };
 
