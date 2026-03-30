@@ -61,6 +61,8 @@ class Audio
 		void PlayFireworksSFX();
 		void UnloadFireworksSFX();
 
+		void PlayClickSFX();
+
 		void ToggleMute();
 		bool IsMuted() const;
 

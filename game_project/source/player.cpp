@@ -65,7 +65,7 @@ void Player::Init()
     if (m_BatMesh) { AEGfxMeshFree(m_BatMesh); m_BatMesh = nullptr; }
     if (m_BatTexture) { AEGfxTextureUnload(m_BatTexture); m_BatTexture = nullptr; }
     m_BatMesh = CreateBatMesh(0xFFFFFFFF);
-    m_BatTexture = AEGfxTextureLoad("Assets/Sprites/bat.png");
+    m_BatTexture = AEGfxTextureLoad("Assets/Sprites/BatBat.png");
 
     m_PlayerSprite.Sprite_Init();
     m_PlayerSpriteSheet = m_PlayerSprite.GetPlayerSpriteSheet();
@@ -437,6 +437,7 @@ void Player::Update(float dt, Combat::System& combat, std::vector<std::unique_pt
         {
             blockProgress = 1.0f;
             if (!m_CombatFlags.parryOn) m_ParryActive = false;
+            m_CombatFlags.blockOn = true;
             m_CombatFlags.parryOn = false;
         }
     }
