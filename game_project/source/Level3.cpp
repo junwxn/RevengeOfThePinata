@@ -385,7 +385,8 @@ void Level3_Draw() {
 }
 
 void Level3_Free() {
-	g_PlayerAttackCharges = player.GetAttackCharges();
+	if (Transition_GetState() != current)
+		g_PlayerAttackCharges = player.GetAttackCharges();
 	Wave1.clear();
 	Wave2.clear();
 	Wave3.clear();

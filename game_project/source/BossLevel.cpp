@@ -235,7 +235,8 @@ void BossLevel_Draw() {
 }
 
 void BossLevel_Free() {
-	g_PlayerAttackCharges = player.GetAttackCharges();
+	if (Transition_GetState() != current)
+		g_PlayerAttackCharges = player.GetAttackCharges();
 	Wave1.clear();
 	player.Free();
 	Projectile::Free();

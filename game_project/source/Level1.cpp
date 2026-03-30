@@ -392,7 +392,8 @@ void Level1_Draw() {
 }
 void Level1_Free() {
 	std::cout << "FREEING LEVEL 1" << std::endl;
-	g_PlayerAttackCharges = player.GetAttackCharges();
+	if (Transition_GetState() != current)
+		g_PlayerAttackCharges = player.GetAttackCharges();
 	Wave1.clear();
 	Wave2.clear();
 	player.Free();
