@@ -953,6 +953,17 @@ void Dasher::Draw()
             m_pos.x, m_pos.y, 0.0f, sizeMultiplier);
     }
 
+    if (m_dashActive && m_dashCurrentFrame >= m_dashStartFrames &&
+        m_dashCurrentFrame < m_dashStartFrames + m_dashActiveFrames)
+    {
+            DrawTexture(m_DasherSprite, static_cast<int>(m_CurrentDirection),
+                m_DasherSprite.GetDasherWindupSpriteMesh(),
+                m_DasherSprite.GetDasherWindupSpriteSheet(),
+                m_DasherSprite.GetPixelScale(),
+                m_DasherSprite.GetPixelScale(),
+                m_pos.x, m_pos.y, 0.0f, sizeMultiplier);
+    }
+
     // Enemy sword
     f32 swordAngle = m_AttackActive ? m_CurrentAngle : m_AimAngle;
     DrawMesh(m_AttackRangeMesh, 1.0f, 5.0f, m_pos.x, m_pos.y, swordAngle,
