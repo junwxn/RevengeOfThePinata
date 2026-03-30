@@ -462,7 +462,7 @@ void MainMenu_Draw() {
 	if (menuScreen == MENU_MAIN) {
 		// Panel behind buttons
 		float panelEase = Smoothstep(entranceTimer * 2.5f);
-		DrawPanel(0, -150, 400, 380, panelEase);
+		DrawPanel(0, -190, 400, 460, panelEase);
 
 		// Styled buttons with entrance stagger
 		for (int i = 0; i < 5; i++) {
