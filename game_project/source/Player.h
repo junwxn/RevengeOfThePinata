@@ -192,7 +192,7 @@ private:
     Combat::CombatStats m_CombatStats
     {
         200.0f, // health
-        40.0f, // attack
+        55.0f, // attack
         5.0f, // defense
         0.0f, // crit chance
         0.0f, // crit multiplier
