@@ -921,6 +921,7 @@ void Player::StartDash(float moveX, float moveY, float dirX, float dirY)
     m_MovementState.recovered = false;
     m_DashFrameAccumulator = 0.0f;
     m_DashCurrentFrame = 0;
+    m_CombatFlags.dashResolved = false;
 
     m_DashDirX = dirX;
     m_DashDirY = dirY;
