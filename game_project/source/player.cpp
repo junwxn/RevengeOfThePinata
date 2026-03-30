@@ -40,6 +40,11 @@ void Player::Init()
 
     m_CurrentState = PlayerState::STATE_IDLE;
 
+    // Reset input restrictions (all allowed by default)
+    m_InputCanDash   = true;
+    m_InputCanAttack = true;
+    m_InputCanBlock  = true;
+
     // Reset combat state for fresh start
     m_CombatStats.health = m_CombatStats.maxHealth;
     m_CombatFlags.isAlive = true;
@@ -151,7 +156,7 @@ void Player::Update(float dt, Combat::System& combat, std::vector<std::unique_pt
     else m_AllowAttack = true;
 
     // Start attack
-    if ((AEInputCheckTriggered(AEVK_LBUTTON) && m_AllowAttack && !m_BlockActive) || (m_CombatFlags.attackQueued && g_Augments.Has(AugmentID::CHAIN_ATTACK)))
+    if ((AEInputCheckTriggered(AEVK_LBUTTON) && m_AllowAttack && !m_BlockActive && m_InputCanAttack) || (m_CombatFlags.attackQueued && g_Augments.Has(AugmentID::CHAIN_ATTACK)))
     {
         std::cout << "ATTACK" << std::endl;
         m_AllowBlock = false;
@@ -170,7 +175,7 @@ void Player::Update(float dt, Combat::System& combat, std::vector<std::unique_pt
     }
     //else m_CombatFlags.attackHit = false;
 
-    if (AEInputCheckTriggered(AEVK_RBUTTON) && m_AllowBlock && !m_AttackActive)
+    if (AEInputCheckTriggered(AEVK_RBUTTON) && m_AllowBlock && !m_AttackActive && m_InputCanBlock)
     {
         std::cout << "BLOCK" << std::endl;
         m_AllowAttack = false;
@@ -518,7 +523,7 @@ void Player::Update(float dt, Combat::System& combat, std::vector<std::unique_pt
 
             std::cout << "DASH: " << m_DashActive << std::endl;
             // --- 4. Dash Logic ---
-            if (AEInputCheckTriggered(AEVK_SPACE) && m_DashCharges > 0 && !m_DashActive)
+            if (AEInputCheckTriggered(AEVK_SPACE) && m_DashCharges > 0 && !m_DashActive && m_InputCanDash)
             {
                 StartDash(moveX, moveY, dirX, dirY);
             }
