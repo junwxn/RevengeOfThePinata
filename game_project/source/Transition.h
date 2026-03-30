@@ -2,6 +2,13 @@
 #include "GameStateManager.h"
 #include "GameStateList.h"
 
+enum class TransitionSheet
+{
+	DEFAULT,
+	LEVEL1,
+	LEVEL2
+};
+
 enum class TransitionPhase
 {
 	TRANSITION_NONE,
@@ -12,6 +19,8 @@ enum class TransitionPhase
 void Transition_Init();
 void Transition_Free();
 void Transition_Start(GS_STATES nextState);
+void Transition_Start(GS_STATES nextState, TransitionSheet sheet);
+void Transition_StartImmediate(GS_STATES nextState);
 void Transition_Update(float dt);
 void Transition_Draw();
 
@@ -20,4 +29,3 @@ bool Transition_IsSwitchReady();
 int Transition_GetState();
 void Transition_BeginFadeIn();
 void Transition_Reset();
-void Transition_StartImmediate(GS_STATES nextState);

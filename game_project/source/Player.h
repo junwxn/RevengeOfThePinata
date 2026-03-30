@@ -67,6 +67,19 @@ public:
         std::cout << "Attack Charges: " << m_AttackCharges << std::endl;
     }
 
+    void AutoAttackCharge(float dt)
+    {
+        std::cout << "m_AttackChargeTimer: " << m_AttackChargeTimer << std::endl;
+        m_AttackChargeTimer += dt;
+        if (m_AttackChargeTimer > m_ResetAttackChargeTimer)
+        {
+            m_AttackChargeTimer = 0;
+            GainAttackCharge();
+        }
+    }
+    float GetAttackChargeTimer() const { return m_AttackChargeTimer; }
+    float GetAttackChargeTime()  const { return m_ResetAttackChargeTimer; }
+
     void ResetCombatVariables();
 
     // Projectile parry
@@ -211,6 +224,8 @@ private:
 
     int m_AttackCharges { DEFAULT_ATTACK_CHARGES };
     int m_MaxAttackCharge { DEFAULT_ATTACK_CHARGES };
+    float m_AttackChargeTimer{};
+    float m_ResetAttackChargeTimer{ 7.0f };
 
     float m_AttackDuration{ 0.15f };
 

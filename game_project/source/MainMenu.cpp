@@ -334,7 +334,7 @@ void MainMenu_Update(float dt) {
 		}
 		else if (menuScreen == MENU_TUTORIAL_PROMPT) {
 			if (yesButton.hovered) { g_PlayerAttackCharges = DEFAULT_ATTACK_CHARGES; /*next = GS_TUTORIAL;*/ Transition_Start(GS_TUTORIAL); }
-			if (noButton.hovered) { g_PlayerAttackCharges = DEFAULT_ATTACK_CHARGES; /*next = GS_LEVEL1;*/ Transition_Start(GS_LEVEL1); }
+			if (noButton.hovered) { g_PlayerAttackCharges = DEFAULT_ATTACK_CHARGES; /*next = GS_LEVEL1;*/ Transition_Start(GS_LEVEL1, TransitionSheet::LEVEL1); }
 			if (backButton.hovered) menuScreen = MENU_MAIN;
 		}
 		else if (menuScreen == MENU_CONFIRMATION) {

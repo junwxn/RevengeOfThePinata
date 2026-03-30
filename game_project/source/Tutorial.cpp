@@ -211,7 +211,7 @@ void Tutorial_Init() {
 
 void Tutorial_Update(float dt) {
 	if (!AESysDoesWindowExist()) {
-		Transition_Start(GS_QUIT);
+		Transition_StartImmediate(GS_QUIT);
 		return;
 	}
 
@@ -239,7 +239,7 @@ void Tutorial_Update(float dt) {
 		pinataBobY = 0.0f;
 	}
 
-	if (!player.GetIsAlive()) { Transition_Start(GS_GAMEOVER); return; }
+	if (!player.GetIsAlive()) { Transition_StartImmediate(GS_GAMEOVER); return; }
 
 	bool preventMovement = false;
 	player.Update(dt, CombatSystem, tutorialEnemies, camera.GetX(), camera.GetY(), preventMovement);
@@ -364,7 +364,7 @@ void Tutorial_Update(float dt) {
 	case TUT_DONE:
 		stepTimer += dt;
 		if (stepTimer > 2.0f) {
-			Transition_Start(GS_LEVEL1);
+			Transition_Start(GS_LEVEL1, TransitionSheet::LEVEL1);
 		}
 		break;
 	}
@@ -399,7 +399,7 @@ void Tutorial_Update(float dt) {
 
 	// Skip tutorial shortcut
 	if (AEInputCheckTriggered(AEVK_N)) {
-		Transition_Start(GS_LEVEL1);
+		Transition_Start(GS_LEVEL1, TransitionSheet::LEVEL1);
 	}
 }
 

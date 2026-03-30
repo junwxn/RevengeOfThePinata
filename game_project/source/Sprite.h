@@ -28,6 +28,15 @@ class Sprite
 		AEGfxVertexList* GetDasherWindupSpriteMesh() { return pDasherWindup_SpriteMesh; }
 		AEGfxVertexList* GetDasherAttackSpriteMesh() { return pDasherAttack_SpriteMesh; }
 
+		// Boss
+		AEGfxTexture* GetBossSpriteSheet() { return pBossSpriteSheet; }
+		AEGfxTexture* GetBossWindupSpriteSheet() { return pBossWindup_SpriteSheet; }
+		AEGfxTexture* GetBossAttackSpriteSheet() { return pBossAttack_SpriteSheet; }
+
+		AEGfxVertexList* GetBossSpriteMesh() { return pBossSpriteMesh; }
+		AEGfxVertexList* GetBossWindupSpriteMesh() { return pBossWindup_SpriteMesh; }
+		AEGfxVertexList* GetBossAttackSpriteMesh() { return pBossAttack_SpriteMesh; }
+
 		// Player
 		AEGfxTexture* GetPlayerSpriteSheet() { return pPlayerSpriteSheet; }
 		AEGfxVertexList* GetPlayerSpriteMesh() { return pPlayerSpriteMesh; }
@@ -62,6 +71,26 @@ class Sprite
 			SetTextureV(0);
 		}
 
+		void SetEnemyAttackSingleFrame(int column, int rowIndex)
+		{
+			frame = column;
+			row = rowIndex;
+			frameUSize = 1.0f / 8.0f;
+			frameVSize = 1.0f / 7.0f;
+			SetTextureU();
+			SetTextureV(rowIndex);
+		}
+
+		void SetDasherAttackSingleFrame(int column, int rowIndex)
+		{
+			frame = column;
+			row = rowIndex;
+			frameUSize = 1.0f / 8.0f;
+			frameVSize = 1.0f / 7.0f;
+			SetTextureU();
+			SetTextureV(rowIndex);
+		}
+
 	private:
 		// Enemy Spritesheet
 		// Base
@@ -83,6 +112,16 @@ class Sprite
 
 		AEGfxTexture* pDasherAttack_SpriteSheet{ nullptr };
 		AEGfxVertexList* pDasherAttack_SpriteMesh{ nullptr };
+
+		// Boss
+		AEGfxTexture* pBossSpriteSheet{ nullptr };
+		AEGfxVertexList* pBossSpriteMesh{ nullptr };
+
+		AEGfxTexture* pBossWindup_SpriteSheet{ nullptr };
+		AEGfxVertexList* pBossWindup_SpriteMesh{ nullptr };
+
+		AEGfxTexture* pBossAttack_SpriteSheet{ nullptr };
+		AEGfxVertexList* pBossAttack_SpriteMesh{ nullptr };
 
 		// Player Spritesheet
 		AEGfxTexture* pPlayerSpriteSheet{ nullptr };

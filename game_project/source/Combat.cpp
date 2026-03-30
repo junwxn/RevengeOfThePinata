@@ -271,7 +271,7 @@ namespace Combat {
 		enemy.SetKnockbackVelocity(knockbackDir);
 
 		gAudio.PlayEnemySFX(ENEMY_VOCAL);
-		std::cout << "KNOCKBACK!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl;
+		//std::cout << "KNOCKBACK!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl;
 	}
 
 	void System::ApplyDamage(Player& player, Enemy& enemy) {
