@@ -138,6 +138,10 @@ public:
 protected:
     float sizeMultiplier{ 1.5f };
 
+    AEGfxTexture* m_BatTexture = nullptr;
+    AEGfxVertexList* m_BatMesh = nullptr;
+    void DrawBat(float angle);
+
     Sprite m_EnemySprite;
     AEGfxTexture* m_EnemySpriteSheet = nullptr;
     AEGfxTexture* m_EnemyWindupSpriteSheet = nullptr;

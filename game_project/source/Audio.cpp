@@ -164,6 +164,12 @@ void Audio::PlayFireworksSFX()
 		AEAudioPlay(fireworksSFX[soundID], audioGroup.fireworks, 1.0f, 1.0f, 0);
 }
 
+void Audio::PlayClickSFX()
+{
+		int soundID{ Vectors::get_random(0, 7) };
+		AEAudioPlay(enemyVocal_SFX[soundID], audioGroup.enemy, 1.0f, 1.0f, 0);
+}
+
 void Audio::SetBGMVolume(float v) {
 	BGMVolume = v;
 

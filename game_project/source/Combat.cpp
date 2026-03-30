@@ -250,6 +250,7 @@ namespace Combat {
 	//}
 
 	void System::ApplyBlockReaction_Enemy(Player& player, Enemy& enemy) {
+		std::cout << "CALLING APPLYBLOCKREACTION ENEMY" << std::endl;
 		player.SetPosition(player.GetX() - 5.0f, player.GetY()); // Knock defender back
 		player.DeductHealth(ComputeDamage(enemy, player));
 	}
