@@ -90,6 +90,7 @@ void Enemy::BaseUpdate(f32 dt, Combat::System& combat, Player& player) {
 
     EvaluateCurrentDirection();
     m_EnemySprite.Sprite_Update(dt);
+    m_DasherSprite.Sprite_Update(dt);
 
     if (!m_pMap || knockbackSpeed < 1.0f) {
         // No map or negligible knockback — just apply raw move
@@ -238,7 +239,7 @@ void Enemy::Draw() {
     bool isDashWindup = (m_CurrentState == EnemyState::STATE_DASH_WINDUP);
     bool isAnyWindup = (m_WindingUp || isDashWindup);
 
-    if (isAnyWindup && m_WindUpTimer < 0.2f && !isDashWindup) {
+    if (isAnyWindup && m_WindUpTimer < 0.35f && !isDashWindup) {
         // Flash red just before attacking (last 0.2s of wind-up)
         DrawTexture(m_EnemySprite, static_cast<int>(m_CurrentDirection),
             m_EnemySprite.GetEnemyAttackSpriteMesh(),
@@ -246,34 +247,35 @@ void Enemy::Draw() {
             m_EnemySprite.GetPixelScale(),
             m_EnemySprite.GetPixelScale(),
             m_pos.x, m_pos.y, 0.0f, sizeMultiplier);
-
-        DrawTexture(m_DasherSprite, static_cast<int>(m_CurrentDirection),
-            m_DasherSprite.GetEnemyAttackSpriteMesh(),
-            m_DasherSprite.GetEnemyAttackSpriteSheet(),
-            m_DasherSprite.GetPixelScale(),
-            m_DasherSprite.GetPixelScale(),
-            m_pos.x, m_pos.y, 0.0f, sizeMultiplier);
     }
-    else if (isAnyWindup) {
-        // Winding up — tint yellow to show charging
-        //DrawMesh(m_enemyMesh, m_size, isoHeight, m_pos.x, m_pos.y, 0.0f, 255, 200, 0, 255);
-        DrawTexture(m_EnemySprite, static_cast<int>(m_CurrentDirection),
-            m_EnemySprite.GetEnemyWindupSpriteMesh(),
-            m_EnemySprite.GetEnemyWindupSpriteSheet(),
-            m_EnemySprite.GetPixelScale(),
-            m_EnemySprite.GetPixelScale(),
-            m_pos.x, m_pos.y, 0.0f, sizeMultiplier);
+    //else if (isAnyWindup) {
+    //    // Winding up — tint yellow to show charging
+    //    //DrawMesh(m_enemyMesh, m_size, isoHeight, m_pos.x, m_pos.y, 0.0f, 255, 200, 0, 255);
+    //    DrawTexture(m_EnemySprite, static_cast<int>(m_CurrentDirection),
+    //        m_EnemySprite.GetEnemyWindupSpriteMesh(),
+    //        m_EnemySprite.GetEnemyWindupSpriteSheet(),
+    //        m_EnemySprite.GetPixelScale(),
+    //        m_EnemySprite.GetPixelScale(),
+    //        m_pos.x, m_pos.y, 0.0f, sizeMultiplier);
 
-        DrawTexture(m_DasherSprite, static_cast<int>(m_CurrentDirection),
-            m_DasherSprite.GetEnemyWindupSpriteMesh(),
-            m_DasherSprite.GetEnemyWindupSpriteSheet(),
-            m_DasherSprite.GetPixelScale(),
-            m_DasherSprite.GetPixelScale(),
-            m_pos.x, m_pos.y, 0.0f, sizeMultiplier);
-    }
-    else if (m_CombatFlags.parried) {
-        DrawMesh(m_enemyMesh, m_size, isoHeight, m_pos.x, m_pos.y, 0.0f, 255, 0, 0, 255);
+    //    DrawTexture(m_DasherSprite, static_cast<int>(m_CurrentDirection),
+    //        m_DasherSprite.GetEnemyWindupSpriteMesh(),
+    //        m_DasherSprite.GetEnemyWindupSpriteSheet(),
+    //        m_DasherSprite.GetPixelScale(),
+    //        m_DasherSprite.GetPixelScale(),
+    //        m_pos.x, m_pos.y, 0.0f, sizeMultiplier);
+    //}
+    else if (m_CombatFlags.parried || m_CombatFlags.gotHit) {
         //DrawMesh(m_enemyMesh, m_size, isoHeight, m_pos.x, m_pos.y, 0.0f, 255, 0, 0, 255);
+        //DrawMesh(m_enemyMesh, m_size, isoHeight, m_pos.x, m_pos.y, 0.0f, 255, 0, 0, 255);
+        m_EnemySprite.SetEnemyAttackSingleFrame(0, 6);
+
+        DrawTexture(m_EnemySprite,
+            m_EnemySprite.GetEnemyAttackSpriteMesh(),
+            m_EnemySprite.GetEnemyAttackSpriteSheet(),
+            m_EnemySprite.GetPixelScale(),
+            m_EnemySprite.GetPixelScale(),
+            m_pos.x, m_pos.y, 0.0f, sizeMultiplier);
     }
     else {
         //DrawMesh(m_enemyMesh, m_size, isoHeight, m_pos.x, m_pos.y, 0.0f, 44, 255, 255, 255);
@@ -915,7 +917,7 @@ void Dasher::Draw()
     // -------------------------
     // Dasher-specific sprites
     // -------------------------
-    if (isAnyWindup && m_WindUpTimer < 0.2f && !isDashWindup) {
+    if (isAnyWindup && m_WindUpTimer < 0.35f && !isDashWindup) {
         DrawTexture(m_DasherSprite, static_cast<int>(m_CurrentDirection),
             m_DasherSprite.GetDasherAttackSpriteMesh(),
             m_DasherSprite.GetDasherAttackSpriteSheet(),
@@ -923,16 +925,24 @@ void Dasher::Draw()
             m_DasherSprite.GetPixelScale(),
             m_pos.x, m_pos.y, 0.0f, sizeMultiplier);
     }
-    else if (isAnyWindup) {
-        DrawTexture(m_DasherSprite, static_cast<int>(m_CurrentDirection),
-            m_DasherSprite.GetDasherWindupSpriteMesh(),
-            m_DasherSprite.GetDasherWindupSpriteSheet(),
+    //else if (isAnyWindup) {
+    //    DrawTexture(m_DasherSprite, static_cast<int>(m_CurrentDirection),
+    //        m_DasherSprite.GetDasherWindupSpriteMesh(),
+    //        m_DasherSprite.GetDasherWindupSpriteSheet(),
+    //        m_DasherSprite.GetPixelScale(),
+    //        m_DasherSprite.GetPixelScale(),
+    //        m_pos.x, m_pos.y, 0.0f, sizeMultiplier);
+    //}
+    else if (m_CombatFlags.parried || m_CombatFlags.gotHit) {
+        //DrawMesh(m_enemyMesh, m_size, isoHeight, m_pos.x, m_pos.y, 0.0f, 255, 0, 0, 255);
+        m_DasherSprite.SetDasherAttackSingleFrame(0, 6);
+
+        DrawTexture(m_DasherSprite,
+            m_DasherSprite.GetDasherAttackSpriteMesh(),
+            m_DasherSprite.GetDasherAttackSpriteSheet(),
             m_DasherSprite.GetPixelScale(),
             m_DasherSprite.GetPixelScale(),
             m_pos.x, m_pos.y, 0.0f, sizeMultiplier);
-    }
-    else if (m_CombatFlags.parried) {
-        DrawMesh(m_enemyMesh, m_size, isoHeight, m_pos.x, m_pos.y, 0.0f, 255, 0, 0, 255);
     }
     else {
         DrawTexture(m_DasherSprite, static_cast<int>(m_CurrentDirection),

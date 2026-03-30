@@ -9,9 +9,19 @@ namespace
     TransitionPhase g_TransitionPhase = TransitionPhase::TRANSITION_NONE;
     int g_PendingState = GS_NONE;
 
-    AEGfxVertexList* g_TransitionMesh = nullptr;
     AEGfxVertexList* g_BlackBackgroundMesh = nullptr;
+
+    AEGfxVertexList* g_TransitionMesh = nullptr;
+    AEGfxVertexList* g_Transition_Level1_Mesh = nullptr;
+    AEGfxVertexList* g_Transition_Level2_Mesh = nullptr;
+
     AEGfxTexture* g_TransitionSpriteSheet = nullptr;
+    AEGfxTexture* g_Transition_Level1_SpriteSheet = nullptr;
+    AEGfxTexture* g_Transition_Level2_SpriteSheet = nullptr;
+
+    TransitionSheet g_CurrentTransitionSheet = TransitionSheet::DEFAULT;
+    AEGfxTexture* g_ActiveTransitionSpriteSheet = nullptr;
+    AEGfxVertexList* g_ActiveTransitionMesh = nullptr;
 
     int g_CurrentFrame = 0;
     float g_FrameTimer = 0.0f;
@@ -23,6 +33,38 @@ namespace
     float g_V0 = 0.0f;
 
     bool g_SwitchReady = false;
+}
+
+static void Transition_SetSheet(TransitionSheet sheet)
+{
+    g_CurrentTransitionSheet = sheet;
+
+    switch (sheet)
+    {
+    case TransitionSheet::LEVEL1:
+        g_ActiveTransitionSpriteSheet = g_Transition_Level1_SpriteSheet;
+        g_ActiveTransitionMesh = g_Transition_Level1_Mesh;
+        break;
+
+    case TransitionSheet::LEVEL2:
+        g_ActiveTransitionSpriteSheet = g_Transition_Level2_SpriteSheet;
+        g_ActiveTransitionMesh = g_Transition_Level2_Mesh;
+        break;
+
+    case TransitionSheet::DEFAULT:
+    default:
+        g_ActiveTransitionSpriteSheet = g_TransitionSpriteSheet;
+        g_ActiveTransitionMesh = g_TransitionMesh;
+        break;
+    }
+
+    // Safety fallback
+    if (!g_ActiveTransitionSpriteSheet || !g_ActiveTransitionMesh)
+    {
+        g_ActiveTransitionSpriteSheet = g_TransitionSpriteSheet;
+        g_ActiveTransitionMesh = g_TransitionMesh;
+        g_CurrentTransitionSheet = TransitionSheet::DEFAULT;
+    }
 }
 
 void Transition_Init()
@@ -38,6 +80,7 @@ void Transition_Init()
     g_U0 = 0.0f;
     g_V0 = 0.0f;
 
+    // DEFAULT TRANSITION
     if (g_TransitionSpriteSheet)
     {
         AEGfxTextureUnload(g_TransitionSpriteSheet);
@@ -45,10 +88,9 @@ void Transition_Init()
     }
 
     g_TransitionSpriteSheet = AEGfxTextureLoad("Assets/Sprites/Pinata_Transition_SpritesheetTEST2.png");
-    //g_TransitionSpriteSheet = AEGfxTextureLoad("Assets/Sprites/Pinata_Transition_SpritesheetTEST.png");
     if (!g_TransitionSpriteSheet)
     {
-        std::cout << "ERROR LOADING TRANSITION SPRITESHEET" << std::endl;
+        std::cout << "ERROR LOADING DEFAULT TRANSITION SPRITESHEET" << std::endl;
         return;
     }
 
@@ -58,28 +100,82 @@ void Transition_Init()
         g_TransitionMesh = nullptr;
     }
 
+    // LEVEL 1 TRANSITION
+    if (g_Transition_Level1_SpriteSheet)
+    {
+        AEGfxTextureUnload(g_Transition_Level1_SpriteSheet);
+        g_Transition_Level1_SpriteSheet = nullptr;
+    }
+
+    g_Transition_Level1_SpriteSheet = AEGfxTextureLoad("Assets/Sprites/Pinata_Transition_Spritesheet_Level1.png");
+    if (!g_Transition_Level1_SpriteSheet)
+    {
+        std::cout << "ERROR LOADING LEVEL1 TRANSITION SPRITESHEET" << std::endl;
+    }
+
+    if (g_Transition_Level1_Mesh)
+    {
+        AEGfxMeshFree(g_Transition_Level1_Mesh);
+        g_Transition_Level1_Mesh = nullptr;
+    }
+
+    // LEVEL 2 TRANSITION
+    if (g_Transition_Level2_SpriteSheet)
+    {
+        AEGfxTextureUnload(g_Transition_Level2_SpriteSheet);
+        g_Transition_Level2_SpriteSheet = nullptr;
+    }
+
+    g_Transition_Level2_SpriteSheet = AEGfxTextureLoad("Assets/Sprites/Pinata_Transition_Spritesheet_Level2.png");
+    if (!g_Transition_Level2_SpriteSheet)
+    {
+        std::cout << "ERROR LOADING LEVEL2 TRANSITION SPRITESHEET" << std::endl;
+    }
+
+    if (g_Transition_Level2_Mesh)
+    {
+        AEGfxMeshFree(g_Transition_Level2_Mesh);
+        g_Transition_Level2_Mesh = nullptr;
+    }
+
+    // BLACK BACKGROUND
     if (g_BlackBackgroundMesh)
     {
         AEGfxMeshFree(g_BlackBackgroundMesh);
         g_BlackBackgroundMesh = nullptr;
     }
 
-    // White mesh for textured transition sheet
+    // Create meshes
     g_TransitionMesh = CreateSpriteRectMesh(0xFFFFFFFF, 8.0f, 1.0f);
+    g_Transition_Level1_Mesh = CreateSpriteRectMesh(0xFFFFFFFF, 8.0f, 1.0f);
+    g_Transition_Level2_Mesh = CreateSpriteRectMesh(0xFFFFFFFF, 8.0f, 1.0f);
 
     AEGfxMeshStart();
 
     AEGfxTriAdd(
-        -0.5f, 0.5f, 0x00000000, 0.0f, 0.0f,
-        -0.5f, -0.5f, 0x00000000, 0.0f, 1.0f,
-        0.5f, -0.5f, 0x00000000, 1.0f, 1.0f);
+        -0.5f, 0.5f, 0xFFFFFFFF, 0.0f, 0.0f,
+        -0.5f, -0.5f, 0xFFFFFFFF, 0.0f, 1.0f,
+        0.5f, -0.5f, 0xFFFFFFFF, 1.0f, 1.0f);
 
     AEGfxTriAdd(
-        -0.5f, 0.5f, 0x00000000, 0.0f, 0.0f,
-        0.5f, -0.5f, 0x00000000, 1.0f, 1.0f,
-        0.5f, 0.5f, 0x00000000, 1.0f, 0.0f);
+        -0.5f, 0.5f, 0xFFFFFFFF, 0.0f, 0.0f,
+        0.5f, -0.5f, 0xFFFFFFFF, 1.0f, 1.0f,
+        0.5f, 0.5f, 0xFFFFFFFF, 1.0f, 0.0f);
+
+    //AEGfxTriAdd(
+    //    -0.5f, 0.5f, 0x5CDF53FF, 0.0f, 0.0f,
+    //    -0.5f, -0.5f, 0x5CDF53FF, 0.0f, 1.0f,
+    //    0.5f, -0.5f, 0x5CDF53FF, 1.0f, 1.0f);
+
+    //AEGfxTriAdd(
+    //    -0.5f, 0.5f, 0x5CDF53FF, 0.0f, 0.0f,
+    //    0.5f, -0.5f, 0x5CDF53FF, 1.0f, 1.0f,
+    //    0.5f, 0.5f, 0x5CDF53FF, 1.0f, 0.0f);
 
     g_BlackBackgroundMesh = AEGfxMeshEnd();
+
+    // Default active transition must be set AFTER meshes/textures are ready
+    Transition_SetSheet(TransitionSheet::DEFAULT);
 }
 
 void Transition_Free()
@@ -88,14 +184,36 @@ void Transition_Free()
         AEGfxMeshFree(g_TransitionMesh);
         g_TransitionMesh = nullptr;
     }
+    if (g_Transition_Level1_Mesh) {
+        AEGfxMeshFree(g_Transition_Level1_Mesh);
+        g_Transition_Level1_Mesh = nullptr;
+    }
+    if (g_Transition_Level2_Mesh) {
+        AEGfxMeshFree(g_Transition_Level2_Mesh);
+        g_Transition_Level2_Mesh = nullptr;
+    }
+
     if (g_BlackBackgroundMesh) {
         AEGfxMeshFree(g_BlackBackgroundMesh);
         g_BlackBackgroundMesh = nullptr;
     }
+
     if (g_TransitionSpriteSheet) {
         AEGfxTextureUnload(g_TransitionSpriteSheet);
         g_TransitionSpriteSheet = nullptr;
     }
+    if (g_Transition_Level1_SpriteSheet) {
+        AEGfxTextureUnload(g_Transition_Level1_SpriteSheet);
+        g_Transition_Level1_SpriteSheet = nullptr;
+    }
+    if (g_Transition_Level2_SpriteSheet) {
+        AEGfxTextureUnload(g_Transition_Level2_SpriteSheet);
+        g_Transition_Level2_SpriteSheet = nullptr;
+    }
+
+    g_ActiveTransitionSpriteSheet = nullptr;
+    g_ActiveTransitionMesh = nullptr;
+    g_CurrentTransitionSheet = TransitionSheet::DEFAULT;
 }
 
 void Transition_StartImmediate(GS_STATES nextState)
@@ -112,10 +230,18 @@ void Transition_StartImmediate(GS_STATES nextState)
 
 void Transition_Start(GS_STATES nextState)
 {
-    std::cout << "Transition_Start called -> " << nextState << std::endl;
+    Transition_Start(nextState, TransitionSheet::DEFAULT);
+}
+
+void Transition_Start(GS_STATES nextState, TransitionSheet sheet)
+{
+    std::cout << "Transition_Start called -> " << nextState
+        << " | sheet -> " << static_cast<int>(sheet) << std::endl;
 
     if (g_TransitionPhase != TransitionPhase::TRANSITION_NONE)
         return;
+
+    Transition_SetSheet(sheet);
 
     g_PendingState = nextState;
     g_TransitionPhase = TransitionPhase::TRANSITION_OUT;
@@ -202,6 +328,9 @@ void Transition_Reset()
 
     g_U0 = 0.0f;
     g_V0 = 0.0f;
+
+    // Reset back to default once transition is done
+    Transition_SetSheet(TransitionSheet::DEFAULT);
 }
 
 bool Transition_IsActive()
@@ -219,7 +348,7 @@ void Transition_Draw()
     if (g_TransitionPhase == TransitionPhase::TRANSITION_NONE)
         return;
 
-    if (!g_TransitionMesh || !g_TransitionSpriteSheet || !g_BlackBackgroundMesh)
+    if (!g_ActiveTransitionMesh || !g_ActiveTransitionSpriteSheet || !g_BlackBackgroundMesh)
         return;
 
     AEMtx33 scale{};
@@ -233,25 +362,41 @@ void Transition_Draw()
     AEMtx33Trans(&trans, 0.0f, 0.0f);
     AEMtx33Concat(&final, &trans, &scale);
 
-    // 1) Draw solid black background
+    // 1) Draw colored background
     AEGfxSetRenderMode(AE_GFX_RM_COLOR);
-    AEGfxSetColorToMultiply(1, 1, 1, 1);
-    AEGfxSetColorToAdd(0, 0, 0, 0);
+
+    switch (g_CurrentTransitionSheet)
+    {
+    case TransitionSheet::LEVEL1:
+        AEGfxSetColorToMultiply(0.63f, 0.29f, 0.81f, 1.0f);
+        break;
+
+    case TransitionSheet::LEVEL2:
+        AEGfxSetColorToMultiply(0.93f, 0.48f, 0.10f, 1.0f);
+        break;
+
+    case TransitionSheet::DEFAULT:
+    default:
+        AEGfxSetColorToMultiply(0.36f, 0.87f, 0.33f, 1.0f);
+        break;
+    }
+
+    AEGfxSetColorToAdd(0.0f, 0.0f, 0.0f, 0.0f);
     AEGfxSetBlendMode(AE_GFX_BM_NONE);
     AEGfxSetTransparency(1.0f);
     AEGfxSetTransform(final.m);
     AEGfxMeshDraw(g_BlackBackgroundMesh, AE_GFX_MDM_TRIANGLES);
 
-    // 2) Draw the transition texture on top
+    // Draw selected transition sheet
     AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
-    AEGfxSetColorToMultiply(1, 1, 1, 1);
-    AEGfxSetColorToAdd(0, 0, 0, 0);
+    AEGfxSetColorToMultiply(1.0f, 1.0f, 1.0f, 1.0f);
+    AEGfxSetColorToAdd(0.0f, 0.0f, 0.0f, 0.0f);
     AEGfxSetBlendMode(AE_GFX_BM_BLEND);
     AEGfxSetTransparency(1.0f);
 
-    AEGfxTextureSet(g_TransitionSpriteSheet, g_U0, g_V0);
+    AEGfxTextureSet(g_ActiveTransitionSpriteSheet, g_U0, g_V0);
     AEGfxSetTransform(final.m);
-    AEGfxMeshDraw(g_TransitionMesh, AE_GFX_MDM_TRIANGLES);
+    AEGfxMeshDraw(g_ActiveTransitionMesh, AE_GFX_MDM_TRIANGLES);
 
     AEGfxSetTransparency(1.0f);
     AEGfxSetBlendMode(AE_GFX_BM_NONE);

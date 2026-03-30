@@ -108,7 +108,23 @@ void HUD_Draw(const Player* player, float camX, float camY) {
 
 		if (i < charges) {
 			// Filled — gold
-			drawHUD(boxSize, boxSize, bx, by, 0, 220, 180, 40, 240);
+			drawHUD(boxSize, boxSize, bx, by, 0, 255, 230, 50, 240);
+		}
+		else if (i == charges && charges < maxCharges) {
+			// Recharging — same style as dash
+			float rechargeTime = player->GetAttackChargeTime();
+			float rechargeTimer = player->GetAttackChargeTimer();
+			float progress = (rechargeTime > 0.0f) ? (rechargeTimer / rechargeTime) : 0.0f;
+			if (progress < 0.0f) progress = 0.0f;
+			if (progress > 1.0f) progress = 1.0f;
+
+			// Dark background
+			drawHUD(boxSize, boxSize, bx, by, 0, 35, 30, 25, 200);
+
+			// Fill from bottom
+			float fillH = boxSize * progress;
+			if (fillH > 0.0f)
+				drawHUD(boxSize, fillH, bx, by - (boxSize - fillH) * 0.5f, 0, 220, 140, 30, 220);
 		}
 		else {
 			// Empty — dark

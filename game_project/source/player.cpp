@@ -139,6 +139,8 @@ void Player::Update(float dt, Combat::System& combat, std::vector<std::unique_pt
 
 
     if (AEInputCheckTriggered(AEVK_C)) GainAttackCharge();
+    if(m_AttackCharges < m_MaxAttackCharge) AutoAttackCharge(dt);
+
     // Toggle player attack on / off
     if (AEInputCheckTriggered(AEVK_TAB)) {
         m_AllowAttack = !m_AllowAttack;
@@ -257,6 +259,10 @@ void Player::Update(float dt, Combat::System& combat, std::vector<std::unique_pt
             {
                 m_CombatFlags.attackQueued = true;
                 --m_AttackCharges;
+                if (m_AttackCharges < m_MaxAttackCharge && m_AttackChargeTimer <= 0.0f)
+                {
+                    m_AttackChargeTimer = 0.0f;
+                }
                 m_AttackChainIterator++;
             }
         }
@@ -327,6 +333,10 @@ void Player::Update(float dt, Combat::System& combat, std::vector<std::unique_pt
             {
                 m_CombatFlags.attackQueued = true;
                 --m_AttackCharges;
+                if (m_AttackCharges < m_MaxAttackCharge && m_AttackChargeTimer <= 0.0f)
+                {
+                    m_AttackChargeTimer = 0.0f;
+                }
                 m_AttackChainIterator++;
             }
         }
@@ -343,6 +353,10 @@ void Player::Update(float dt, Combat::System& combat, std::vector<std::unique_pt
             if (m_AttackState.recovered)
             {
                 --m_AttackCharges;
+                if (m_AttackCharges < m_MaxAttackCharge && m_AttackChargeTimer <= 0.0f)
+                {
+                    m_AttackChargeTimer = 0.0f;
+                }
                 //std::cout << "REACHED" << std::endl;
                 ResetCombatVariables();
                 //if (m_CombatFlags.attackQueued) StartAttack(m_AttackChain[m_AttackChainIterator]);
