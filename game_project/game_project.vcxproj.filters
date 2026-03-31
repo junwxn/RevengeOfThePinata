@@ -126,6 +126,9 @@
 		<ClCompile Include="source\Shadow.cpp">
 			<Filter>Source Files</Filter>
 		</ClCompile>
+		<ClCompile Include="source\SaveSystem.cpp">
+			<Filter>Source Files</Filter>
+		</ClCompile>
 	</ItemGroup>
 
 	<ItemGroup>
@@ -245,6 +248,9 @@
 			<Filter>Header Files</Filter>
 		</ClInclude>
 		<ClInclude Include="source\Shadow.h">
+			<Filter>Header Files</Filter>
+		</ClInclude>
+		<ClInclude Include="source\SaveSystem.h">
 			<Filter>Header Files</Filter>
 		</ClInclude>
 	</ItemGroup>
