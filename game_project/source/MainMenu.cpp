@@ -1,3 +1,13 @@
+/*************************************************************************
+@file		MainMenu.cpp
+@Author		Chiu Jun Wen j.chiu@digipen.edu
+@Co-authors	nil
+@brief		This file contains the function definitions for managing the
+			main menu, including its initialization, updating, and rendering.
+
+Copyright © 2026 DigiPen, All rights reserved.
+*************************************************************************/
+
 #include "pch.h"
 #include "MainMenu.h"
 #include "GameStateManager.h"

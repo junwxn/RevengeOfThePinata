@@ -1,3 +1,14 @@
+/*************************************************************************
+@file		HUD.cpp
+@Author		Chiu Jun Wen j.chiu@digipen.edu
+@Co-authors	nil
+@brief		This file contains the function definitions for managing the
+			head-up display (HUD), including its initialization, updating,
+			and rendering.
+
+Copyright © 2026 DigiPen, All rights reserved.
+*************************************************************************/
+
 #include "pch.h"
 #include "HUD.h"
 #include "Player.h"

@@ -1,3 +1,12 @@
+/*************************************************************************
+@file		Map.h
+@Author		Chiu Jun Wen j.chiu@digipen.edu
+@Co-authors	nil
+@brief		This file contains the function declarations for the map system,
+            including its initialization, drawing, and collision handling.
+
+Copyright © 2026 DigiPen, All rights reserved.
+*************************************************************************/
 #pragma once
 #include "TMXLoader/TMXLoader.h"
 #include "AEEngine.h"

@@ -1,3 +1,12 @@
+/*************************************************************************
+@file		AugmentData.h
+@Author		Chiu Jun Wen j.chiu@digipen.edu
+@Co-authors	nil
+@brief		This file contains the definitions for augment data,
+            including their IDs, sets, states, and information.
+
+Copyright © 2026 DigiPen, All rights reserved.
+*************************************************************************/
 #pragma once
 
 enum class AugmentID {
