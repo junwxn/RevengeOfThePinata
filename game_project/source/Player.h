@@ -160,13 +160,13 @@ public:
     void EvaluateCurrentDirection();
 
 private:
-    float sizeMultiplier{ 2.0f };
+    float m_sizeMultiplier{ 2.0f };
     Sprite m_PlayerSprite;
     AEGfxTexture* m_PlayerSpriteSheet = nullptr;
     AEGfxTexture* m_PlayerCombatSpriteSheet = nullptr;
     PlayerDirection m_CurrentDirection;
 
-    Combat::System combatSystem;
+    Combat::System m_combatSystem;
 
 
     // Position & Stats
@@ -186,6 +186,9 @@ private:
     AEGfxVertexList* m_pMesh = nullptr;
     AEGfxVertexList* m_playerHealthBarMesh{ nullptr };
     AEGfxVertexList* m_DashParticleMesh = nullptr;
+
+    AEGfxVertexList* m_SeeingRedMesh{ nullptr };
+    AEGfxTexture* m_SeeingRedTexture{ nullptr };
 
     // -------------------------- //
     //      COMBAT VARIABLES      //
@@ -405,5 +408,5 @@ private:
     bool m_InputCanBlock  = true;
 
     // Augments
-    bool preventing_movement;
+    bool m_preventing_movement;
 };

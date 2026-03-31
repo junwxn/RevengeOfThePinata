@@ -142,32 +142,32 @@ namespace Combat {
             //f32 GetDistMagPE() const { return s_DistMagPE; }
             //AEVec2 GetVectorNormalizedPE() const { return s_VectorNormalizedPE; }
             //f32 GetDotProduct() const { return s_DotProduct; }
-            int const GetAttackerStopFrames() const { return attackerStopFrames; };
-            int const GetDefenderStopFrames() const { return defenderStopFrames; };
-            int const GetParryStopFrames() const { return parryStopFrames; };
+            int const GetAttackerStopFrames() const { return m_attackerStopFrames; };
+            int const GetDefenderStopFrames() const { return m_defenderStopFrames; };
+            int const GetParryStopFrames() const { return m_parryStopFrames; };
 
         private:
             bool m_InRange { false };
             bool m_InCone{ false };
 
-            float stunFrameAccumulator{};
-            int stunCurrentFrame{};
-            int stunRecoveryFrames{ 120 };
-            Combat::CombatData::StunData stunFrames{ stunRecoveryFrames };
-            
-            f32 stunDuration{ 2.0f };
+            float m_stunFrameAccumulator{};
+            int m_stunCurrentFrame{};
+            int m_stunRecoveryFrames{ 120 };
+            Combat::CombatData::StunData m_stunFrames{ m_stunRecoveryFrames };
 
-            int attackerStopFrames{ 4 };
+            f32 m_stunDuration{ 2.0f };
 
-            f32 parryFrameAccumulator{};
-            int parryCurrentFrame{};
-            int parryStopFrames{ 4 };
+            int m_attackerStopFrames{ 4 };
 
-            f32 defenderFrameAccumulator{};
-            int defenderCurrentFrame{};
-            int defenderStopFrames{ 10 };
+            f32 m_parryFrameAccumulator{};
+            int m_parryCurrentFrame{};
+            int m_parryStopFrames{ 4 };
 
-            CombatOutcome outcome{ CombatOutcome::OUTCOME_NONE };
+            f32 m_defenderFrameAccumulator{};
+            int m_defenderCurrentFrame{};
+            int m_defenderStopFrames{ 10 };
+
+            CombatOutcome m_outcome{ CombatOutcome::OUTCOME_NONE };
             static double const ONE_FRAME;
     };
 }

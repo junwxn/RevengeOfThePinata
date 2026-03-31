@@ -1,3 +1,13 @@
+/*************************************************************************
+@file		Tutorial.cpp
+@Author		Chiu Jun Wen j.chiu@digipen.edu
+@Co-authors	nil
+@brief		This file contains the function definitions for managing the
+			tutorial, including its initialization, updating, and rendering.
+
+Copyright © 2026 DigiPen, All rights reserved.
+*************************************************************************/
+
 #include "pch.h"
 #include "Utils.h"
 #include "Player.h"
@@ -608,5 +618,5 @@ void Tutorial_Unload() {
 	gameMap.Unload();
 	Pause_Unload();
 	HUD_Unload();
-	AEAudioStopGroup(gAudio.audioGroup.BGM);
+	AEAudioStopGroup(gAudio.m_audioGroup.BGM);
 }

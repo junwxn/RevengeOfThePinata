@@ -1,3 +1,14 @@
+/*************************************************************************
+@file		Debug.cpp
+@Author		Chiu Jun Wen j.chiu@digipen.edu
+@Co-authors	nil
+@brief		This file contains the function definitions for managing debug
+            features, including their initialization, updating, rendering,
+            and toggling between different debug views.
+
+Copyright © 2026 DigiPen, All rights reserved.
+*************************************************************************/
+
 #include "pch.h"
 #include "Debug.h"
 #include "Player.h"

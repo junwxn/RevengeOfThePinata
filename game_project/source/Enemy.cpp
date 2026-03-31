@@ -53,6 +53,7 @@ Enemy::~Enemy() {
         m_markMesh = nullptr;
     }
 
+    // Weapon
     if (m_BatMesh) {
         AEGfxMeshFree(m_BatMesh);
         m_BatMesh = nullptr;
@@ -60,6 +61,16 @@ Enemy::~Enemy() {
     if (m_BatTexture) {
         AEGfxTextureUnload(m_BatTexture);
         m_BatTexture = nullptr;
+    }
+
+    // Detonate Mark
+    if (m_DetonateMesh) {
+        AEGfxMeshFree(m_DetonateMesh);
+        m_DetonateMesh = nullptr;
+    }
+    if (m_DetonateTexture) {
+        AEGfxTextureUnload(m_DetonateTexture);
+        m_DetonateTexture = nullptr;
     }
 }
 
@@ -89,6 +100,11 @@ void Enemy::Init() {
     if (m_BatTexture) { AEGfxTextureUnload(m_BatTexture); m_BatTexture = nullptr; }
     m_BatMesh = CreateBatMesh(0xFFFFFFFF);
     m_BatTexture = AEGfxTextureLoad("Assets/Sprites/BatBat.png");
+
+    if (m_DetonateMesh) { AEGfxMeshFree(m_DetonateMesh); m_DetonateMesh = nullptr; }
+    if (m_DetonateTexture) { AEGfxTextureUnload(m_DetonateTexture); m_DetonateTexture = nullptr; }
+    m_DetonateMesh = CreateSpriteRectMesh(0xFFFFFFFF, 8.0f, 2.0f);
+    m_DetonateTexture = AEGfxTextureLoad("Assets/Sprites/Detonate_Spritesheet.png");
 }
 
 void Enemy::BaseUpdate(f32 dt, Combat::System& combat, Player& player) {
@@ -265,6 +281,41 @@ void Enemy::DrawBat(float angle)
     AEGfxMeshDraw(m_BatMesh, AE_GFX_MDM_TRIANGLES);
 }
 
+static void DrawDetonateSprite(AEGfxVertexList* mesh, AEGfxTexture* texture,
+    float x, float y, float size,
+    float timer, float totalDuration, int row)
+{
+    if (!mesh || !texture) return;
+
+    float progress = 1.0f - (timer / totalDuration);
+    progress = AEClamp(progress, 0.0f, 1.0f);
+
+    int frame = static_cast<int>(progress * 7.0f);
+    if (frame < 0) frame = 0;
+    if (frame > 7) frame = 7;
+
+    float u = frame * (1.0f / 8.0f);
+    float v = row * (1.0f / 2.0f);
+
+    AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
+    AEGfxSetColorToMultiply(1.0f, 1.0f, 1.0f, 1.0f);
+    AEGfxSetColorToAdd(0.0f, 0.0f, 0.0f, 0.0f);
+    AEGfxSetBlendMode(AE_GFX_BM_BLEND);
+    AEGfxSetTransparency(1.0f);
+    AEGfxTextureSet(texture, u, v);
+
+    AEMtx33 scale, rot, trans, final;
+    AEMtx33Scale(&scale, size, size);
+    AEMtx33Rot(&rot, 0.0f);
+    AEMtx33Trans(&trans, x, y);
+
+    AEMtx33Concat(&final, &rot, &scale);
+    AEMtx33Concat(&final, &trans, &final);
+
+    AEGfxSetTransform(final.m);
+    AEGfxMeshDraw(mesh, AE_GFX_MDM_TRIANGLES);
+}
+
 void Enemy::Draw() {
     f32 dt = (f32)AEFrameRateControllerGetFrameTime();
 
@@ -355,20 +406,53 @@ void Enemy::Draw() {
     DrawMesh(m_enemyHealthBarMesh, barWidth, barHeight, m_pos.x - m_size, m_pos.y + m_size + barHeight / 2.0f + 25.0f, 0.0f, 210, 70, 75, 255); // Instant bar
 
     // Damaging Mark: draw dagger above marked/detonating enemies
-    if (m_marked && !m_markDetonating && m_markMesh) {
-        // Hovering dagger with gentle bob
-        float bobOffset = sinf(m_markTimer * 5.0f) * 4.0f;
-        float daggerY = m_pos.y + m_size + 40.0f + bobOffset;
-        DrawMesh(m_markMesh, 14.0f, 20.0f, m_pos.x, daggerY, 0.0f, 255, 255, 255, 255);
-    }
-    else if (m_markDetonating && m_markMesh) {
-        // Dagger drops from hover position down to enemy
-        float t = m_markDetonateTimer / 0.3f; // 1.0 = top, 0.0 = enemy
-        float hoverY = m_pos.y + m_size + 40.0f;
-        float daggerY = m_pos.y + (hoverY - m_pos.y) * t;
-        DrawMesh(m_markMesh, 14.0f, 20.0f, m_pos.x, daggerY, 0.0f, 255, 80, 80, 255);
+    //if (m_marked && !m_markDetonating && m_markMesh) {
+    //    // Hovering dagger with gentle bob
+    //    float bobOffset = sinf(m_markTimer * 5.0f) * 4.0f;
+    //    float daggerY = m_pos.y + m_size + 40.0f + bobOffset;
+    //    DrawMesh(m_markMesh, 14.0f, 20.0f, m_pos.x, daggerY, 0.0f, 255, 255, 255, 255);
+    //}
+    //else if (m_markDetonating && m_markMesh) {
+    //    // Dagger drops from hover position down to enemy
+    //    float t = m_markDetonateTimer / 0.3f; // 1.0 = top, 0.0 = enemy
+    //    float hoverY = m_pos.y + m_size + 40.0f;
+    //    float daggerY = m_pos.y + (hoverY - m_pos.y) * t;
+    //    DrawMesh(m_markMesh, 14.0f, 20.0f, m_pos.x, daggerY, 0.0f, 255, 80, 80, 255);
+    //}
+
+    // Damaging Mark visual
+    if (m_marked) {
+        if (!m_markDetonating) {
+            // Hovering bomb sprite with gentle bob
+            float bobOffset = sinf(m_markTimer * 5.0f) * 4.0f;
+            float detonateY = m_pos.y + m_size + 40.0f + bobOffset;
+
+            DrawDetonateSprite(
+                m_DetonateMesh,
+                m_DetonateTexture,
+                m_pos.x,
+                detonateY,
+                55.0f,
+                m_markTimer,
+                3.0f,
+                0   // first row = bomb
+            );
+        }
+        else {
+            DrawDetonateSprite(
+                m_DetonateMesh,
+                m_DetonateTexture,
+                m_pos.x,
+                m_pos.y + 15.0f,
+                95.0f,
+                m_markDetonateTimer,
+                0.3f,
+                1   // second row = explosion
+            );
+        }
     }
 
+    
 
     // ENEMY SPRITE DRAWING
     //DrawTexture(m_EnemySprite, static_cast<int>(m_CurrentDirection), m_EnemySprite.GetSpriteMesh(), m_EnemySprite.GetSpriteSheet(), m_EnemySprite.GetPixelScale(),
@@ -1002,7 +1086,7 @@ void Dasher::Draw()
                 m_DasherSprite.GetDasherWindupSpriteSheet(),
                 m_DasherSprite.GetPixelScale(),
                 m_DasherSprite.GetPixelScale(),
-                m_pos.x, m_pos.y, 0.0f, sizeMultiplier);
+                m_pos.x, m_pos.y, 0.0f, m_sizeMultiplier);
     }
 
     // Enemy sword

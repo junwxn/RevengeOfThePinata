@@ -1,3 +1,13 @@
+/*************************************************************************
+@file		Utils.cpp
+@Author		Chiu Jun Wen j.chiu@digipen.edu
+@Co-authors	nil
+@brief		This file contains utility function definitions for various
+            operations, including math, geometry, and mesh creation.
+
+Copyright © 2026 DigiPen, All rights reserved.
+*************************************************************************/
+
 #include "pch.h"
 
 #include "Utils.h"

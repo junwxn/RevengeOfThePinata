@@ -1,3 +1,12 @@
+/*************************************************************************
+@file		Main.cpp
+@Author		Chiu Jun Wen j.chiu@digipen.edu
+@Co-authors	nil
+@brief		This file contains the entry point and main loop for the game,
+            including initialization, updating, rendering, and cleanup.
+
+Copyright © 2026 DigiPen, All rights reserved.
+*************************************************************************/
 #include "pch.h"
 #include "Audio.h"
 #include "GameStateManager.h"

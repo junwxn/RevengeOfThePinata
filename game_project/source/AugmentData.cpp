@@ -1,3 +1,13 @@
+/*************************************************************************
+@file		AugmentData.cpp
+@Author		Chiu Jun Wen j.chiu@digipen.edu
+@Co-authors	nil
+@brief		This file contains the implementation of augment-related data
+            structures and functions, including the global augment state
+            and a function to retrieve information about each augment.
+
+Copyright © 2026 DigiPen, All rights reserved.
+*************************************************************************/
 #include "pch.h"
 #include "AugmentData.h"
 

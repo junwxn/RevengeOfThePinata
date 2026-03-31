@@ -121,6 +121,9 @@ public:
     bool  m_markDetonating = false;
     AEGfxVertexList* m_markMesh{ nullptr };
 
+    AEGfxVertexList* m_DetonateMesh{ nullptr };
+    AEGfxTexture* m_DetonateTexture{ nullptr };
+
     // Augment: Amplified Damage
     bool m_damageAmplified = false;
     float m_amplifyTimer = 0.0f;
@@ -136,7 +139,7 @@ public:
     f32 GetSpeed() const { return m_speed; }
 
 protected:
-    float sizeMultiplier{ 1.5f };
+    float m_sizeMultiplier{ 1.5f };
 
     AEGfxTexture* m_BatTexture = nullptr;
     AEGfxVertexList* m_BatMesh = nullptr;

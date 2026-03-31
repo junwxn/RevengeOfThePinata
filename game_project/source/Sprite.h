@@ -13,20 +13,20 @@ class Sprite
 
 		// Enemy Spritesheet
 		// Base 1
-		AEGfxTexture* GetSpriteSheet() { return pEnemySpriteSheet; }
-		AEGfxTexture* GetEnemyWindupSpriteSheet() { return pEnemyWindup_SpriteSheet; }
-		AEGfxTexture* GetEnemyAttackSpriteSheet() { return pEnemyAttack_SpriteSheet; }
-		AEGfxVertexList* GetSpriteMesh() { return pSpriteMesh; }
-		AEGfxVertexList* GetEnemyWindupSpriteMesh() { return pEnemyWindup_SpriteMesh; }
-		AEGfxVertexList* GetEnemyAttackSpriteMesh() { return pEnemyAttack_SpriteMesh; }
+		AEGfxTexture* GetSpriteSheet() { return m_pEnemySpriteSheet; }
+		AEGfxTexture* GetEnemyWindupSpriteSheet() { return m_pEnemyWindup_SpriteSheet; }
+		AEGfxTexture* GetEnemyAttackSpriteSheet() { return m_pEnemyAttack_SpriteSheet; }
+		AEGfxVertexList* GetSpriteMesh() { return m_pSpriteMesh; }
+		AEGfxVertexList* GetEnemyWindupSpriteMesh() { return m_pEnemyWindup_SpriteMesh; }
+		AEGfxVertexList* GetEnemyAttackSpriteMesh() { return m_pEnemyAttack_SpriteMesh; }
 
 		// Dasher
-		AEGfxTexture* GetDasherSpriteSheet() { return pDasherSpriteSheet; }
-		AEGfxTexture* GetDasherWindupSpriteSheet() { return pDasherWindup_SpriteSheet; }
-		AEGfxTexture* GetDasherAttackSpriteSheet() { return pDasherAttack_SpriteSheet; }
-		AEGfxVertexList* GetDasherSpriteMesh() { return pDasherSpriteMesh; }
-		AEGfxVertexList* GetDasherWindupSpriteMesh() { return pDasherWindup_SpriteMesh; }
-		AEGfxVertexList* GetDasherAttackSpriteMesh() { return pDasherAttack_SpriteMesh; }
+		AEGfxTexture* GetDasherSpriteSheet() { return m_pDasherSpriteSheet; }
+		AEGfxTexture* GetDasherWindupSpriteSheet() { return m_pDasherWindup_SpriteSheet; }
+		AEGfxTexture* GetDasherAttackSpriteSheet() { return m_pDasherAttack_SpriteSheet; }
+		AEGfxVertexList* GetDasherSpriteMesh() { return m_pDasherSpriteMesh; }
+		AEGfxVertexList* GetDasherWindupSpriteMesh() { return m_pDasherWindup_SpriteMesh; }
+		AEGfxVertexList* GetDasherAttackSpriteMesh() { return m_pDasherAttack_SpriteMesh; }
 
 		// Thrower
 		AEGfxTexture* GetThrowerSpriteSheet() { return pThrowerSpriteSheet; }
@@ -37,89 +37,90 @@ class Sprite
 		AEGfxVertexList* GetThrowerAttackSpriteMesh() { return pThrowerAttack_SpriteMesh; }
 
 		// Boss
-		AEGfxTexture* GetBossSpriteSheet() { return pBossSpriteSheet; }
-		AEGfxTexture* GetBossWindupSpriteSheet() { return pBossWindup_SpriteSheet; }
-		AEGfxTexture* GetBossAttackSpriteSheet() { return pBossAttack_SpriteSheet; }
+		AEGfxTexture* GetBossSpriteSheet() { return m_pBossSpriteSheet; }
+		AEGfxTexture* GetBossWindupSpriteSheet() { return m_pBossWindup_SpriteSheet; }
+		AEGfxTexture* GetBossAttackSpriteSheet() { return m_pBossAttack_SpriteSheet; }
 
-		AEGfxVertexList* GetBossSpriteMesh() { return pBossSpriteMesh; }
-		AEGfxVertexList* GetBossWindupSpriteMesh() { return pBossWindup_SpriteMesh; }
-		AEGfxVertexList* GetBossAttackSpriteMesh() { return pBossAttack_SpriteMesh; }
+		AEGfxVertexList* GetBossSpriteMesh() { return m_pBossSpriteMesh; }
+		AEGfxVertexList* GetBossWindupSpriteMesh() { return m_pBossWindup_SpriteMesh; }
+		AEGfxVertexList* GetBossAttackSpriteMesh() { return m_pBossAttack_SpriteMesh; }
 
 		// Player
-		AEGfxTexture* GetPlayerSpriteSheet() { return pPlayerSpriteSheet; }
-		AEGfxVertexList* GetPlayerSpriteMesh() { return pPlayerSpriteMesh; }
+		AEGfxTexture* GetPlayerSpriteSheet() { return m_pPlayerSpriteSheet; }
+		AEGfxVertexList* GetPlayerSpriteMesh() { return m_pPlayerSpriteMesh; }
 
-		AEGfxTexture* GetPlayerCombatSpriteSheet() { return pPlayerCombatSpriteSheet; }
-		AEGfxVertexList* GetPlayerCombatSpriteMesh() { return pPlayerCombatSpriteMesh; }
-		float GetPixelScale() const { return pixelScale; }
+		AEGfxTexture* GetPlayerCombatSpriteSheet() { return m_pPlayerCombatSpriteSheet; }
+		AEGfxVertexList* GetPlayerCombatSpriteMesh() { return m_pPlayerCombatSpriteMesh; }
+		float GetPixelScale() const { return m_pixelScale; }
 
-		float GetU() const { return u0; }
-		float GetV() const { return v0; }
+		float GetU() const { return m_u0; }
+		float GetV() const { return m_v0; }
 
-		float GetPlayerU() const { return p_u0; }
-		float GetPlayerV() const { return p_v0; }
+		float GetPlayerU() const { return m_p_u0; }
+		float GetPlayerV() const { return m_p_v0; }
 
-		int GetFrame() const { return frame; }
-		int GetRow() const { return row; }
-		int GetFrameWidth() const { return frameUSize; }
-		int GetFrameHeight() const { return frameVSize; }
+		int GetFrame() const { return m_frame; }
+		int GetRow() const { return m_row; }
+		int GetFrameWidth() const { return static_cast<int>(m_frameUSize); }
+		int GetFrameHeight() const { return static_cast<int>(m_frameVSize); }
+		int GetPlayerFrame() const { return m_pFrame; }
 
-		void SetTextureU() { u0 = frame * frameUSize; }
-		void SetTextureV(int animRow) { row = animRow; v0 = row * frameVSize; }
+		void SetTextureU() { m_u0 = m_frame * m_frameUSize; }
+		void SetTextureV(int animRow) { m_row = animRow; m_v0 = m_row * m_frameVSize; }
 
-		void SetTexturePlayerU() { p_u0 = pFrame * pFrameUSize; }
-		void SetTexturePlayerV(int animRow) { pRow = animRow; p_v0 = pRow * pFrameVSize; }
+		void SetTexturePlayerU() { m_p_u0 = m_pFrame * m_pFrameUSize; }
+		void SetTexturePlayerV(int animRow) { m_pRow = animRow; m_p_v0 = m_pRow * m_pFrameVSize; }
 
 		void SetSingleFrameTexture() {
-			frame = 0;
-			row = 0;
-			frameUSize = 1.0f;
-			frameVSize = 1.0f;
+			m_frame = 0;
+			m_row = 0;
+			m_frameUSize = 1.0f;
+			m_frameVSize = 1.0f;
 			SetTextureU();
 			SetTextureV(0);
 		}
 
 		void SetEnemyAttackSingleFrame(int column, int rowIndex)
 		{
-			frame = column;
-			row = rowIndex;
-			frameUSize = 1.0f / 8.0f;
-			frameVSize = 1.0f / 7.0f;
+			m_frame = column;
+			m_row = rowIndex;
+			m_frameUSize = 1.0f / 8.0f;
+			m_frameVSize = 1.0f / 7.0f;
 			SetTextureU();
 			SetTextureV(rowIndex);
 		}
 
 		void SetDasherAttackSingleFrame(int column, int rowIndex)
 		{
-			frame = column;
-			row = rowIndex;
-			frameUSize = 1.0f / 8.0f;
-			frameVSize = 1.0f / 7.0f;
+			m_frame = column;
+			m_row = rowIndex;
+			m_frameUSize = 1.0f / 8.0f;
+			m_frameVSize = 1.0f / 7.0f;
 			SetTextureU();
 			SetTextureV(rowIndex);
 		}
 
 	private:
-		// Enemy sprite sheet
-		// Walker
-		AEGfxTexture* pEnemySpriteSheet{nullptr};
-		AEGfxVertexList* pSpriteMesh{nullptr};
+		// Enemy Spritesheet
+		// Base
+		AEGfxTexture* m_pEnemySpriteSheet{nullptr};
+		AEGfxVertexList* m_pSpriteMesh{nullptr};
 
-		AEGfxTexture* pEnemyWindup_SpriteSheet{ nullptr };
-		AEGfxVertexList* pEnemyWindup_SpriteMesh{ nullptr };
+		AEGfxTexture* m_pEnemyWindup_SpriteSheet{ nullptr };
+		AEGfxVertexList* m_pEnemyWindup_SpriteMesh{ nullptr };
 
-		AEGfxTexture* pEnemyAttack_SpriteSheet{ nullptr };
-		AEGfxVertexList* pEnemyAttack_SpriteMesh{ nullptr };
+		AEGfxTexture* m_pEnemyAttack_SpriteSheet{ nullptr };
+		AEGfxVertexList* m_pEnemyAttack_SpriteMesh{ nullptr };
 
 		// Dasher
-		AEGfxTexture* pDasherSpriteSheet{ nullptr };
-		AEGfxVertexList* pDasherSpriteMesh{ nullptr };
+		AEGfxTexture* m_pDasherSpriteSheet{ nullptr };
+		AEGfxVertexList* m_pDasherSpriteMesh{ nullptr };
 
-		AEGfxTexture* pDasherWindup_SpriteSheet{ nullptr };
-		AEGfxVertexList* pDasherWindup_SpriteMesh{ nullptr };
+		AEGfxTexture* m_pDasherWindup_SpriteSheet{ nullptr };
+		AEGfxVertexList* m_pDasherWindup_SpriteMesh{ nullptr };
 
-		AEGfxTexture* pDasherAttack_SpriteSheet{ nullptr };
-		AEGfxVertexList* pDasherAttack_SpriteMesh{ nullptr };
+		AEGfxTexture* m_pDasherAttack_SpriteSheet{ nullptr };
+		AEGfxVertexList* m_pDasherAttack_SpriteMesh{ nullptr };
 
 		// Thrower
 		AEGfxTexture* pThrowerSpriteSheet{ nullptr };
@@ -132,44 +133,44 @@ class Sprite
 		AEGfxVertexList* pThrowerAttack_SpriteMesh{ nullptr };
 
 		// Boss
-		AEGfxTexture* pBossSpriteSheet{ nullptr };
-		AEGfxVertexList* pBossSpriteMesh{ nullptr };
+		AEGfxTexture* m_pBossSpriteSheet{ nullptr };
+		AEGfxVertexList* m_pBossSpriteMesh{ nullptr };
 
-		AEGfxTexture* pBossWindup_SpriteSheet{ nullptr };
-		AEGfxVertexList* pBossWindup_SpriteMesh{ nullptr };
+		AEGfxTexture* m_pBossWindup_SpriteSheet{ nullptr };
+		AEGfxVertexList* m_pBossWindup_SpriteMesh{ nullptr };
 
-		AEGfxTexture* pBossAttack_SpriteSheet{ nullptr };
-		AEGfxVertexList* pBossAttack_SpriteMesh{ nullptr };
+		AEGfxTexture* m_pBossAttack_SpriteSheet{ nullptr };
+		AEGfxVertexList* m_pBossAttack_SpriteMesh{ nullptr };
 
 		// Player Spritesheet
-		AEGfxTexture* pPlayerSpriteSheet{ nullptr };
-		AEGfxVertexList* pPlayerSpriteMesh{ nullptr };
+		AEGfxTexture* m_pPlayerSpriteSheet{ nullptr };
+		AEGfxVertexList* m_pPlayerSpriteMesh{ nullptr };
 
-		AEGfxTexture* pPlayerCombatSpriteSheet{ nullptr };
-		AEGfxVertexList* pPlayerCombatSpriteMesh{ nullptr };
+		AEGfxTexture* m_pPlayerCombatSpriteSheet{ nullptr };
+		AEGfxVertexList* m_pPlayerCombatSpriteMesh{ nullptr };
 
-		float pixelScale{ 64.0f };
+		float m_pixelScale{ 64.0f };
 
-		int frame{};
-		int row{};
-		float frameTimer{};
-		float frameSpeed{ 0.1f };
+		int m_frame{};
+		int m_row{};
+		float m_frameTimer{};
+		float m_frameSpeed{ 0.1f };
 
-		float frameUSize{ 1.0f / 8.0f };
-		float frameVSize{ 1.0f / 7.0f };
+		float m_frameUSize{ 1.0f / 8.0f };
+		float m_frameVSize{ 1.0f / 7.0f };
 
-		float u0{ frame * frameUSize };
-		float v0{ row * frameVSize };
+		float m_u0{ m_frame * m_frameUSize };
+		float m_v0{ m_row * m_frameVSize };
 
 
-		int pFrame{};
-		int pRow{};
-		float pFrameTimer{};
-		float pFrameSpeed{ 0.1f };
+		int m_pFrame{};
+		int m_pRow{};
+		float m_pFrameTimer{};
+		float m_pFrameSpeed{ 0.1f };
 
-		float pFrameUSize{ 1.0f / 10.0f };
-		float pFrameVSize{ 1.0f / 8.0f };
+		float m_pFrameUSize{ 1.0f / 10.0f };
+		float m_pFrameVSize{ 1.0f / 8.0f };
 
-		float p_u0{ pFrame * pFrameUSize };
-		float p_v0{ pRow * pFrameVSize };
+		float m_p_u0{ m_pFrame * m_pFrameUSize };
+		float m_p_v0{ m_pRow * m_pFrameVSize };
 };

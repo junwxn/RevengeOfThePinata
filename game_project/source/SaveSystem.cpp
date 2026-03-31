@@ -1,3 +1,12 @@
+/*************************************************************************
+@file		SaveSystem.cpp
+@Author		Chiu Jun Wen j.chiu@digipen.edu
+@brief		This file contains the function definitions for managing game
+            save data, including saving, loading, and clearing save files.
+
+Copyright © 2026 DigiPen, All rights reserved.
+*************************************************************************/
+
 #include "pch.h"
 #include "SaveSystem.h"
 #include "Player.h"

@@ -1,3 +1,12 @@
+/*************************************************************************
+@file		SaveSystem.h
+@Author		Chiu Jun Wen j.chiu@digipen.edu
+@Co-authors	nil
+@brief		This file contains the function declarations for the save system,
+            including checking for save files, saving, loading, and clearing progress.
+
+Copyright © 2026 DigiPen, All rights reserved.
+*************************************************************************/
 #pragma once
 
 // Returns true if a save file exists.

@@ -1,3 +1,13 @@
+/*************************************************************************
+@file		Victory.cpp
+@Author		Chiu Jun Wen j.chiu@digipen.edu
+@Co-authors	nil
+@brief		This file contains the function definitions for managing the
+			victory screen, including its initialization, updating, and rendering.
+
+Copyright © 2026 DigiPen, All rights reserved.
+*************************************************************************/
+
 #include "pch.h"
 #include "Victory.h"
 #include "GameStateManager.h"

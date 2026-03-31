@@ -62,16 +62,16 @@ namespace Combat {
 			
 		//if (enemy.IsStunned()) {
 		//	
-		//	stunFrameAccumulator += dt;
+		//	m_stunFrameAccumulator += dt;
 		//	
-		//	while (stunFrameAccumulator >= ONE_FRAME)
+		//	while (m_stunFrameAccumulator >= ONE_FRAME)
 		//	{
-		//		++stunCurrentFrame;
-		//		stunFrameAccumulator -= ONE_FRAME;
+		//		++m_stunCurrentFrame;
+		//		m_stunFrameAccumulator -= ONE_FRAME;
 		//	}
-		//	if (stunCurrentFrame >= stunRecoveryFrames) {
+		//	if (m_stunCurrentFrame >= m_stunRecoveryFrames) {
 		//		enemy.ResetStunFlag();
-		//		stunCurrentFrame = 0;
+		//		m_stunCurrentFrame = 0;
 		//	}
 		//	return;
 		//}
@@ -87,36 +87,36 @@ namespace Combat {
 		if (enemy.IsGotHit()) 
 		{
 			camera.SetScreenShakeTimer(0.5f);
-			defenderFrameAccumulator += dt;
-			while (defenderFrameAccumulator >= ONE_FRAME)
+			m_defenderFrameAccumulator += dt;
+			while (m_defenderFrameAccumulator >= ONE_FRAME)
 			{
-				++defenderCurrentFrame;
-				defenderFrameAccumulator -= ONE_FRAME;
+				++m_defenderCurrentFrame;
+				m_defenderFrameAccumulator -= ONE_FRAME;
 			}
 
-			if (defenderCurrentFrame >= defenderStopFrames)
+			if (m_defenderCurrentFrame >= m_defenderStopFrames)
 			{
 				ApplyKnockbackReaction_Enemy(player, enemy, 2000.0);
 				enemy.ResetGotHitFlag();
-				defenderCurrentFrame = 0;
+				m_defenderCurrentFrame = 0;
 			}
 		}
 
 		if (enemy.IsParried())
 		{
 			camera.SetScreenShakeTimer(0.6f);
-			parryFrameAccumulator += dt;
-			while (parryFrameAccumulator >= ONE_FRAME)
+			m_parryFrameAccumulator += dt;
+			while (m_parryFrameAccumulator >= ONE_FRAME)
 			{
-				++parryCurrentFrame;
-				parryFrameAccumulator -= ONE_FRAME;
+				++m_parryCurrentFrame;
+				m_parryFrameAccumulator -= ONE_FRAME;
 			}
 
-			if (parryCurrentFrame >= parryStopFrames)
+			if (m_parryCurrentFrame >= m_parryStopFrames)
 			{
 				ApplyKnockbackReaction_Enemy(player, enemy, 2500.0);
 				enemy.ResetParryFlag();
-				parryCurrentFrame = 0;
+				m_parryCurrentFrame = 0;
 				// Reward successful parry: skip remaining block recovery
 				player.ResetCombatVariables();
 			}
