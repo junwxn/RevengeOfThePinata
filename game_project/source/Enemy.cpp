@@ -325,7 +325,7 @@ void Enemy::Draw() {
     // Calculate isometric squashed height for drawing
         //f32 isoHeight = m_size * (GRID_H / GRID_W); // Squashed
         f32 isoHeight = m_size; // Normal
-        float spriteScale = sizeMultiplier;
+        float spriteScale = m_sizeMultiplier;
         float shadowY = m_pos.y;
 
         Shadow_Draw(m_pos.x, shadowY, m_size);
@@ -1033,7 +1033,7 @@ void Dasher::Draw()
     AEGfxSetRenderMode(AE_GFX_RM_COLOR);
 
     f32 isoHeight = m_size;
-    f32 spriteScale = sizeMultiplier * (m_size / ENEMY_SIZE);
+    f32 spriteScale = m_sizeMultiplier * (m_size / ENEMY_SIZE);
 
 
     bool isDashWindup = (m_CurrentState == EnemyState::STATE_DASH_WINDUP);
@@ -1301,7 +1301,7 @@ void Boss::Draw()
         return;
     }
 
-    float spriteScale = sizeMultiplier * (m_size / 35.0f);
+    float spriteScale = m_sizeMultiplier * (m_size / 35.0f);
 
     float shadowY = m_pos.y;
     shadowY += m_size * 0.75f;
@@ -2045,7 +2045,7 @@ void Thrower::Draw() {
     f32 dt = (f32)AEFrameRateControllerGetFrameTime();
     AEGfxSetRenderMode(AE_GFX_RM_COLOR);
 
-    float spriteScale = sizeMultiplier;
+    float spriteScale = m_sizeMultiplier;
     float shadowY = m_pos.y;
 
     Shadow_Draw(m_pos.x, shadowY, m_size);

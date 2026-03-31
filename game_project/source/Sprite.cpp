@@ -137,9 +137,9 @@ void Sprite::Sprite_Load()
 	// ENEMY SPRITE SHEET
 	/////////////////////
 	// Walker
-	if (pEnemySpriteSheet) {
-		AEGfxTextureUnload(pEnemySpriteSheet);
-		pEnemySpriteSheet = nullptr;
+	if (m_pEnemySpriteSheet) {
+		AEGfxTextureUnload(m_pEnemySpriteSheet);
+		m_pEnemySpriteSheet = nullptr;
 	}
 
 	m_pEnemySpriteSheet = AEGfxTextureLoad("Assets/Sprites/Enemy_SpriteSheet.png");
@@ -253,8 +253,8 @@ void Sprite::Sprite_Load()
 		m_pBossSpriteSheet = nullptr;
 	}
 
-	pBossSpriteSheet = AEGfxTextureLoad("Assets/Sprites/Boss_SpriteSheet.png");
-	if (!pBossSpriteSheet)
+	m_pBossSpriteSheet = AEGfxTextureLoad("Assets/Sprites/Boss_SpriteSheet.png");
+	if (!m_pBossSpriteSheet)
 	{
 		std::cout << "ERROR LOADING BOSS SPRITE SHEET" << std::endl;
 		return;
@@ -265,8 +265,8 @@ void Sprite::Sprite_Load()
 		m_pBossWindup_SpriteSheet = nullptr;
 	}
 
-	pBossWindup_SpriteSheet = AEGfxTextureLoad("Assets/Sprites/Boss_SpriteSheet.png");
-	if (!pBossWindup_SpriteSheet)
+	m_pBossWindup_SpriteSheet = AEGfxTextureLoad("Assets/Sprites/Boss_SpriteSheet.png");
+	if (!m_pBossWindup_SpriteSheet)
 	{
 		std::cout << "ERROR LOADING BOSS WINDUP SPRITE SHEET" << std::endl;
 		return;
@@ -277,8 +277,8 @@ void Sprite::Sprite_Load()
 		m_pBossAttack_SpriteSheet = nullptr;
 	}
 
-	pBossAttack_SpriteSheet = AEGfxTextureLoad("Assets/Sprites/Boss_Attack_SpriteSheet.png");
-	if (!pBossAttack_SpriteSheet)
+	m_pBossAttack_SpriteSheet = AEGfxTextureLoad("Assets/Sprites/Boss_Attack_SpriteSheet.png");
+	if (!m_pBossAttack_SpriteSheet)
 	{
 		std::cout << "ERROR LOADING BOSS ATTACK SPRITE SHEET" << std::endl;
 		return;
