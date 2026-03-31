@@ -143,6 +143,11 @@ public:
         };
     }
 
+    // Tutorial input restrictions — disable specific actions
+    void SetCanDash(bool v)   { m_InputCanDash = v; }
+    void SetCanAttack(bool v) { m_InputCanAttack = v; }
+    void SetCanBlock(bool v)  { m_InputCanBlock = v; }
+
     // Call once after the map is loaded so the player can self-resolve wall collisions.
     void SetMap(const MapSystem* map) { m_pMap = map; }
 
@@ -187,7 +192,7 @@ private:
     Combat::CombatStats m_CombatStats
     {
         200.0f, // health
-        40.0f, // attack
+        55.0f, // attack
         5.0f, // defense
         0.0f, // crit chance
         0.0f, // crit multiplier
@@ -390,6 +395,12 @@ private:
 
     // Non-owning pointer to the active map; set via SetMap().
     const MapSystem* m_pMap = nullptr;
+
+    // Tutorial input restrictions
+    bool m_InputCanDash   = true;
+    bool m_InputCanAttack = true;
+    bool m_InputCanBlock  = true;
+
     // Augments
     bool preventing_movement;
 };

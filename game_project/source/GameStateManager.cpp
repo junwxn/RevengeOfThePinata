@@ -12,6 +12,7 @@
 #include "TestLevel.h"
 #include "Transition.h"
 #include "Splash.h"
+#include "Audio.h"
 
 int current = 0, previous = 0, next = 0;
 
@@ -133,6 +134,16 @@ void GSM_Initialize(int startingState)
 
 void GSM_Update(float dt)
 {
+	if (AEInputCheckTriggered(AEVK_LBUTTON))
+	{
+		if (current == GS_MAINMENU ||
+			current == GS_GAMEOVER ||
+			current == GS_VICTORY)
+		{
+			gAudio.PlayClickSFX();
+		}
+	}
+
 	if (Transition_IsActive())
 	{
 		Transition_Update(dt);
@@ -171,8 +182,11 @@ void GSM_Update(float dt)
 
 void GSM_Draw()
 {
-	if (fpDraw)
-		fpDraw();
+	if (!Transition_IsActive())
+	{
+		if (fpDraw)
+			fpDraw();
+	}
 
 	Transition_Draw();
 }

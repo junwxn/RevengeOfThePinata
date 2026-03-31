@@ -61,8 +61,22 @@ class Audio
 		void PlayFireworksSFX();
 		void UnloadFireworksSFX();
 
+		void PlayClickSFX();
+
 		void ToggleMute();
 		bool IsMuted() const;
+
+		void SetBGMVolume(float v);
+		void SetGeneralSFXVolume(float v);
+		void SetCombatSFXVolume(float v);
+		void SetPlayerSFXVolume(float v);
+		void SetEnemySFXVolume(float v);
+
+		float BGMVolume = 1.0f;
+		float GeneralSFXVolume = 1.0f;
+		float CombatSFXVolume = 1.0f;
+		float PlayerSFXVolume = 1.0f;
+		float EnemySFXVolume = 1.0f;
 
 		struct AudioGroups
 		{

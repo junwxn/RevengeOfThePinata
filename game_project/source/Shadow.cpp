@@ -6,7 +6,7 @@ static AEGfxVertexList* s_shadowMesh = nullptr;
 
 static const float SHADOW_WIDTH_SCALE = 1.2f;
 static const float SHADOW_HEIGHT_RATIO = 0.4f;
-static const float SHADOW_Y_OFFSET = -1.1f;
+static const float SHADOW_Y_OFFSET = -2.0f;
 static const float SHADOW_ALPHA = 30.0f;
 
 void Shadow_Init() {

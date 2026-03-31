@@ -53,6 +53,9 @@ void Augments::Init() {
     cards_x3 = 0;
     distanceY = 0;
 
+    playerballdist = 0;
+
+    spawn_anim = false; // the animation for ball spawn
     choose = false; // is choosing cards?
     augmentSelected = false;
     startingAnimation = true;
@@ -62,6 +65,7 @@ void Augments::Init() {
     choiceCameraY = 0;
 
     // Free any existing resources before creating new ones (prevents leaks on restart)
+    if (interactMesh) { AEGfxMeshFree(interactMesh); interactMesh = nullptr; }
     if (augmentMesh) { AEGfxMeshFree(augmentMesh); augmentMesh = nullptr; }
     if (cardMesh)    { AEGfxMeshFree(cardMesh);    cardMesh    = nullptr; }
     if (m_cardFont != -1) { AEGfxDestroyFont(m_cardFont); m_cardFont = -1; }
@@ -75,8 +79,10 @@ void Augments::Init() {
     if (m_poisontrailTex) { AEGfxTextureUnload(m_poisontrailTex); m_poisontrailTex = nullptr; }
     if (m_quickparryTex) { AEGfxTextureUnload(m_quickparryTex); m_quickparryTex = nullptr; }
     if (m_shielddashTex) { AEGfxTextureUnload(m_shielddashTex); m_shielddashTex = nullptr; }
+    if (interactTex) { AEGfxTextureUnload(interactTex); interactTex = nullptr; }
 
     m_candyTex = AEGfxTextureLoad("Assets/Cards/candy.png");
+    interactTex = AEGfxTextureLoad("Assets/Cards/pressXtointeract.png");
 
     m_amplifieddamageTex = AEGfxTextureLoad("Assets/Cards/amplifieddamage2.png"); // 2 versions
     m_attackmomentumTex = AEGfxTextureLoad("Assets/Cards/attackmomentum.png");
@@ -90,17 +96,21 @@ void Augments::Init() {
 
     augmentMesh = CreateCircleMesh(1, 16, 0x000000);
     candyMesh = CreateSpriteRectMesh(0x000000, 1.0, 1.0);
+    interactMesh = CreateSpriteRectMesh(0x000000, 1.0f, 1.0f);
 
     cardMesh = CreateRectMesh(0x000000);
     m_cardFont = AEGfxCreateFont("Assets/fonts/Stick-Regular.ttf", 24);
     
     if (!m_shielddashTex) {
         std::cout << "Failed to load card texture!" << std::endl;
-
     }
     else {
         std::cout << "card texture success" << std::endl;
     }
+
+    interactSprite.SetTextureU();
+    interactSprite.SetTextureV(0);
+
     candySprite.SetTextureU();
     candySprite.SetTextureV(0);
 
@@ -110,164 +120,174 @@ void Augments::Init() {
 
 void Augments::Update(f32 playerX, f32 playerY, f32 dt) {
 
-    float dx = playerX;
-    float dy = playerY;
-    deltaTime = dt;
-
-    s32 mouseX, mouseY;
-    AEInputGetCursorPosition(&mouseX, &mouseY);
-
-    float mouseWX = mouseX - AEGfxGetWindowWidth() * 0.5f;
-    float mouseWY = AEGfxGetWindowHeight() * 0.5f - mouseY;
-
-    mouseWX += playerX;
-    mouseWY += playerY;
-
-    // distance between ball and player
-    float playerballdist = sqrt(((dx - augPosX) * (dx - augPosX)) + ((dy - (augPosY - 65)) * (dy - (augPosY - 65))));
-
-    //printf("Player x: %f\n", dx);
-    //printf("Player y: %f\n", dy);
-    //printf("Playerballdist: %f\n", playerballdist);
-
-    // Drawing calculations
-    hoverTime += deltaTime * hoverSpeed;
-
-    // Calculate isometric squashed height for drawing
-    isoHeight = augSize * (GRID_H / GRID_W);
-
-    if (AEInputCheckTriggered(AEVK_0)) {
-        std::cout << "mouseWX: " << mouseWX << std::endl;
-        std::cout << "mouseWY: " << mouseWY << std::endl;
+    if (AEInputCheckTriggered(AEVK_L)) {
+        spawn_anim = true;
+        printf("spawnanim is true\n");
     }
 
-    if (playerballdist < interactRange && !choose) {
-        //printf("PRESS X TO INTERACT\n");
 
-        if (AEInputCheckTriggered(AEVK_X)) {
-            printf("CHOOSE ONCE\n");
-            // setting the cards OG positions
-            choiceCameraX = playerX;
-            choiceCameraY = playerY;
+    if (spawn_anim) {
 
-            std::cout << "choiceCameraX: " << choiceCameraX << std::endl;
-            std::cout << "choiceCameraY: " << choiceCameraY << std::endl;
+        float dx = playerX;
+        float dy = playerY;
+        deltaTime = dt;
 
-            cards_y = choiceCameraY - 1000;
-            cards_x1 = choiceCameraX - 200;
-            cards_x2 = choiceCameraX - 200;
-            cards_x3 = choiceCameraX - 200;
-            choose = true;
+        s32 mouseX, mouseY;
+        AEInputGetCursorPosition(&mouseX, &mouseY);
+
+        float mouseWX = mouseX - AEGfxGetWindowWidth() * 0.5f;
+        float mouseWY = AEGfxGetWindowHeight() * 0.5f - mouseY;
+
+        mouseWX += playerX;
+        mouseWY += playerY;
+
+        // distance between ball and player
+        playerballdist = sqrt(((dx - augPosX) * (dx - augPosX)) + ((dy - (augPosY - 65)) * (dy - (augPosY - 65))));
+
+        //printf("Player x: %f\n", dx);
+        //printf("Player y: %f\n", dy);
+        //printf("Playerballdist: %f\n", playerballdist);
+
+        // Drawing calculations
+        hoverTime += deltaTime * hoverSpeed;
+
+        // Calculate isometric squashed height for drawing
+        isoHeight = augSize * (GRID_H / GRID_W);
+
+        if (AEInputCheckTriggered(AEVK_0)) {
+            std::cout << "mouseWX: " << mouseWX << std::endl;
+            std::cout << "mouseWY: " << mouseWY << std::endl;
         }
-    }
-    else if (choose) {
 
-        windowTintX = choiceCameraX - 1600;
-        windowTintY = choiceCameraY;
+        if (playerballdist < interactRange && !choose) {
+            printf("PRESS X TO INTERACT\n");
 
-        distanceY = choiceCameraY - cards_y;
+            if (AEInputCheckTriggered(AEVK_X)) {
+                printf("CHOOSE ONCE\n");
+                // setting the cards OG positions
+                choiceCameraX = playerX;
+                choiceCameraY = playerY;
 
-        float distanceX1 = (choiceCameraX - 700) - cards_x1;
-        float distanceX2 = (choiceCameraX + 300) - cards_x2;
+                std::cout << "choiceCameraX: " << choiceCameraX << std::endl;
+                std::cout << "choiceCameraY: " << choiceCameraY << std::endl;
+
+                cards_y = choiceCameraY - 1000;
+                cards_x1 = choiceCameraX - 200;
+                cards_x2 = choiceCameraX - 200;
+                cards_x3 = choiceCameraX - 200;
+                choose = true;
+            }
+        }
+        else if (choose) {
+
+            windowTintX = choiceCameraX - 1600;
+            windowTintY = choiceCameraY;
+
+            distanceY = choiceCameraY - cards_y;
+
+            float distanceX1 = (choiceCameraX - 700) - cards_x1;
+            float distanceX2 = (choiceCameraX + 300) - cards_x2;
         
-        //printf("Choosing...\n");
-        // tie rand seed to THE CURRENT TIME (so that each choice is unique)
-        // choices of cards, pick and display
-        // clickbox for the cards, once picked set choose = false
+            //printf("Choosing...\n");
+            // tie rand seed to THE CURRENT TIME (so that each choice is unique)
+            // choices of cards, pick and display
+            // clickbox for the cards, once picked set choose = false
 
-        //std::cout << "mouseWX: " << mouseWX << std::endl;
-        //std::cout << "mouseWY: " << mouseWY << std::endl;
+            //std::cout << "mouseWX: " << mouseWX << std::endl;
+            //std::cout << "mouseWY: " << mouseWY << std::endl;
 
-        //std::cout << "cards_x1: " << cards_x1 << std::endl;
+            //std::cout << "cards_x1: " << cards_x1 << std::endl;
 
-        // card 1
-        /*if (mouseWX > cards_x1 && mouseWX < (cards_x1 + 400) && mouseWY < (playerY - cards_y + 350) && mouseWY > (playerY - cards_y - 300)) {
-            std::cout << "Red picked" << std::endl;
-        } else if (mouseWX > cards_x2 && mouseWX < (cards_x2 + 400) && mouseWY < (playerY - cards_y + 350) && mouseWY >(playerY - cards_y - 300)) {
-            std::cout << "Blue picked" << std::endl;
-        } else if (mouseWX > (playerX - 200) && mouseWX < ((playerX - 200) + 400) && mouseWY < (playerY - cards_y + 350) && mouseWY >(playerY - cards_y - 300)) {
-            std::cout << "Green picked" << std::endl;
-        }*/
+            // card 1
+            /*if (mouseWX > cards_x1 && mouseWX < (cards_x1 + 400) && mouseWY < (playerY - cards_y + 350) && mouseWY > (playerY - cards_y - 300)) {
+                std::cout << "Red picked" << std::endl;
+            } else if (mouseWX > cards_x2 && mouseWX < (cards_x2 + 400) && mouseWY < (playerY - cards_y + 350) && mouseWY >(playerY - cards_y - 300)) {
+                std::cout << "Blue picked" << std::endl;
+            } else if (mouseWX > (playerX - 200) && mouseWX < ((playerX - 200) + 400) && mouseWY < (playerY - cards_y + 350) && mouseWY >(playerY - cards_y - 300)) {
+                std::cout << "Green picked" << std::endl;
+            }*/
 
-        if (cardsInPosition) {
-            // cardsInPosition prevents picking all 3 at once
+            if (cardsInPosition) {
+                // cardsInPosition prevents picking all 3 at once
 
-            if (AEInputCheckTriggered(AEVK_LBUTTON)) {
-                if (IsMouseInside(mouseWX, mouseWY, cards_x1 + (cardWidth * 0.5), cards_y, cardWidth, cardHeight))
-                {
-                    std::cout << "Red picked\n";
-                    g_Augments.Choose(m_currentSet, m_cardIDs[0]);
-                    std::cout << "Augment chosen: " << static_cast<int>(m_cardIDs[0]) << std::endl;
-                    augmentSelected = true;
-                    choose = false;
-                }
+                if (AEInputCheckTriggered(AEVK_LBUTTON)) {
+                    if (IsMouseInside(mouseWX, mouseWY, cards_x1 + (cardWidth * 0.5), cards_y, cardWidth, cardHeight))
+                    {
+                        std::cout << "Red picked\n";
+                        g_Augments.Choose(m_currentSet, m_cardIDs[0]);
+                        std::cout << "Augment chosen: " << static_cast<int>(m_cardIDs[0]) << std::endl;
+                        augmentSelected = true;
+                        choose = false;
+                    }
 
-                if (IsMouseInside(mouseWX, mouseWY, cards_x2 + (cardWidth * 0.5), cards_y, cardWidth, cardHeight))
-                {
-                    std::cout << "Blue picked\n";
-                    g_Augments.Choose(m_currentSet, m_cardIDs[1]);
-                    std::cout << "Augment chosen: " << static_cast<int>(m_cardIDs[1]) << std::endl;
-                    augmentSelected = true;
-                    choose = false;
-                }
+                    if (IsMouseInside(mouseWX, mouseWY, cards_x2 + (cardWidth * 0.5), cards_y, cardWidth, cardHeight))
+                    {
+                        std::cout << "Blue picked\n";
+                        g_Augments.Choose(m_currentSet, m_cardIDs[1]);
+                        std::cout << "Augment chosen: " << static_cast<int>(m_cardIDs[1]) << std::endl;
+                        augmentSelected = true;
+                        choose = false;
+                    }
 
-                if (IsMouseInside(mouseWX, mouseWY, cards_x3 + (cardWidth * 0.5), cards_y, cardWidth, cardHeight))
-                {
-                    std::cout << "Green picked\n";
-                    g_Augments.Choose(m_currentSet, m_cardIDs[2]);
-                    std::cout << "Augment chosen: " << static_cast<int>(m_cardIDs[2]) << std::endl;
-                    augmentSelected = true;
-                    choose = false;
+                    if (IsMouseInside(mouseWX, mouseWY, cards_x3 + (cardWidth * 0.5), cards_y, cardWidth, cardHeight))
+                    {
+                        std::cout << "Green picked\n";
+                        g_Augments.Choose(m_currentSet, m_cardIDs[2]);
+                        std::cout << "Augment chosen: " << static_cast<int>(m_cardIDs[2]) << std::endl;
+                        augmentSelected = true;
+                        choose = false;
+                    }
                 }
             }
-        }
 
-        // temp
-        if (IsMouseInside(mouseWX, mouseWY, cards_x1 + (cardWidth * 0.5), cards_y, cardWidth, cardHeight))
-        {
-            std::cout << "Red picked\n";
-        }
-
-        if (IsMouseInside(mouseWX, mouseWY, cards_x2 + (cardWidth * 0.5), cards_y, cardWidth, cardHeight))
-        {
-            std::cout << "Blue picked\n";
-        }
-
-        if (IsMouseInside(mouseWX, mouseWY, cards_x3 + (cardWidth * 0.5), cards_y, cardWidth, cardHeight))
-        {
-            std::cout << "Green picked\n";
-        }
-
-        //DrawMesh(cardMesh, 400, 600, cards_x1, playerY - cards_y, 0.0f, 255, 0, 0, 255); // Red Card (Left)
-        //DrawMesh(cardMesh, 400, 600, cards_x2, playerY - cards_y, 0.0f, 0, 0, 255, 255); // Blue Card (Right)
-        //DrawMesh(cardMesh, 400, 600, playerX - 200, playerY - cards_y, 0.0f, 0, 255, 0, 255); // Green Card (Middle)
-
-
-        // Updates location, draw all at once in the end
-        if (fabs(distanceY) > 2.f) {
-            //DrawMesh(cardMesh, 400, 600, playerX - 200, playerY - cards_y, 0.0f, 255, 0, 0, 255); // Test
-
-            //                       v speed at which the card travels
-            cards_y += distanceY * 10.0f * deltaTime;
-        }
-        else {
-            //DrawMesh(cardMesh, 400, 600, playerX - 200, playerY - cards_y, 0.0f, 255, 0, 0, 255); // Test
-
-            if (fabs(distanceX1) > 2.f) {
-                //DrawMesh(cardMesh, 400, 600, cards_x1, playerY - cards_y, 0.0f, 0, 255, 0, 255); // Test
-                cards_x1 += distanceX1 * 8.0f * deltaTime;
+            // temp
+            /*if (IsMouseInside(mouseWX, mouseWY, cards_x1 + (cardWidth * 0.5), cards_y, cardWidth, cardHeight))
+            {
+                std::cout << "Red picked\n";
             }
 
-            if (fabs(distanceX2) > 2.f) {
-                //DrawMesh(cardMesh, 400, 600, cards_x2, playerY - cards_y, 0.0f, 0, 0, 255, 255); // Test
-                cards_x2 += distanceX2 * 8.0f * deltaTime;
+            if (IsMouseInside(mouseWX, mouseWY, cards_x2 + (cardWidth * 0.5), cards_y, cardWidth, cardHeight))
+            {
+                std::cout << "Blue picked\n";
             }
+
+            if (IsMouseInside(mouseWX, mouseWY, cards_x3 + (cardWidth * 0.5), cards_y, cardWidth, cardHeight))
+            {
+                std::cout << "Green picked\n";
+            }*/
+
+            //DrawMesh(cardMesh, 400, 600, cards_x1, playerY - cards_y, 0.0f, 255, 0, 0, 255); // Red Card (Left)
+            //DrawMesh(cardMesh, 400, 600, cards_x2, playerY - cards_y, 0.0f, 0, 0, 255, 255); // Blue Card (Right)
+            //DrawMesh(cardMesh, 400, 600, playerX - 200, playerY - cards_y, 0.0f, 0, 255, 0, 255); // Green Card (Middle)
+
+
+            // Updates location, draw all at once in the end
+            if (fabs(distanceY) > 2.f) {
+                //DrawMesh(cardMesh, 400, 600, playerX - 200, playerY - cards_y, 0.0f, 255, 0, 0, 255); // Test
+
+                //                       v speed at which the card travels
+                cards_y += distanceY * 10.0f * deltaTime;
+            }
+            else {
+                //DrawMesh(cardMesh, 400, 600, playerX - 200, playerY - cards_y, 0.0f, 255, 0, 0, 255); // Test
+
+                if (fabs(distanceX1) > 2.f) {
+                    //DrawMesh(cardMesh, 400, 600, cards_x1, playerY - cards_y, 0.0f, 0, 255, 0, 255); // Test
+                    cards_x1 += distanceX1 * 8.0f * deltaTime;
+                }
+
+                if (fabs(distanceX2) > 2.f) {
+                    //DrawMesh(cardMesh, 400, 600, cards_x2, playerY - cards_y, 0.0f, 0, 0, 255, 255); // Test
+                    cards_x2 += distanceX2 * 8.0f * deltaTime;
+                }
+            }
+
+            //std::cout << fabs((cameraX + 300) - cards_x2) << std::endl;
+            cardsInPosition = fabs(distanceY) <= 2.f
+                && fabs((playerX - 700) - cards_x1) <= 2.f
+                && fabs((playerX + 300) - cards_x2) <= 2.f;
         }
 
-        //std::cout << fabs((cameraX + 300) - cards_x2) << std::endl;
-        cardsInPosition = fabs(distanceY) <= 2.f
-            && fabs((playerX - 700) - cards_x1) <= 2.f
-            && fabs((playerX + 300) - cards_x2) <= 2.f;
     }
 
 }
@@ -278,113 +298,142 @@ void Augments::Draw(float camX, float camY) {
     // AUGMENT SPAWNS AFTER LAST ENEMY DEATH (store enemy last location (wave is a vector) when size of wave = 1)
     // Ensure Color Mode is set
 
+    if (!spawn_anim) {
 
-    AEGfxSetRenderMode(AE_GFX_RM_COLOR);
+    }
+    else {
 
-    /*if (!m_candyTex)
-        std::cout << "Failed to load candy texture!" << std::endl;
-    else
-        std::cout << "Candy texture loaded successfully" << std::endl;*/
+        AEGfxSetRenderMode(AE_GFX_RM_COLOR);
 
-    DrawMesh(augmentMesh, (augSize - 20) - sinf(hoverTime) * hoverPower, (isoHeight - 10) - (sinf(hoverTime) * hoverPower), augPosX, (augPosY - 65), 0.0f, 44, 50, 150, 128);
+        /*if (!m_candyTex)
+            std::cout << "Failed to load candy texture!" << std::endl;
+        else
+            std::cout << "Candy texture loaded successfully" << std::endl;*/
 
-    // Draw using Utils helper
-    // Color: Black (0,0,0) with full alpha (255)
+        DrawMesh(augmentMesh, (augSize - 20) - sinf(hoverTime) * hoverPower, (isoHeight - 10) - (sinf(hoverTime) * hoverPower), augPosX, (augPosY - 65), 0.0f, 44, 50, 150, 128);
 
-    AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
-    AEGfxSetColorToMultiply(1.0f, 1.0f, 1.0f, 1.0f);
-    AEGfxSetColorToAdd(0.0f, 0.0f, 0.0f, 0.0f);
-    AEGfxSetBlendMode(AE_GFX_BM_BLEND);
-    AEGfxSetTransparency(1.0f);
-    AEGfxTextureSet(m_candyTex, 0.0f, 0.0f);
-
-    //AEGfxMeshDraw(candyMesh, AE_GFX_MDM_TRIANGLES);
-
-    //DrawMesh(augmentMesh, augSize, augSize, augPosX, (hoverPosY + sinf(hoverTime) * hoverPower), 0.0f, 44, 50, 150, 255);
-
-    float hoverOffset = sinf(hoverTime) * hoverPower;
-
-    DrawTexture(
-        candySprite,       // sprite object
-        0,                 // currentDirection/frame (0 if one frame)
-        candyMesh,         // your quad mesh
-        m_candyTex,        // the candy PNG texture
-        augSize * 1.75,    // width of candy
-        augSize * 1.75,    // height of candy
-        augPosX,           // x position
-        hoverPosY + hoverOffset, // y position with hover
-        0.0f,              // rotation (0 = no rotation)
-        1.0f               // size multiplier (1.0 = normal)
-    );
-
-    //DrawMesh(candyMesh, augSize, augSize, augPosX, augPosY, 0.0f, 255, 255, 255, 255);
-
-    if (choose == true) {
-
-        DrawMesh(cardMesh, 3200, 1800, windowTintX, windowTintY, 0.0f, 0, 0, 0, 100); // Tinted Window
+        // Draw using Utils helper
+        // Color: Black (0,0,0) with full alpha (255)
 
         AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
         AEGfxSetColorToMultiply(1.0f, 1.0f, 1.0f, 1.0f);
         AEGfxSetColorToAdd(0.0f, 0.0f, 0.0f, 0.0f);
         AEGfxSetBlendMode(AE_GFX_BM_BLEND);
         AEGfxSetTransparency(1.0f);
+        AEGfxTextureSet(m_candyTex, 0.0f, 0.0f);
 
-        // drawing the cards and moving them to their picking positions
-        //DrawMesh(cardMesh, cardWidth, cardHeight, cards_x1, cards_y, 0.0f, 255, 0, 0, 255); // Red Card (Left)
-        //DrawMesh(cardMesh, cardWidth, cardHeight, cards_x2, cards_y, 0.0f, 0, 0, 255, 255); // Blue Card (Right)
-        //DrawMesh(cardMesh, cardWidth, cardHeight, cards_x3, cards_y, 0.0f, 0, 255, 0, 255); // Green Card (Middle)
+        //AEGfxMeshDraw(candyMesh, AE_GFX_MDM_TRIANGLES);
 
-        for (int i = 0; i < 3; ++i) {
-            float cardX = (i == 0 ? cards_x1 : (i == 1 ? cards_x2 : cards_x3));
-            AEGfxTexture* tex = GetTextureForCard(m_cardIDs[i]);
+        //DrawMesh(augmentMesh, augSize, augSize, augPosX, (hoverPosY + sinf(hoverTime) * hoverPower), 0.0f, 44, 50, 150, 255);
 
-            if (!tex) continue; // skip if texture failed to load
+        float hoverOffset = sinf(hoverTime) * hoverPower;
+
+        DrawTexture(
+            candySprite,                // sprite object
+            0,                          // currentDirection/frame (0 = one frame)
+            candyMesh,                  // mesh
+            m_candyTex,                 // candy texture
+            augSize * 1.75,             // width of candy
+            augSize * 1.75,             // height of candy
+            augPosX,                    // x position
+            hoverPosY + hoverOffset,    // y position with hover
+            0.0f,                       // rotation (0 = no rotation)
+            1.0f                        // size multiplier (1.0 = normal)
+        );
+
+        //DrawMesh(candyMesh, augSize, augSize, augPosX, augPosY, 0.0f, 255, 255, 255, 255);
+
+        if (playerballdist < interactRange && !choose) {
+            /*printf("I SUMMON THEE");*/
+            AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
+            AEGfxSetColorToMultiply(1.0f, 1.0f, 1.0f, 1.0f);
+            AEGfxSetColorToAdd(0.0f, 0.0f, 0.0f, 0.0f);
+            AEGfxSetBlendMode(AE_GFX_BM_BLEND);
+            AEGfxSetTransparency(1.0f);
+            AEGfxTextureSet(interactTex, 0.0f, 0.0f);
 
             DrawTexture(
-                cardSprite,
-                0,
-                cardMesh,
-                tex,
-                cardWidth,
-                cardHeight,
-                cardX,
-                cards_y,
-                0.0f,
-                1.0f
+                interactSprite,                  // sprite object
+                0,                               // currentDirection/frame (0 = one frame)
+                interactMesh,                    // mesh
+                interactTex,                     // candy texture
+                300,                             // width of candy
+                50,                              // height of candy
+                augPosX,                         // x position
+                hoverPosY - 75 + hoverOffset,    // y position with hover
+                0.0f,                            // rotation (0 = no rotation)
+                1.0f                             // size multiplier (1.0 = normal)
             );
         }
 
-        // Draw augment text only after cards have settled into position
-        //if (m_cardFont != -1 && cardsInPosition) {
-        //    float cardCentersX[3] = {
-        //        (cards_x1 - camX) + cardWidth * 0.5f,
-        //        (cards_x2 - camX) + cardWidth * 0.5f,
-        //        (cards_x3 - camX) + cardWidth * 0.5f
-        //    };
+        if (choose == true) {
 
-        //    for (int i = 0; i < 3; ++i) {
-        //        const AugmentInfo& info = GetAugmentInfo(m_cardIDs[i]);
+            DrawMesh(cardMesh, 3200, 1800, windowTintX, windowTintY, 0.0f, 0, 0, 0, 100); // Tinted Window
 
-        //        // Convert screen position to normalized coords (-1 to 1)
-        //        float screenX = cardCentersX[i];
-        //        float screenY = cards_y - camY;
+            AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
+            AEGfxSetColorToMultiply(1.0f, 1.0f, 1.0f, 1.0f);
+            AEGfxSetColorToAdd(0.0f, 0.0f, 0.0f, 0.0f);
+            AEGfxSetBlendMode(AE_GFX_BM_BLEND);
+            AEGfxSetTransparency(1.0f);
 
-        //        float tw, th;
+            // drawing the cards and moving them to their picking positions
+            //DrawMesh(cardMesh, cardWidth, cardHeight, cards_x1, cards_y, 0.0f, 255, 0, 0, 255); // Red Card (Left)
+            //DrawMesh(cardMesh, cardWidth, cardHeight, cards_x2, cards_y, 0.0f, 0, 0, 255, 255); // Blue Card (Right)
+            //DrawMesh(cardMesh, cardWidth, cardHeight, cards_x3, cards_y, 0.0f, 0, 255, 0, 255); // Green Card (Middle)
 
-        //        // Title (near top of card)
-        //        AEGfxGetPrintSize(m_cardFont, info.name, 1.0f, &tw, &th);
-        //        float titleNX = screenX / 800.0f - tw * 0.5f;
-        //        float titleNY = (screenY + cardHeight * 0.3f) / 450.0f;
-        //        AEGfxPrint(m_cardFont, info.name, titleNX, titleNY, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
+            for (int i = 0; i < 3; ++i) {
+                float cardX = (i == 0 ? cards_x1 : (i == 1 ? cards_x2 : cards_x3));
+                AEGfxTexture* tex = GetTextureForCard(m_cardIDs[i]);
 
-        //        // Description (below title)
-        //        AEGfxGetPrintSize(m_cardFont, info.description, 1.0f, &tw, &th);
-        //        float descNX = screenX / 800.0f - tw * 0.5f;
-        //        float descNY = (screenY + cardHeight * 0.15f) / 450.0f;
-        //        AEGfxPrint(m_cardFont, info.description, descNX, descNY, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
-        //    }
-        //}
+                if (!tex) continue; // skip if texture failed to load
 
+                DrawTexture(
+                    cardSprite,
+                    0,
+                    cardMesh,
+                    tex,
+                    cardWidth,
+                    cardHeight,
+                    cardX,
+                    cards_y,
+                    0.0f,
+                    1.0f
+                );
+            }
+
+            // Draw augment text only after cards have settled into position
+            //if (m_cardFont != -1 && cardsInPosition) {
+            //    float cardCentersX[3] = {
+            //        (cards_x1 - camX) + cardWidth * 0.5f,
+            //        (cards_x2 - camX) + cardWidth * 0.5f,
+            //        (cards_x3 - camX) + cardWidth * 0.5f
+            //    };
+
+            //    for (int i = 0; i < 3; ++i) {
+            //        const AugmentInfo& info = GetAugmentInfo(m_cardIDs[i]);
+
+            //        // Convert screen position to normalized coords (-1 to 1)
+            //        float screenX = cardCentersX[i];
+            //        float screenY = cards_y - camY;
+
+            //        float tw, th;
+
+            //        // Title (near top of card)
+            //        AEGfxGetPrintSize(m_cardFont, info.name, 1.0f, &tw, &th);
+            //        float titleNX = screenX / 800.0f - tw * 0.5f;
+            //        float titleNY = (screenY + cardHeight * 0.3f) / 450.0f;
+            //        AEGfxPrint(m_cardFont, info.name, titleNX, titleNY, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
+
+            //        // Description (below title)
+            //        AEGfxGetPrintSize(m_cardFont, info.description, 1.0f, &tw, &th);
+            //        float descNX = screenX / 800.0f - tw * 0.5f;
+            //        float descNY = (screenY + cardHeight * 0.15f) / 450.0f;
+            //        AEGfxPrint(m_cardFont, info.description, descNX, descNY, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
+            //    }
+            //}
+
+
+        }
 
     }
 }
@@ -401,6 +450,10 @@ void Augments::Free() {
     if (candyMesh) {
         AEGfxMeshFree(candyMesh);
         candyMesh = nullptr;
+    }
+    if (interactMesh) {
+        AEGfxMeshFree(interactMesh);
+        interactMesh = nullptr;
     }
     if (m_cardFont != -1) {
         AEGfxDestroyFont(m_cardFont);
@@ -447,6 +500,10 @@ void Augments::Free() {
         AEGfxTextureUnload(m_shielddashTex);
         m_shielddashTex = nullptr;
     }
+    if (interactTex) {
+        AEGfxTextureUnload(interactTex);
+        interactTex = nullptr;
+    }
 }
 
 void Augments::Reset() {
@@ -474,6 +531,9 @@ void Augments::Reset() {
     cards_x3 = 0;
     distanceY = 0;
 
+    playerballdist = 0;
+
+    spawn_anim = false;
     choose = false;
     augmentSelected = false;
     startingAnimation = true;

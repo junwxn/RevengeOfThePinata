@@ -52,6 +52,15 @@ Enemy::~Enemy() {
         AEGfxMeshFree(m_markMesh);
         m_markMesh = nullptr;
     }
+
+    if (m_BatMesh) {
+        AEGfxMeshFree(m_BatMesh);
+        m_BatMesh = nullptr;
+    }
+    if (m_BatTexture) {
+        AEGfxTextureUnload(m_BatTexture);
+        m_BatTexture = nullptr;
+    }
 }
 
 void Enemy::Init() {
@@ -75,6 +84,11 @@ void Enemy::Init() {
     m_DasherSpriteSheet = m_DasherSprite.GetSpriteSheet();
     m_DasherWindupSpriteSheet = m_DasherSprite.GetEnemyWindupSpriteSheet();
     m_DasherAttackSpriteSheet = m_DasherSprite.GetEnemyAttackSpriteSheet();
+
+    if (m_BatMesh) { AEGfxMeshFree(m_BatMesh); m_BatMesh = nullptr; }
+    if (m_BatTexture) { AEGfxTextureUnload(m_BatTexture); m_BatTexture = nullptr; }
+    m_BatMesh = CreateBatMesh(0xFFFFFFFF);
+    m_BatTexture = AEGfxTextureLoad("Assets/Sprites/BatBat.png");
 }
 
 void Enemy::BaseUpdate(f32 dt, Combat::System& combat, Player& player) {
@@ -223,6 +237,34 @@ void Enemy::BaseUpdate(f32 dt, Combat::System& combat, Player& player) {
     //std::cout << "BASE ENDED" << std::endl;
 }
 
+void Enemy::DrawBat(float angle)
+{
+    if (!m_BatMesh || !m_BatTexture) return;
+
+    static constexpr float BAT_WIDTH = 35.0f;
+    static constexpr float BAT_LENGTH = 175.0f;
+
+    float drawAngle = angle + PI * 0.5f;
+
+    AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
+    AEGfxSetColorToMultiply(1.0f, 1.0f, 1.0f, 1.0f);
+    AEGfxSetColorToAdd(0.0f, 0.0f, 0.0f, 0.0f);
+    AEGfxSetBlendMode(AE_GFX_BM_BLEND);
+    AEGfxSetTransparency(1.0f);
+    AEGfxTextureSet(m_BatTexture, 0.0f, 0.0f);
+
+    AEMtx33 scale, rotate, translate, transform;
+    AEMtx33Scale(&scale, BAT_WIDTH, BAT_LENGTH);
+    AEMtx33Rot(&rotate, drawAngle);
+    AEMtx33Trans(&translate, m_pos.x, m_pos.y);
+
+    AEMtx33Concat(&transform, &rotate, &scale);
+    AEMtx33Concat(&transform, &translate, &transform);
+
+    AEGfxSetTransform(transform.m);
+    AEGfxMeshDraw(m_BatMesh, AE_GFX_MDM_TRIANGLES);
+}
+
 void Enemy::Draw() {
     f32 dt = (f32)AEFrameRateControllerGetFrameTime();
     Shadow_Draw(m_pos.x, m_pos.y, m_size);
@@ -301,8 +343,9 @@ void Enemy::Draw() {
 
     // Enemy sword
     f32 swordAngle = m_AttackActive ? m_CurrentAngle : m_AimAngle;
-    DrawMesh(m_AttackRangeMesh, 1.0f , 5.0f, m_pos.x, m_pos.y, swordAngle,
-        44, 255, 255, 255);
+    //DrawMesh(m_AttackRangeMesh, 1.0f , 5.0f, m_pos.x, m_pos.y, swordAngle,
+    //    44, 255, 255, 255);
+    if(m_AttackActive) DrawBat(swordAngle);
 
     // Enemy health bar
     f32 barWidth = m_size * 2.0f * (m_CombatStats.health / m_CombatStats.maxHealth);
@@ -960,10 +1003,22 @@ void Dasher::Draw()
             m_pos.x, m_pos.y, 0.0f, spriteScale);
     }
 
+    if (m_dashActive && m_dashCurrentFrame >= m_dashStartFrames &&
+        m_dashCurrentFrame < m_dashStartFrames + m_dashActiveFrames)
+    {
+            DrawTexture(m_DasherSprite, static_cast<int>(m_CurrentDirection),
+                m_DasherSprite.GetDasherWindupSpriteMesh(),
+                m_DasherSprite.GetDasherWindupSpriteSheet(),
+                m_DasherSprite.GetPixelScale(),
+                m_DasherSprite.GetPixelScale(),
+                m_pos.x, m_pos.y, 0.0f, sizeMultiplier);
+    }
+
     // Enemy sword
     f32 swordAngle = m_AttackActive ? m_CurrentAngle : m_AimAngle;
-    DrawMesh(m_AttackRangeMesh, 1.0f, 5.0f, m_pos.x, m_pos.y, swordAngle,
-        44, 255, 255, 255);
+    /*DrawMesh(m_AttackRangeMesh, 1.0f, 5.0f, m_pos.x, m_pos.y, swordAngle,
+        44, 255, 255, 255);*/
+    if (m_AttackActive) DrawBat(swordAngle);
 
     // Enemy health bar
     f32 barWidth = m_size * 2.0f * (m_CombatStats.health / m_CombatStats.maxHealth);

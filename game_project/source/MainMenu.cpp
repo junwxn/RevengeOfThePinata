@@ -9,7 +9,7 @@
 #include "Transition.h"
 
 // --- Enums & Structs ---
-enum MenuScreen { MENU_MAIN, MENU_CONTROLS, MENU_CREDITS, MENU_TUTORIAL_PROMPT, MENU_CONFIRMATION };
+enum MenuScreen { MENU_MAIN, MENU_CONTROLS, MENU_CREDITS, MENU_TUTORIAL_PROMPT, MENU_SETTINGS, MENU_CONFIRMATION };
 
 struct Button {
 	float x, y, w, h;
@@ -18,13 +18,26 @@ struct Button {
 	float hoverT;
 };
 
+struct Slider {
+	float x, y;  // Slider pos
+	float w, h;  // Width and height of slider
+	float min, max; // Min and max values for the slider (max 1.0)
+	float value; // Current value of the slider
+	bool dragging; // Whether the slider is currently being dragged
+};
+static Slider BGMvolumeSlider; // Declare BGM slider
+static Slider GeneralSFXvolumeSlider; // Declare General SFX slider
+static Slider CombatSFXvolumeSlider; // Declare Combat SFX slider
+static Slider PlayerSFXvolumeSlider; // Declare Player SFX slider
+static Slider EnemySFXvolumeSlider; // Declare Enemy SFX slider
+
 // --- File-scoped statics ---
 static AEGfxVertexList* rectMesh = nullptr;
 static s8 fontTitle = -1;
 static s8 fontBody = -1;
 
 static MenuScreen menuScreen;
-static Button mainButtons[4];
+static Button mainButtons[5];
 static Button backButton;
 static Button yesButton;
 static Button noButton;
@@ -32,6 +45,11 @@ static Button muteButton;
 static float titleBob;
 static float bgHue;
 static float entranceTimer;
+static float BGMVolume = 1.0f;
+static float GeneralSFXVolume = 1.0f;
+static float CombatSFXVolume = 1.0f;
+static float PlayerSFXVolume = 1.0f;
+static float EnemySFXVolume = 1.0f;
 
 static Sprite logoSprite;
 static AEGfxTexture* digipenLogo = nullptr;
@@ -62,6 +80,11 @@ static void HsvToRgb(float h, float s, float v, float& r, float& g, float& b) {
 static bool IsInside(float wx, float wy, const Button& btn) {
 	return wx >= btn.x - btn.w * 0.5f && wx <= btn.x + btn.w * 0.5f &&
 		wy >= btn.y - btn.h * 0.5f && wy <= btn.y + btn.h * 0.5f;
+}
+
+static bool IsInsideSlider(float wx, float wy, const Slider& s) {
+	return wx >= s.x - s.w * 0.5f && wx <= s.x + s.w * 0.5f &&
+		wy >= s.y - s.h * 0.5f && wy <= s.y + s.h * 0.5f;
 }
 
 static void DrawStyledButton(float cx, float cy, float baseW, float baseH, float hT, float alpha) {
@@ -103,13 +126,13 @@ void MainMenu_Init() {
 	menuScreen = MENU_MAIN;
 	AEGfxSetCamPosition(0.0f, 0.0f);
 
-	const char* labels[] = { "Play", "Controls", "Credits", "Quit" };
-	for (int i = 0; i < 4; i++) {
-		mainButtons[i].x = 0.0f;
-		mainButtons[i].y = -20.0f - 85.0f * i;
-		mainButtons[i].w = 320.0f;
-		mainButtons[i].h = 60.0f;
-		mainButtons[i].label = labels[i];
+	const char* labels[] = { "Play", "Controls", "Credits", "Settings", "Quit" };
+	for (int i = 0; i < 5; i++) {
+		mainButtons[i].x       = 0.0f;
+		mainButtons[i].y       = -20.0f - 85.0f * i;
+		mainButtons[i].w       = 320.0f;
+		mainButtons[i].h       = 60.0f;
+		mainButtons[i].label   = labels[i];
 		mainButtons[i].hovered = false;
 		mainButtons[i].hoverT = 0.0f;
 	}
@@ -154,6 +177,52 @@ void MainMenu_Init() {
 	//AEAudioPlay(bgm, bgmGroup, 1.f, 1.f, -1);
 	gAudio.PlayBGM(BGM_MAINMENU);
 	entranceTimer = 0.0f;
+
+	// Slider initialization
+	BGMvolumeSlider.x = 0.0f;
+	BGMvolumeSlider.y = 125.0f;
+	BGMvolumeSlider.w = 400.0f;  // Width of the slider bar
+	BGMvolumeSlider.h = 20.0f;   // Height of the slider bar
+	BGMvolumeSlider.min = 0.0f;
+	BGMvolumeSlider.max = 1.0f;
+	BGMvolumeSlider.value = BGMVolume; // Initialize with current BGM volume
+	BGMvolumeSlider.dragging = false;
+
+	GeneralSFXvolumeSlider.x = 0.0f;
+	GeneralSFXvolumeSlider.y = 25.0f;
+	GeneralSFXvolumeSlider.w = 400.0f;
+	GeneralSFXvolumeSlider.h = 20.0f;
+	GeneralSFXvolumeSlider.min = 0.0f;
+	GeneralSFXvolumeSlider.max = 1.0f;
+	GeneralSFXvolumeSlider.value = GeneralSFXVolume;
+	GeneralSFXvolumeSlider.dragging = false;
+
+	CombatSFXvolumeSlider.x = 0.0f;
+	CombatSFXvolumeSlider.y = -75.0f;
+	CombatSFXvolumeSlider.w = 400.0f;
+	CombatSFXvolumeSlider.h = 20.0f;
+	CombatSFXvolumeSlider.min = 0.0f;
+	CombatSFXvolumeSlider.max = 1.0f;
+	CombatSFXvolumeSlider.value = CombatSFXVolume;
+	CombatSFXvolumeSlider.dragging = false;
+
+	PlayerSFXvolumeSlider.x = 0.0f;
+	PlayerSFXvolumeSlider.y = -175.0f;
+	PlayerSFXvolumeSlider.w = 400.0f;
+	PlayerSFXvolumeSlider.h = 20.0f;
+	PlayerSFXvolumeSlider.min = 0.0f;
+	PlayerSFXvolumeSlider.max = 1.0f;
+	PlayerSFXvolumeSlider.value = PlayerSFXVolume;
+	PlayerSFXvolumeSlider.dragging = false;
+
+	EnemySFXvolumeSlider.x = 0.0f;
+	EnemySFXvolumeSlider.y = -275.0f;
+	EnemySFXvolumeSlider.w = 400.0f;
+	EnemySFXvolumeSlider.h = 20.0f;
+	EnemySFXvolumeSlider.min = 0.0f;
+	EnemySFXvolumeSlider.max = 1.0f;
+	EnemySFXvolumeSlider.value = EnemySFXVolume;
+	EnemySFXvolumeSlider.dragging = false;
 }
 
 // ========== UPDATE ==========
@@ -168,29 +237,65 @@ void MainMenu_Update(float dt) {
 
 	// Hover detection
 	if (menuScreen == MENU_MAIN) {
-		for (int i = 0; i < 4; i++)
+		for (int i = 0; i < 5; i++)
 			mainButtons[i].hovered = IsInside(worldX, worldY, mainButtons[i]);
 		backButton.hovered = false;
 		yesButton.hovered = false;
 		noButton.hovered = false;
 	}
 	else if (menuScreen == MENU_TUTORIAL_PROMPT) {
-		for (int i = 0; i < 4; i++)
+		for (int i = 0; i < 5; i++)
 			mainButtons[i].hovered = false;
 		backButton.hovered = IsInside(worldX, worldY, backButton);
 		yesButton.hovered = IsInside(worldX, worldY, yesButton);
 		noButton.hovered = IsInside(worldX, worldY, noButton);
 	}
 	else if (menuScreen == MENU_CONFIRMATION) {
-		for (int i = 0; i < 4; i++)
+		for (int i = 0; i < 5; i++)
 			mainButtons[i].hovered = false;
 
 		backButton.hovered = false;
 		yesButton.hovered = IsInside(worldX, worldY, yesButton);
 		noButton.hovered = IsInside(worldX, worldY, noButton);
 	}
+	else if (menuScreen == MENU_SETTINGS) {
+		for (int i = 0; i < 5; i++)
+			mainButtons[i].hovered = false;
+
+		// Start dragging when mouse clicks slider
+		if (AEInputCheckTriggered(AEVK_LBUTTON)) {
+			if (IsInsideSlider(worldX, worldY, BGMvolumeSlider)) {
+				BGMvolumeSlider.dragging = true;
+			}
+			if (IsInsideSlider(worldX, worldY, GeneralSFXvolumeSlider)) {
+				GeneralSFXvolumeSlider.dragging = true;
+			}
+			if (IsInsideSlider(worldX, worldY, CombatSFXvolumeSlider)) {
+				CombatSFXvolumeSlider.dragging = true;
+			}
+			if (IsInsideSlider(worldX, worldY, PlayerSFXvolumeSlider)) {
+				PlayerSFXvolumeSlider.dragging = true;
+			}
+			if (IsInsideSlider(worldX, worldY, EnemySFXvolumeSlider)) {
+				EnemySFXvolumeSlider.dragging = true;
+			}
+		}
+
+		// Stop dragging when mouse release slider
+		if (AEInputCheckReleased(AEVK_LBUTTON)) {
+			BGMvolumeSlider.dragging = false;
+			GeneralSFXvolumeSlider.dragging = false;
+			CombatSFXvolumeSlider.dragging = false;
+			PlayerSFXvolumeSlider.dragging = false;
+			EnemySFXvolumeSlider.dragging = false;
+		}
+
+		backButton.hovered = IsInside(worldX, worldY, backButton);
+		yesButton.hovered = false;
+		noButton.hovered = false;
+	}
 	else {
-		for (int i = 0; i < 4; i++)
+		for (int i = 0; i < 5; i++)
 			mainButtons[i].hovered = false;
 		backButton.hovered = IsInside(worldX, worldY, backButton);
 		yesButton.hovered = false;
@@ -201,7 +306,7 @@ void MainMenu_Update(float dt) {
 	muteButton.hovered = IsInside(worldX, worldY, muteButton);
 
 	// Smooth hover transitions
-	for (int i = 0; i < 4; i++) {
+	for (int i = 0; i < 5; i++) {
 		mainButtons[i].hoverT += (mainButtons[i].hovered ? 1.0f : -1.0f) * dt * 6.0f;
 		mainButtons[i].hoverT = Clamp01(mainButtons[i].hoverT);
 	}
@@ -224,7 +329,8 @@ void MainMenu_Update(float dt) {
 			if (mainButtons[0].hovered) menuScreen = MENU_TUTORIAL_PROMPT;
 			if (mainButtons[1].hovered) menuScreen = MENU_CONTROLS;
 			if (mainButtons[2].hovered) menuScreen = MENU_CREDITS;
-			if (mainButtons[3].hovered) menuScreen = MENU_CONFIRMATION;
+			if (mainButtons[3].hovered) menuScreen = MENU_SETTINGS;
+			if (mainButtons[4].hovered) menuScreen = MENU_CONFIRMATION;
 		}
 		else if (menuScreen == MENU_TUTORIAL_PROMPT) {
 			if (yesButton.hovered) { g_PlayerAttackCharges = DEFAULT_ATTACK_CHARGES; /*next = GS_TUTORIAL;*/ Transition_Start(GS_TUTORIAL); }
@@ -268,6 +374,77 @@ void MainMenu_Update(float dt) {
 	bgHue += dt * 20.0f;
 	if (bgHue >= 360.0f) bgHue -= 360.0f;
 	entranceTimer += dt;
+
+	// Volume in MENU_SETTINGS
+	//if (BGMvolumeSlider.dragging) {
+	//	std::cout << "Volume Slider: True" << std::endl;
+	//}
+
+	if (BGMvolumeSlider.dragging) {
+		float left = BGMvolumeSlider.x - BGMvolumeSlider.w * 0.5f;
+		float right = BGMvolumeSlider.x + BGMvolumeSlider.w * 0.5f;
+
+		float t = (worldX - left) / (right - left);
+		t = Clamp01(t);
+
+		BGMvolumeSlider.value = t;
+		BGMVolume = t;
+
+		gAudio.SetBGMVolume(BGMVolume);
+	}
+
+	if (GeneralSFXvolumeSlider.dragging) {
+		float left = GeneralSFXvolumeSlider.x - GeneralSFXvolumeSlider.w * 0.5f;
+		float right = GeneralSFXvolumeSlider.x + GeneralSFXvolumeSlider.w * 0.5f;
+
+		float t = (worldX - left) / (right - left);
+		t = Clamp01(t);
+
+		GeneralSFXvolumeSlider.value = t;
+		GeneralSFXVolume = t;
+
+		gAudio.SetGeneralSFXVolume(GeneralSFXVolume);
+	}
+
+	if (CombatSFXvolumeSlider.dragging) {
+		float left = CombatSFXvolumeSlider.x - CombatSFXvolumeSlider.w * 0.5f;
+		float right = CombatSFXvolumeSlider.x + CombatSFXvolumeSlider.w * 0.5f;
+
+		float t = (worldX - left) / (right - left);
+		t = Clamp01(t);
+
+		CombatSFXvolumeSlider.value = t;
+		CombatSFXVolume = t;
+
+		gAudio.SetCombatSFXVolume(CombatSFXVolume);
+	}
+
+	if (PlayerSFXvolumeSlider.dragging) {
+		float left = PlayerSFXvolumeSlider.x - PlayerSFXvolumeSlider.w * 0.5f;
+		float right = PlayerSFXvolumeSlider.x + PlayerSFXvolumeSlider.w * 0.5f;
+
+		float t = (worldX - left) / (right - left);
+		t = Clamp01(t);
+
+		PlayerSFXvolumeSlider.value = t;
+		PlayerSFXVolume = t;
+
+		gAudio.SetPlayerSFXVolume(PlayerSFXVolume);
+	}
+
+	if (EnemySFXvolumeSlider.dragging) {
+		float left = EnemySFXvolumeSlider.x - EnemySFXvolumeSlider.w * 0.5f;
+		float right = EnemySFXvolumeSlider.x + EnemySFXvolumeSlider.w * 0.5f;
+
+		float t = (worldX - left) / (right - left);
+		t = Clamp01(t);
+
+		EnemySFXvolumeSlider.value = t;
+		EnemySFXVolume = t;
+
+		gAudio.SetEnemySFXVolume(EnemySFXVolume);
+	}
+
 }
 
 // ========== DRAW ==========
@@ -285,10 +462,10 @@ void MainMenu_Draw() {
 	if (menuScreen == MENU_MAIN) {
 		// Panel behind buttons
 		float panelEase = Smoothstep(entranceTimer * 2.5f);
-		DrawPanel(0, -150, 400, 380, panelEase);
+		DrawPanel(0, -190, 400, 460, panelEase);
 
 		// Styled buttons with entrance stagger
-		for (int i = 0; i < 4; i++) {
+		for (int i = 0; i < 5; i++) {
 			float delay = i * 0.08f;
 			float ease = Smoothstep((entranceTimer - delay) * 2.5f);
 			float yOff = (1.0f - ease) * 30.0f;
@@ -342,7 +519,7 @@ void MainMenu_Draw() {
 	AEGfxSetBlendMode(AE_GFX_BM_BLEND);
 
 	// Title: "Revenge of the Pinata" in gold with sine bob
-	if (menuScreen != MENU_CREDITS) {
+	if (menuScreen != MENU_CREDITS && menuScreen != MENU_CONTROLS && menuScreen != MENU_SETTINGS) {
 		float bobY = 200.0f + sinf(titleBob * 2.0f) * 15.0f;
 		const char* title = "Revenge of the Pinata";
 		float tw, th;
@@ -361,7 +538,7 @@ void MainMenu_Draw() {
 
 	if (menuScreen == MENU_MAIN) {
 		// Button labels with entrance stagger
-		for (int i = 0; i < 4; i++) {
+		for (int i = 0; i < 5; i++) {
 			float delay = i * 0.08f;
 			float ease = Smoothstep((entranceTimer - delay) * 2.5f);
 			float yOff = (1.0f - ease) * 30.0f;
@@ -378,9 +555,10 @@ void MainMenu_Draw() {
 			"Space - Dash",
 			"LMB - Attack",
 			"RMB - Block / Parry",
-			"Mouse - Aim"
+			"Mouse - Aim",
+			"X - Interact" // Interact w augmentball
 		};
-		for (int i = 0; i < 5; i++) {
+		for (int i = 0; i < 6; i++) {
 			float tw, th;
 			float ly = 120.0f - i * 60.0f;
 			AEGfxGetPrintSize(fontBody, lines[i], 1.0f, &tw, &th);
@@ -539,6 +717,96 @@ void MainMenu_Draw() {
 				backButton.y / 450.0f - th * 0.5f,
 				1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
 		}
+	} 
+	else if (menuScreen == MENU_SETTINGS) {
+		// std::cout << "HERE!" << std::endl;
+		// Panel behind buttons (Settings screen)
+		// DrawPanel(0, -150, 400, 380, 1.0f);
+
+		// Title Text
+		float tw, th;
+		{
+			const char* header = "Settings";
+			AEGfxGetPrintSize(fontBody, header, 1.5f, &tw, &th);
+			AEGfxPrint(fontBody, header, -tw * 0.5f, 220.0f / 450.0f,
+				1.5f, 1.0f, 1.0f, 1.0f, 1.0f);
+		}
+
+		// ===BGM SLIDER===
+		// Draw volume slider
+		DrawMesh(rectMesh, BGMvolumeSlider.w, BGMvolumeSlider.h, BGMvolumeSlider.x - 200, BGMvolumeSlider.y, 0, 100, 100, 100, 255); // Gray slider bar
+		float handleX = Lerp(BGMvolumeSlider.x - BGMvolumeSlider.w * 0.5f, BGMvolumeSlider.x + BGMvolumeSlider.w * 0.5f, BGMvolumeSlider.value);
+		DrawMesh(rectMesh, 20, 30, handleX - 10, BGMvolumeSlider.y, 0, 255, 0, 0, 255);
+
+		// Draw volume text label
+		char buffer[64];
+		sprintf_s(buffer, "Background Music: %.0f%%", BGMvolumeSlider.value * 100.0f);
+		AEGfxGetPrintSize(fontBody, buffer, 1.0f, &tw, &th);
+		AEGfxPrint(fontBody, buffer, -tw * 0.5f, (BGMvolumeSlider.y + 50.0f) / 450.0f - th * 0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
+
+
+
+		// ===GENERAL SFX SLIDER===
+		// Draw volume slider
+		DrawMesh(rectMesh, GeneralSFXvolumeSlider.w, GeneralSFXvolumeSlider.h, GeneralSFXvolumeSlider.x - 200, GeneralSFXvolumeSlider.y, 0, 100, 100, 100, 255);
+		float handleX2 = Lerp(GeneralSFXvolumeSlider.x - GeneralSFXvolumeSlider.w * 0.5f,GeneralSFXvolumeSlider.x + GeneralSFXvolumeSlider.w * 0.5f,GeneralSFXvolumeSlider.value);
+		DrawMesh(rectMesh, 20, 30, handleX2 - 10, GeneralSFXvolumeSlider.y, 0, 0, 200, 255, 255);
+
+		// Draw volume text label
+		char buffer2[64];
+		sprintf_s(buffer2, "General SFX Volume: %.0f%%", GeneralSFXvolumeSlider.value * 100.0f);
+		AEGfxGetPrintSize(fontBody, buffer2, 1.0f, &tw, &th);
+		AEGfxPrint(fontBody, buffer2, -tw * 0.5f, (GeneralSFXvolumeSlider.y + 50.0f) / 450.0f - th * 0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
+
+
+
+		// ===COMBAT SFX SLIDER===
+		// Draw volume slider
+		DrawMesh(rectMesh, CombatSFXvolumeSlider.w, CombatSFXvolumeSlider.h, CombatSFXvolumeSlider.x - 200, CombatSFXvolumeSlider.y, 0, 100, 100, 100, 255);
+		float handleX3 = Lerp(CombatSFXvolumeSlider.x - CombatSFXvolumeSlider.w * 0.5f, CombatSFXvolumeSlider.x + CombatSFXvolumeSlider.w * 0.5f, CombatSFXvolumeSlider.value);
+		DrawMesh(rectMesh, 20, 30, handleX3 - 10, CombatSFXvolumeSlider.y, 0, 0, 200, 255, 255);
+
+		// Draw volume text label
+		char buffer3[64];
+		sprintf_s(buffer3, "Combat SFX Volume: %.0f%%", CombatSFXvolumeSlider.value * 100.0f);
+		AEGfxGetPrintSize(fontBody, buffer3, 1.0f, &tw, &th);
+		AEGfxPrint(fontBody, buffer3, -tw * 0.5f, (CombatSFXvolumeSlider.y + 50.0f) / 450.0f - th * 0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
+
+
+
+		// ===PLAYER SFX SLIDER===
+		// Draw volume slider
+		DrawMesh(rectMesh, PlayerSFXvolumeSlider.w, PlayerSFXvolumeSlider.h, PlayerSFXvolumeSlider.x - 200, PlayerSFXvolumeSlider.y, 0, 100, 100, 100, 255);
+		float handleX4 = Lerp(PlayerSFXvolumeSlider.x - PlayerSFXvolumeSlider.w * 0.5f, PlayerSFXvolumeSlider.x + PlayerSFXvolumeSlider.w * 0.5f, PlayerSFXvolumeSlider.value);
+		DrawMesh(rectMesh, 20, 30, handleX4 - 10, PlayerSFXvolumeSlider.y, 0, 0, 200, 255, 255);
+
+		// Draw volume text label
+		char buffer4[64];
+		sprintf_s(buffer4, "Player SFX Volume: %.0f%%", PlayerSFXvolumeSlider.value * 100.0f);
+		AEGfxGetPrintSize(fontBody, buffer4, 1.0f, &tw, &th);
+		AEGfxPrint(fontBody, buffer4, -tw * 0.5f, (PlayerSFXvolumeSlider.y + 50.0f) / 450.0f - th * 0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
+
+
+
+		// ===ENEMY SFX SLIDER===
+		// Draw volume slider
+		DrawMesh(rectMesh, EnemySFXvolumeSlider.w, EnemySFXvolumeSlider.h, EnemySFXvolumeSlider.x - 200, EnemySFXvolumeSlider.y, 0, 100, 100, 100, 255);
+		float handleX5 = Lerp(EnemySFXvolumeSlider.x - EnemySFXvolumeSlider.w * 0.5f, EnemySFXvolumeSlider.x + EnemySFXvolumeSlider.w * 0.5f, EnemySFXvolumeSlider.value);
+		DrawMesh(rectMesh, 20, 30, handleX5 - 10, EnemySFXvolumeSlider.y, 0, 0, 200, 255, 255);
+
+		// Draw volume text label
+		char buffer5[64];
+		sprintf_s(buffer5, "Enemy SFX Volume: %.0f%%", EnemySFXvolumeSlider.value * 100.0f);
+		AEGfxGetPrintSize(fontBody, buffer5, 1.0f, &tw, &th);
+		AEGfxPrint(fontBody, buffer5, -tw * 0.5f, (EnemySFXvolumeSlider.y + 50.0f) / 450.0f - th * 0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
+
+		// Back button label
+		//float tw, th;
+		AEGfxGetPrintSize(fontBody, backButton.label, 1.0f, &tw, &th);
+		AEGfxPrint(fontBody, backButton.label,
+			backButton.x / 800.0f - tw * 0.5f,
+			backButton.y / 450.0f - th * 0.5f,
+			1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
 	}
 	else if (menuScreen == MENU_CONFIRMATION) {
 		const char* prompt = "Are you sure?";

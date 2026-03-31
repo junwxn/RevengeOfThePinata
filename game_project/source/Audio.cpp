@@ -164,6 +164,74 @@ void Audio::PlayFireworksSFX()
 		AEAudioPlay(fireworksSFX[soundID], audioGroup.fireworks, 1.0f, 1.0f, 0);
 }
 
+void Audio::PlayClickSFX()
+{
+		int soundID{ Vectors::get_random(0, 7) };
+		AEAudioPlay(enemyVocal_SFX[soundID], audioGroup.enemy, 1.0f, 1.0f, 0);
+}
+
+void Audio::SetBGMVolume(float v) {
+	BGMVolume = v;
+
+	// If muted, keep volume at 0
+	if (IsMuted()) {
+		AEAudioSetGroupVolume(audioGroup.BGM, 0.0f);
+	}
+	else {
+		AEAudioSetGroupVolume(audioGroup.BGM, BGMVolume);
+	}
+}
+
+void Audio::SetGeneralSFXVolume(float v) {
+	GeneralSFXVolume = v;
+
+	// If muted, keep volume at 0
+	if (IsMuted()) {
+		AEAudioSetGroupVolume(audioGroup.fireworks, 0.0f);
+		AEAudioSetGroupVolume(audioGroup.general, 0.0f);
+	}
+	else {
+		AEAudioSetGroupVolume(audioGroup.fireworks, GeneralSFXVolume);
+		AEAudioSetGroupVolume(audioGroup.general, GeneralSFXVolume);
+	}
+}
+
+void Audio::SetCombatSFXVolume(float v) {
+	CombatSFXVolume = v;
+
+	// If muted, keep volume at 0
+	if (IsMuted()) {
+		AEAudioSetGroupVolume(audioGroup.combat, 0.0f);
+	}
+	else {
+		AEAudioSetGroupVolume(audioGroup.combat, CombatSFXVolume);
+	}
+}
+
+void Audio::SetPlayerSFXVolume(float v) {
+	PlayerSFXVolume = v;
+
+	// If muted, keep volume at 0
+	if (IsMuted()) {
+		AEAudioSetGroupVolume(audioGroup.player, 0.0f);
+	}
+	else {
+		AEAudioSetGroupVolume(audioGroup.player, PlayerSFXVolume);
+	}
+}
+
+void Audio::SetEnemySFXVolume(float v) {
+	EnemySFXVolume = v;
+
+	// If muted, keep volume at 0
+	if (IsMuted()) {
+		AEAudioSetGroupVolume(audioGroup.enemy, 0.0f);
+	}
+	else {
+		AEAudioSetGroupVolume(audioGroup.enemy, EnemySFXVolume);
+	}
+}
+
 void Audio::UnloadBGM()
 {
 	AEAudioStopGroup(audioGroup.BGM);

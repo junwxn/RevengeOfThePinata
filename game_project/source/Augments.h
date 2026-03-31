@@ -64,6 +64,9 @@ private:
     float choiceCameraX;
     float choiceCameraY;
 
+    float playerballdist;
+
+    bool spawn_anim = false;
     bool choose = false;
 
     bool startingAnimation = true;
@@ -75,6 +78,7 @@ private:
 
     // Visual Assets
     AEGfxTexture* m_candyTex = nullptr;
+    AEGfxTexture* interactTex = nullptr;
 
     AEGfxTexture* m_amplifieddamageTex = nullptr;
     AEGfxTexture* m_attackmomentumTex = nullptr;
@@ -90,7 +94,10 @@ private:
     AEGfxVertexList* augmentMesh = nullptr;
     AEGfxVertexList* candyMesh = nullptr;
     AEGfxVertexList* cardMesh = nullptr;
+    AEGfxVertexList* interactMesh = nullptr;
     s8 m_cardFont = -1;
+
+    Sprite interactSprite;
 
     Sprite candySprite;
 

@@ -22,9 +22,11 @@ enum TutorialStep {
 	TUT_ATTACK,     // LMB to attack (introduces charges)
 	TUT_CHARGES,    // Explain attack charges
 	TUT_BLOCK,      // RMB to block
-	TUT_PARRY,      // Parry timing to regain charges
-	TUT_COMBAT,     // Fight a practice enemy
-	TUT_DONE        // Tutorial complete
+	TUT_PARRY,          // Parry timing to regain charges
+	TUT_ENEMY_WALKER,   // Showcase Walker enemy
+	TUT_ENEMY_DASHER,   // Showcase Dasher enemy
+	TUT_ENEMY_THROWER,  // Showcase Thrower enemy
+	TUT_DONE            // Tutorial complete
 };
 
 // load variables
@@ -39,7 +41,7 @@ static s8 tutorialFont = -1;
 // ===== ADJUSTABLE TUTORIAL UI POSITIONS =====
 // All offsets are in screen pixels from camera center
 static const float PINATA_OFFSET_X  = -700.0f;  // pinata X (negative = left)
-static const float PINATA_OFFSET_Y  = -200.0f;  // pinata Y (negative = down)
+static const float PINATA_OFFSET_Y  =  200.0f;  // pinata Y (negative = down)
 static const float PINATA_W         =  500.0f;   // pinata draw width
 static const float PINATA_H         =  500.0f;   // pinata draw height
 
@@ -95,19 +97,24 @@ static const char* GetStepText() {
 	case TUT_ATTACK:  return "Click LMB to attack";
 	case TUT_CHARGES: return "Attacks use charges!";
 	case TUT_BLOCK:   return "Hold RMB to block";
-	case TUT_PARRY:   return "Parry to regain charges!";
-	case TUT_COMBAT:  return "Defeat the enemy!";
-	case TUT_DONE:    return "Tutorial complete!";
+	case TUT_PARRY:         return "Parry to regain charges!";
+	case TUT_ENEMY_WALKER:  return "This is a Walker!";
+	case TUT_ENEMY_DASHER:  return "Watch out, a Dasher!";
+	case TUT_ENEMY_THROWER: return "Incoming, a Thrower!";
+	case TUT_DONE:          return "Tutorial complete!";
 	default:          return "";
 	}
 }
 
 static const char* GetStepSubtext() {
 	switch (currentStep) {
-	case TUT_ATTACK:  return "You have limited attack charges";
-	case TUT_CHARGES: return "Check your charges in the HUD";
-	case TUT_PARRY:   return "Block right as an enemy hits you";
-	default:          return "";
+	case TUT_ATTACK:         return "You have limited attack charges";
+	case TUT_CHARGES:        return "Check your charges in the HUD";
+	case TUT_PARRY:          return "Block right as an enemy hits you";
+	case TUT_ENEMY_WALKER:   return "It chases and attacks up close";
+	case TUT_ENEMY_DASHER:   return "It lunges at you with a dash";
+	case TUT_ENEMY_THROWER:  return "Parry to reflect its projectiles!";
+	default:                 return "";
 	}
 }
 
@@ -171,6 +178,28 @@ static void SpawnPracticeEnemy() {
 	}
 }
 
+static void SpawnDasherEnemy() {
+	tutorialEnemies.clear();
+	AEVec2 playerPos = { player.GetX(), player.GetY() };
+	AEVec2 spawnPos = GetRandomSpawnPos(gameMap, playerPos, 200.0f, ENEMY_SIZE);
+	tutorialEnemies.push_back(std::make_unique<Dasher>(spawnPos, ENEMY_SIZE, 100.0f, 200.0f, 3.0f));
+	for (auto& enemy : tutorialEnemies) {
+		enemy->Init();
+		enemy->SetMap(&gameMap);
+	}
+}
+
+static void SpawnThrowerEnemy() {
+	tutorialEnemies.clear();
+	AEVec2 playerPos = { player.GetX(), player.GetY() };
+	AEVec2 spawnPos = GetRandomSpawnPos(gameMap, playerPos, 200.0f, ENEMY_SIZE);
+	tutorialEnemies.push_back(std::make_unique<Thrower>(spawnPos, ENEMY_SIZE, 80.0f, 100.0f));
+	for (auto& enemy : tutorialEnemies) {
+		enemy->Init();
+		enemy->SetMap(&gameMap);
+	}
+}
+
 void Tutorial_Load() {
 	TexBlock2  = AEGfxTextureLoad("Assets/block2.png");
 	TexBlock   = AEGfxTextureLoad("Assets/block.png");
@@ -211,7 +240,7 @@ void Tutorial_Init() {
 
 void Tutorial_Update(float dt) {
 	if (!AESysDoesWindowExist()) {
-		Transition_Start(GS_QUIT);
+		Transition_StartImmediate(GS_QUIT);
 		return;
 	}
 
@@ -239,7 +268,13 @@ void Tutorial_Update(float dt) {
 		pinataBobY = 0.0f;
 	}
 
-	if (!player.GetIsAlive()) { Transition_Start(GS_GAMEOVER); return; }
+	if (!player.GetIsAlive()) { Transition_StartImmediate(GS_GAMEOVER); return; }
+
+	// Restrict player actions based on current tutorial step
+	// Actions unlock progressively as each mechanic is introduced
+	player.SetCanDash(currentStep >= TUT_DASH);
+	player.SetCanAttack(currentStep >= TUT_ATTACK);
+	player.SetCanBlock(currentStep >= TUT_BLOCK);
 
 	bool preventMovement = false;
 	player.Update(dt, CombatSystem, tutorialEnemies, camera.GetX(), camera.GetY(), preventMovement);
@@ -304,13 +339,15 @@ void Tutorial_Update(float dt) {
 			if (stepTimer > 0.2f) {
 				currentStep = TUT_PARRY;
 				stepTimer = 0.0f;
-				chargesBeforeParry = player.GetAttackCharges();
 				SpawnPracticeEnemy();
 			}
 		}
 		break;
 
 	case TUT_PARRY:
+		// Snapshot charges before this frame's combat so we detect any gain
+		chargesBeforeParry = player.GetAttackCharges();
+
 		// Update enemies for this step
 		tutorialEnemies.erase(
 			std::remove_if(tutorialEnemies.begin(), tutorialEnemies.end(),
@@ -323,7 +360,7 @@ void Tutorial_Update(float dt) {
 			enemy->Update(dt, CombatSystem, player, tutorialEnemies);
 			CombatSystem.Update(player, *enemy, camera, dt);
 		}
-		// Detect if player gained a charge via parry
+		// Detect if player gained a charge via parry this frame
 		if (player.GetAttackCharges() > chargesBeforeParry) {
 			hasParried = true;
 		}
@@ -331,7 +368,7 @@ void Tutorial_Update(float dt) {
 			stepTimer += dt;
 			if (stepTimer > 1.5f) {
 				tutorialEnemies.clear();
-				currentStep = TUT_COMBAT;
+				currentStep = TUT_ENEMY_WALKER;
 				stepTimer = 0.0f;
 				SpawnPracticeEnemy();
 			}
@@ -342,7 +379,9 @@ void Tutorial_Update(float dt) {
 		}
 		break;
 
-	case TUT_COMBAT:
+	case TUT_ENEMY_WALKER:
+	case TUT_ENEMY_DASHER:
+	case TUT_ENEMY_THROWER:
 		// Update enemies
 		tutorialEnemies.erase(
 			std::remove_if(tutorialEnemies.begin(), tutorialEnemies.end(),
@@ -356,15 +395,24 @@ void Tutorial_Update(float dt) {
 			CombatSystem.Update(player, *enemy, camera, dt);
 		}
 		if (tutorialEnemies.empty()) {
-			currentStep = TUT_DONE;
+			if (currentStep == TUT_ENEMY_WALKER) {
+				currentStep = TUT_ENEMY_DASHER;
+				SpawnDasherEnemy();
+			} else if (currentStep == TUT_ENEMY_DASHER) {
+				currentStep = TUT_ENEMY_THROWER;
+				SpawnThrowerEnemy();
+			} else {
+				currentStep = TUT_DONE;
+			}
 			stepTimer = 0.0f;
+			player.SetAttackCharges(DEFAULT_ATTACK_CHARGES);
 		}
 		break;
 
 	case TUT_DONE:
 		stepTimer += dt;
 		if (stepTimer > 2.0f) {
-			Transition_Start(GS_LEVEL1);
+			Transition_Start(GS_LEVEL1, TransitionSheet::LEVEL1);
 		}
 		break;
 	}
@@ -399,7 +447,7 @@ void Tutorial_Update(float dt) {
 
 	// Skip tutorial shortcut
 	if (AEInputCheckTriggered(AEVK_N)) {
-		Transition_Start(GS_LEVEL1);
+		Transition_Start(GS_LEVEL1, TransitionSheet::LEVEL1);
 	}
 }
 
@@ -494,6 +542,38 @@ void Tutorial_Draw() {
 	}
 
 	HUD_Draw(&player, camera.GetX(), camera.GetY());
+
+	// Draw red arrow pointing at attack charges during TUT_CHARGES
+	if (currentStep == TUT_CHARGES) {
+		float cx = camera.GetX();
+		float cy = camera.GetY();
+
+		// Bobbing animation
+		float bob = sinf(stepTimer * 5.0f) * 10.0f;
+
+		// Arrow centered over attack charges HUD section (screen-space ~-70, -370)
+		float arrowX = -70.0f;
+		float tipY   = -330.0f + bob;
+
+		// Arrowhead — two bars forming a V at the tip
+		float headLen   = 45.0f;
+		float headThick = 14.0f;
+		DrawMesh(RectMesh, headLen, headThick,
+		         arrowX + cx, tipY + cy,
+		         3.0f * PI / 4.0f, 220, 40, 40, 240);
+		DrawMesh(RectMesh, headLen, headThick,
+		         arrowX + cx, tipY + cy,
+		         PI / 4.0f, 220, 40, 40, 240);
+
+		// Shaft above the arrowhead
+		float shaftW = 16.0f;
+		float shaftH = 110.0f;
+		float shaftY = tipY + headLen * 0.707f + shaftH * 0.5f;
+		DrawMesh(RectMesh, shaftW, shaftH,
+		         arrowX - shaftW * 0.5f + cx, shaftY + cy,
+		         0, 220, 40, 40, 240);
+	}
+
 	Pause_Draw(camera.GetX(), camera.GetY());
 
 	// "Press N to skip" hint at bottom
