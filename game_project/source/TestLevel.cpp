@@ -6,7 +6,7 @@
 			test level, including its initialization, updating, rendering,
 			and transitioning between states.
 
-Copyright © 2026 DigiPen, All rights reserved.
+Copyright ï¿½ 2026 DigiPen, All rights reserved.
 *************************************************************************/
 #include "pch.h"
 #include "Utils.h"
@@ -221,6 +221,6 @@ void TestLevel_Unload() {
 	gameMap.Unload();
 	Pause_Unload();
 	HUD_Unload();
-	AEAudioStopGroup(gAudio.audioGroup.BGM);
+	AEAudioStopGroup(gAudio.m_audioGroup.BGM);
 	Debug_Unload();
 }

@@ -139,7 +139,7 @@ public:
     f32 GetSpeed() const { return m_speed; }
 
 protected:
-    float sizeMultiplier{ 1.5f };
+    float m_sizeMultiplier{ 1.5f };
 
     AEGfxTexture* m_BatTexture = nullptr;
     AEGfxVertexList* m_BatMesh = nullptr;

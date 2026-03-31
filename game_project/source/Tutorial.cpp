@@ -618,5 +618,5 @@ void Tutorial_Unload() {
 	gameMap.Unload();
 	Pause_Unload();
 	HUD_Unload();
-	AEAudioStopGroup(gAudio.audioGroup.BGM);
+	AEAudioStopGroup(gAudio.m_audioGroup.BGM);
 }

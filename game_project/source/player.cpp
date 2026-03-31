@@ -170,10 +170,10 @@ void Player::Update(float dt, Combat::System& combat, std::vector<std::unique_pt
         gAudio.PlayCombatSFX(COMBAT_SWING);
 
         //for (auto& enemy : wave) {
-        //    if (combatSystem.IsEnemyInRange(*this, *enemy)) {
+        //    if (m_combatSystem.IsEnemyInRange(*this, *enemy)) {
         //        std::cout << "ENEMY HIT!" << std::endl;
         //        m_CombatFlags.attackHit = true;
-        //        m_AttackStopFrames = combatSystem.GetAttackerStopFrames();
+        //        m_AttackStopFrames = m_combatSystem.GetAttackerStopFrames();
         //    }
         //}
         std::cout << "Attack Charges Left: " << m_AttackCharges - 1 << std::endl;
@@ -207,9 +207,9 @@ void Player::Update(float dt, Combat::System& combat, std::vector<std::unique_pt
     //    m_CurrentState = PlayerState::STATE_ATTACK;
     //    m_AttackFrameAccumulator += dt;
 
-    //    while (m_AttackFrameAccumulator >= combatSystem.GetOneFPS() && m_AttackCurrentFrame <= m_AttackFrames.total) {
+    //    while (m_AttackFrameAccumulator >= m_combatSystem.GetOneFPS() && m_AttackCurrentFrame <= m_AttackFrames.total) {
     //        ++m_AttackCurrentFrame;
-    //        m_AttackFrameAccumulator -= combatSystem.GetOneFPS();
+    //        m_AttackFrameAccumulator -= m_combatSystem.GetOneFPS();
     //    }
 
     //    // For normalized value between 0.0 - 1.0 range
@@ -283,9 +283,9 @@ void Player::Update(float dt, Combat::System& combat, std::vector<std::unique_pt
 
         if (m_AttackStopFrames <= 0) m_AttackFrameAccumulator += dt;
 
-        while (m_AttackFrameAccumulator >= combatSystem.GetOneFPS() && m_AttackCurrentFrame <= m_AttackBasic.total) {
+        while (m_AttackFrameAccumulator >= m_combatSystem.GetOneFPS() && m_AttackCurrentFrame <= m_AttackBasic.total) {
             ++m_AttackCurrentFrame;
-            m_AttackFrameAccumulator -= combatSystem.GetOneFPS();
+            m_AttackFrameAccumulator -= m_combatSystem.GetOneFPS();
         }
 
         // For normalized value between 0.0 - 1.0 range
@@ -312,14 +312,14 @@ void Player::Update(float dt, Combat::System& combat, std::vector<std::unique_pt
             {
                 if (!enemy->GetCombatFlag().gotHit
                     && enemy->GetLastAttackID() != m_AttackID
-                    && combatSystem.IsEnemyInRange(*this, *enemy))
+                    && m_combatSystem.IsEnemyInRange(*this, *enemy))
                 {
                     enemy->SetGotHit(true);
                     enemy->SetLastAttackID(m_AttackID);
 
                     m_CombatFlags.attackHit = true;
-                    m_AttackStopFrames = combatSystem.GetAttackerStopFrames();
-                    combatSystem.ApplyDamage(*enemy, *this);
+                    m_AttackStopFrames = m_combatSystem.GetAttackerStopFrames();
+                    m_combatSystem.ApplyDamage(*enemy, *this);
 
                     // Fire ON_ATTACK_HIT event for augment effects
                     EventData hitData;
@@ -389,10 +389,10 @@ void Player::Update(float dt, Combat::System& combat, std::vector<std::unique_pt
         if (m_BlockCurrentFrame < m_BlockData.startUp + m_BlockData.parry)
         {
             //std::cout << "WHILE 1" << std::endl;
-            while (m_BlockFrameAccumulator >= combatSystem.GetOneFPS())
+            while (m_BlockFrameAccumulator >= m_combatSystem.GetOneFPS())
             {
                 ++m_BlockCurrentFrame;
-                m_BlockFrameAccumulator -= combatSystem.GetOneFPS();
+                m_BlockFrameAccumulator -= m_combatSystem.GetOneFPS();
             }
         }
         else/* if (m_BlockCurrentFrame < m_BlockData.total)*/
@@ -402,11 +402,11 @@ void Player::Update(float dt, Combat::System& combat, std::vector<std::unique_pt
             //{
             //    std::cout << "NOT HOLDING" << std::endl;
 
-            while (m_BlockFrameAccumulator >= combatSystem.GetOneFPS())
+            while (m_BlockFrameAccumulator >= m_combatSystem.GetOneFPS())
             {
                 //std::cout << "RESTARTED" << std::endl;
                 if (!m_BlockState.held) ++m_BlockCurrentFrame;
-                m_BlockFrameAccumulator -= combatSystem.GetOneFPS();
+                m_BlockFrameAccumulator -= m_combatSystem.GetOneFPS();
             }
             //}
         }
@@ -424,7 +424,7 @@ void Player::Update(float dt, Combat::System& combat, std::vector<std::unique_pt
 
             for (auto& enemy : wave)
             {
-                if (enemy->GetCombatFlag().parried) m_ParryStopFrames = combatSystem.GetParryStopFrames();
+                if (enemy->GetCombatFlag().parried) m_ParryStopFrames = m_combatSystem.GetParryStopFrames();
 
             }
 
@@ -541,13 +541,13 @@ void Player::Update(float dt, Combat::System& combat, std::vector<std::unique_pt
             m_CurrentState = PlayerState::STATE_DASH;
             m_DashFrameAccumulator += dt;
 
-            while (m_DashFrameAccumulator >= combatSystem.GetOneFPS() && m_DashCurrentFrame <= m_MovementData.total) {
+            while (m_DashFrameAccumulator >= m_combatSystem.GetOneFPS() && m_DashCurrentFrame <= m_MovementData.total) {
                 ++m_DashCurrentFrame;
 
                 if (m_DashCurrentFrame > m_MovementData.total)
                     m_DashCurrentFrame = m_MovementData.total;
 
-                m_DashFrameAccumulator -= combatSystem.GetOneFPS();
+                m_DashFrameAccumulator -= m_combatSystem.GetOneFPS();
 
                 if (m_DashCurrentFrame >= m_MovementData.startUp
                     && m_DashCurrentFrame < m_MovementData.startUp + m_MovementData.active)
@@ -685,7 +685,7 @@ void Player::Draw()
             m_SeeingRedMesh,
             m_SeeingRedTexture,
             m_PosX, m_PosY,
-            sizeMultiplier,
+            m_sizeMultiplier,
             m_PlayerSprite.GetPixelScale()
         );
     }
@@ -694,7 +694,7 @@ void Player::Draw()
         DrawTexturePlayer(m_PlayerSprite, static_cast<int>(m_CurrentDirection),
             m_PlayerSprite.GetPlayerSpriteMesh(), m_PlayerSprite.GetPlayerSpriteSheet(),
             m_PlayerSprite.GetPixelScale(), m_PlayerSprite.GetPixelScale(),
-            m_PosX, m_PosY, 0.0f, sizeMultiplier);
+            m_PosX, m_PosY, 0.0f, m_sizeMultiplier);
     }
 
     if (batInFront) DrawBat(batAngle);

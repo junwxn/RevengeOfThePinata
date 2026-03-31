@@ -159,13 +159,13 @@ public:
     void EvaluateCurrentDirection();
 
 private:
-    float sizeMultiplier{ 2.0f };
+    float m_sizeMultiplier{ 2.0f };
     Sprite m_PlayerSprite;
     AEGfxTexture* m_PlayerSpriteSheet = nullptr;
     AEGfxTexture* m_PlayerCombatSpriteSheet = nullptr;
     PlayerDirection m_CurrentDirection;
 
-    Combat::System combatSystem;
+    Combat::System m_combatSystem;
 
 
     // Position & Stats
@@ -405,5 +405,5 @@ private:
     bool m_InputCanBlock  = true;
 
     // Augments
-    bool preventing_movement;
+    bool m_preventing_movement;
 };

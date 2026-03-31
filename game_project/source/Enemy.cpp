@@ -339,7 +339,7 @@ void Enemy::Draw() {
             m_EnemySprite.GetEnemyAttackSpriteSheet(),
             m_EnemySprite.GetPixelScale(),
             m_EnemySprite.GetPixelScale(),
-            m_pos.x, m_pos.y, 0.0f, sizeMultiplier);
+            m_pos.x, m_pos.y, 0.0f, m_sizeMultiplier);
     }
     //else if (isAnyWindup) {
     //    // Winding up — tint yellow to show charging
@@ -349,14 +349,14 @@ void Enemy::Draw() {
     //        m_EnemySprite.GetEnemyWindupSpriteSheet(),
     //        m_EnemySprite.GetPixelScale(),
     //        m_EnemySprite.GetPixelScale(),
-    //        m_pos.x, m_pos.y, 0.0f, sizeMultiplier);
+    //        m_pos.x, m_pos.y, 0.0f, m_sizeMultiplier);
 
     //    DrawTexture(m_DasherSprite, static_cast<int>(m_CurrentDirection),
     //        m_DasherSprite.GetEnemyWindupSpriteMesh(),
     //        m_DasherSprite.GetEnemyWindupSpriteSheet(),
     //        m_DasherSprite.GetPixelScale(),
     //        m_DasherSprite.GetPixelScale(),
-    //        m_pos.x, m_pos.y, 0.0f, sizeMultiplier);
+    //        m_pos.x, m_pos.y, 0.0f, m_sizeMultiplier);
     //}
     else if (m_CombatFlags.parried || m_CombatFlags.gotHit) {
         //DrawMesh(m_enemyMesh, m_size, isoHeight, m_pos.x, m_pos.y, 0.0f, 255, 0, 0, 255);
@@ -368,7 +368,7 @@ void Enemy::Draw() {
             m_EnemySprite.GetEnemyAttackSpriteSheet(),
             m_EnemySprite.GetPixelScale(),
             m_EnemySprite.GetPixelScale(),
-            m_pos.x, m_pos.y, 0.0f, sizeMultiplier);
+            m_pos.x, m_pos.y, 0.0f, m_sizeMultiplier);
     }
     else {
         //DrawMesh(m_enemyMesh, m_size, isoHeight, m_pos.x, m_pos.y, 0.0f, 44, 255, 255, 255);
@@ -377,14 +377,14 @@ void Enemy::Draw() {
             m_EnemySprite.GetSpriteSheet(),
             m_EnemySprite.GetPixelScale(),
             m_EnemySprite.GetPixelScale(),
-            m_pos.x, m_pos.y, 0.0f, sizeMultiplier);
+            m_pos.x, m_pos.y, 0.0f, m_sizeMultiplier);
 
         DrawTexture(m_DasherSprite, static_cast<int>(m_CurrentDirection),
             m_DasherSprite.GetSpriteMesh(),
             m_DasherSprite.GetSpriteSheet(),
             m_DasherSprite.GetPixelScale(),
             m_DasherSprite.GetPixelScale(),
-            m_pos.x, m_pos.y, 0.0f, sizeMultiplier);
+            m_pos.x, m_pos.y, 0.0f, m_sizeMultiplier);
     }
 
     // Enemy sword
@@ -1050,7 +1050,7 @@ void Dasher::Draw()
             m_DasherSprite.GetDasherAttackSpriteSheet(),
             m_DasherSprite.GetPixelScale(),
             m_DasherSprite.GetPixelScale(),
-            m_pos.x, m_pos.y, 0.0f, sizeMultiplier);
+            m_pos.x, m_pos.y, 0.0f, m_sizeMultiplier);
     }
     //else if (isAnyWindup) {
     //    DrawTexture(m_DasherSprite, static_cast<int>(m_CurrentDirection),
@@ -1058,7 +1058,7 @@ void Dasher::Draw()
     //        m_DasherSprite.GetDasherWindupSpriteSheet(),
     //        m_DasherSprite.GetPixelScale(),
     //        m_DasherSprite.GetPixelScale(),
-    //        m_pos.x, m_pos.y, 0.0f, sizeMultiplier);
+    //        m_pos.x, m_pos.y, 0.0f, m_sizeMultiplier);
     //}
     else if (m_CombatFlags.parried || m_CombatFlags.gotHit) {
         //DrawMesh(m_enemyMesh, m_size, isoHeight, m_pos.x, m_pos.y, 0.0f, 255, 0, 0, 255);
@@ -1069,7 +1069,7 @@ void Dasher::Draw()
             m_DasherSprite.GetDasherAttackSpriteSheet(),
             m_DasherSprite.GetPixelScale(),
             m_DasherSprite.GetPixelScale(),
-            m_pos.x, m_pos.y, 0.0f, sizeMultiplier);
+            m_pos.x, m_pos.y, 0.0f, m_sizeMultiplier);
     }
     else {
         DrawTexture(m_DasherSprite, static_cast<int>(m_CurrentDirection),
@@ -1077,7 +1077,7 @@ void Dasher::Draw()
             m_DasherSprite.GetDasherSpriteSheet(),
             m_DasherSprite.GetPixelScale(),
             m_DasherSprite.GetPixelScale(),
-            m_pos.x, m_pos.y, 0.0f, sizeMultiplier);
+            m_pos.x, m_pos.y, 0.0f, m_sizeMultiplier);
     }
 
     if (m_dashActive && m_dashCurrentFrame >= m_dashStartFrames &&
@@ -1088,7 +1088,7 @@ void Dasher::Draw()
                 m_DasherSprite.GetDasherWindupSpriteSheet(),
                 m_DasherSprite.GetPixelScale(),
                 m_DasherSprite.GetPixelScale(),
-                m_pos.x, m_pos.y, 0.0f, sizeMultiplier);
+                m_pos.x, m_pos.y, 0.0f, m_sizeMultiplier);
     }
 
     // Enemy sword

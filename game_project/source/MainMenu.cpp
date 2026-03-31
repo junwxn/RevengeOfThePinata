@@ -912,5 +912,5 @@ void MainMenu_Unload() {
 		AEGfxTextureUnload(digipenLogo);
 		digipenLogo = nullptr;
 	}
-	AEAudioStopGroup(gAudio.audioGroup.BGM);
+	AEAudioStopGroup(gAudio.m_audioGroup.BGM);
 }
