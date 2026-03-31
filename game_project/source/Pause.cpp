@@ -5,6 +5,7 @@
 #include "Audio.h"
 #include "Player.h"
 #include "Transition.h"
+#include "SaveSystem.h"
 
 enum PauseScreen { PAUSE_MAIN, PAUSE_CONFIRM_MAINMENU, PAUSE_CONFIRM_RESTART };
 
@@ -186,6 +187,7 @@ bool Pause_Update(bool isPlayerAlive) {
 		}
 		else if (pauseScreen == PAUSE_CONFIRM_MAINMENU) {
 			if (yesButton.hovered) {
+				SaveSystem_Save(current);
 				paused = false;
 				pauseScreen = PAUSE_MAIN;
 				Transition_Start(GS_MAINMENU);
@@ -196,6 +198,7 @@ bool Pause_Update(bool isPlayerAlive) {
 		}
 		else if (pauseScreen == PAUSE_CONFIRM_RESTART) {
 			if (yesButton.hovered) {
+				SaveSystem_ClearSave();
 				paused = false;
 				pauseScreen = PAUSE_MAIN;
 				g_PlayerAttackCharges = DEFAULT_ATTACK_CHARGES;
