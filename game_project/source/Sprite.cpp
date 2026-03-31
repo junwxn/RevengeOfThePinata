@@ -4,8 +4,7 @@
 
 Sprite::~Sprite()
 {
-	// Enemy
-	// Base
+	// Walker
 	if (pSpriteMesh) {
 		AEGfxMeshFree(pSpriteMesh);
 		pSpriteMesh = nullptr;
@@ -55,6 +54,32 @@ Sprite::~Sprite()
 	if (pDasherAttack_SpriteSheet) {
 		AEGfxTextureUnload(pDasherAttack_SpriteSheet);
 		pDasherAttack_SpriteSheet = nullptr;
+	}
+
+	// Thrower
+	if (pThrowerSpriteMesh) {
+		AEGfxMeshFree(pThrowerSpriteMesh);
+		pThrowerSpriteMesh = nullptr;
+	}
+	if (pThrowerSpriteSheet) {
+		AEGfxTextureUnload(pThrowerSpriteSheet);
+		pThrowerSpriteSheet = nullptr;
+	}
+	if (pThrowerWindup_SpriteMesh) {
+		AEGfxMeshFree(pThrowerWindup_SpriteMesh);
+		pThrowerWindup_SpriteMesh = nullptr;
+	}
+	if (pThrowerWindup_SpriteSheet) {
+		AEGfxTextureUnload(pThrowerWindup_SpriteSheet);
+		pThrowerWindup_SpriteSheet = nullptr;
+	}
+	if (pThrowerAttack_SpriteMesh) {
+		AEGfxMeshFree(pThrowerAttack_SpriteMesh);
+		pThrowerAttack_SpriteMesh = nullptr;
+	}
+	if (pThrowerAttack_SpriteSheet) {
+		AEGfxTextureUnload(pThrowerAttack_SpriteSheet);
+		pThrowerAttack_SpriteSheet = nullptr;
 	}
 
 	// Boss
@@ -110,6 +135,7 @@ void Sprite::Sprite_Load()
 	/////////////////////
 	// ENEMY SPRITE SHEET
 	/////////////////////
+	// Walker
 	if (pEnemySpriteSheet) {
 		AEGfxTextureUnload(pEnemySpriteSheet);
 		pEnemySpriteSheet = nullptr;
@@ -183,13 +209,50 @@ void Sprite::Sprite_Load()
 		return;
 	}
 
+	// Thrower
+	if (pThrowerSpriteSheet) {
+		AEGfxTextureUnload(pThrowerSpriteSheet);
+		pThrowerSpriteSheet = nullptr;
+	}
+
+	pThrowerSpriteSheet = AEGfxTextureLoad("Assets/Sprites/ChineseKid_SpriteSheet.png");
+	if (!pThrowerSpriteSheet)
+	{
+		std::cout << "ERROR LOADING THROWER SPRITE SHEET" << std::endl;
+		return;
+	}
+
+	if (pThrowerWindup_SpriteSheet) {
+		AEGfxTextureUnload(pThrowerWindup_SpriteSheet);
+		pThrowerWindup_SpriteSheet = nullptr;
+	}
+
+	pThrowerWindup_SpriteSheet = AEGfxTextureLoad("Assets/Sprites/ChineseKid_Windup_SpriteSheet.png");
+	if (!pThrowerWindup_SpriteSheet)
+	{
+		std::cout << "ERROR LOADING THROWER WINDUP SPRITE SHEET" << std::endl;
+		return;
+	}
+
+	if (pThrowerAttack_SpriteSheet) {
+		AEGfxTextureUnload(pThrowerAttack_SpriteSheet);
+		pThrowerAttack_SpriteSheet = nullptr;
+	}
+
+	pThrowerAttack_SpriteSheet = AEGfxTextureLoad("Assets/Sprites/ChineseKid_Attack_SpriteSheet2.png");
+	if (!pThrowerAttack_SpriteSheet)
+	{
+		std::cout << "ERROR LOADING THROWER ATTACK SPRITE SHEET" << std::endl;
+		return;
+	}
+
 	// Boss
 	if (pBossSpriteSheet) {
 		AEGfxTextureUnload(pBossSpriteSheet);
 		pBossSpriteSheet = nullptr;
 	}
 
-	pBossSpriteSheet = AEGfxTextureLoad("Assets/Sprites/ChineseKid_SpriteSheet.png");
+	pBossSpriteSheet = AEGfxTextureLoad("Assets/Sprites/Boss_SpriteSheet.png");
 	if (!pBossSpriteSheet)
 	{
 		std::cout << "ERROR LOADING BOSS SPRITE SHEET" << std::endl;
@@ -201,7 +264,7 @@ void Sprite::Sprite_Load()
 		pBossWindup_SpriteSheet = nullptr;
 	}
 
-	pBossWindup_SpriteSheet = AEGfxTextureLoad("Assets/Sprites/ChineseKid_Windup_SpriteSheet.png");
+	pBossWindup_SpriteSheet = AEGfxTextureLoad("Assets/Sprites/Boss_SpriteSheet.png");
 	if (!pBossWindup_SpriteSheet)
 	{
 		std::cout << "ERROR LOADING BOSS WINDUP SPRITE SHEET" << std::endl;
@@ -213,7 +276,7 @@ void Sprite::Sprite_Load()
 		pBossAttack_SpriteSheet = nullptr;
 	}
 
-	pBossAttack_SpriteSheet = AEGfxTextureLoad("Assets/Sprites/ChineseKid_Attack_SpriteSheet2.png");
+	pBossAttack_SpriteSheet = AEGfxTextureLoad("Assets/Sprites/Boss_Attack_SpriteSheet.png");
 	if (!pBossAttack_SpriteSheet)
 	{
 		std::cout << "ERROR LOADING BOSS ATTACK SPRITE SHEET" << std::endl;
@@ -284,6 +347,20 @@ void Sprite::Sprite_Init()
 		pDasherAttack_SpriteMesh = nullptr;
 	}
 
+	// Thrower
+	if (pThrowerSpriteMesh) {
+		AEGfxMeshFree(pThrowerSpriteMesh);
+		pThrowerSpriteMesh = nullptr;
+	}
+	if (pThrowerWindup_SpriteMesh) {
+		AEGfxMeshFree(pThrowerWindup_SpriteMesh);
+		pThrowerWindup_SpriteMesh = nullptr;
+	}
+	if (pThrowerAttack_SpriteMesh) {
+		AEGfxMeshFree(pThrowerAttack_SpriteMesh);
+		pThrowerAttack_SpriteMesh = nullptr;
+	}
+
 	// Boss
 	if (pBossSpriteMesh) {
 		AEGfxMeshFree(pBossSpriteMesh);
@@ -324,6 +401,11 @@ void Sprite::Sprite_Init()
 	pDasherSpriteMesh = CreateSpriteRectMesh(0xAEF359, 8.0f, 7.0f);
 	pDasherWindup_SpriteMesh = CreateSpriteRectMesh(0xAEF359, 8.0f, 7.0f);
 	pDasherAttack_SpriteMesh = CreateSpriteRectMesh(0xAEF359, 8.0f, 7.0f);
+
+	// Thrower Spritesheet
+	pThrowerSpriteMesh = CreateSpriteRectMesh(0xAEF359, 8.0f, 7.0f);
+	pThrowerWindup_SpriteMesh = CreateSpriteRectMesh(0xAEF359, 8.0f, 7.0f);
+	pThrowerAttack_SpriteMesh = CreateSpriteRectMesh(0xAEF359, 8.0f, 7.0f);
 
 	// Boss Spritesheet
 	pBossSpriteMesh = CreateSpriteRectMesh(0xAEF359, 8.0f, 7.0f);

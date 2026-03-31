@@ -28,6 +28,14 @@ class Sprite
 		AEGfxVertexList* GetDasherWindupSpriteMesh() { return pDasherWindup_SpriteMesh; }
 		AEGfxVertexList* GetDasherAttackSpriteMesh() { return pDasherAttack_SpriteMesh; }
 
+		// Thrower
+		AEGfxTexture* GetThrowerSpriteSheet() { return pThrowerSpriteSheet; }
+		AEGfxTexture* GetThrowerWindupSpriteSheet() { return pThrowerWindup_SpriteSheet; }
+		AEGfxTexture* GetThrowerAttackSpriteSheet() { return pThrowerAttack_SpriteSheet; }
+		AEGfxVertexList* GetThrowerSpriteMesh() { return pThrowerSpriteMesh; }
+		AEGfxVertexList* GetThrowerWindupSpriteMesh() { return pThrowerWindup_SpriteMesh; }
+		AEGfxVertexList* GetThrowerAttackSpriteMesh() { return pThrowerAttack_SpriteMesh; }
+
 		// Boss
 		AEGfxTexture* GetBossSpriteSheet() { return pBossSpriteSheet; }
 		AEGfxTexture* GetBossWindupSpriteSheet() { return pBossWindup_SpriteSheet; }
@@ -92,8 +100,8 @@ class Sprite
 		}
 
 	private:
-		// Enemy Spritesheet
-		// Base
+		// Enemy sprite sheet
+		// Walker
 		AEGfxTexture* pEnemySpriteSheet{nullptr};
 		AEGfxVertexList* pSpriteMesh{nullptr};
 
@@ -112,6 +120,16 @@ class Sprite
 
 		AEGfxTexture* pDasherAttack_SpriteSheet{ nullptr };
 		AEGfxVertexList* pDasherAttack_SpriteMesh{ nullptr };
+
+		// Thrower
+		AEGfxTexture* pThrowerSpriteSheet{ nullptr };
+		AEGfxVertexList* pThrowerSpriteMesh{ nullptr };
+
+		AEGfxTexture* pThrowerWindup_SpriteSheet{ nullptr };
+		AEGfxVertexList* pThrowerWindup_SpriteMesh{ nullptr };
+
+		AEGfxTexture* pThrowerAttack_SpriteSheet{ nullptr };
+		AEGfxVertexList* pThrowerAttack_SpriteMesh{ nullptr };
 
 		// Boss
 		AEGfxTexture* pBossSpriteSheet{ nullptr };

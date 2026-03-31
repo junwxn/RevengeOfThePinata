@@ -364,10 +364,31 @@ class Boss : public Enemy
 {
 public:
     Boss(AEVec2 pos, f32 size, f32 hp, f32 speed);
+    void Draw() override;
+
+    // Getters
     int GetGrowthHits() const { return m_GrowthHits; }
+    bool IsPhaseTransitioning() const { return m_PhaseTransitioning; }
+    bool IsPhaseBlinking() const { return m_PhaseTwoBlinking; }
+    bool IsPhase3Triggered() const { return m_Phase3Triggered; }
+    bool IsPhase3Transitioning() const { return m_Phase3Transitioning; }
+    bool IsPhase3Blinking() const { return m_Phase3Blinking; }
+    bool IsThrowerPhase() const { return m_IsThrowerPhase; }
+    bool IsPhase4Triggered() const { return m_Phase4Triggered; }
+    bool IsPhase4Blinking() const { return m_Phase4Blinking; }
+    bool IsPhase4BallVisible() const { return m_Phase4BallVisible; }
+    bool IsPhase4Transitioning() const {
+        return m_FinalState == BossFinalState::WaitingPickup ||
+            m_FinalState == BossFinalState::Reviving;
+    }
+    AEVec2 GetPhase4BallPos() const { return m_Phase4BallPos; }
+    void TriggerPhaseThree();
+    void ConsumePhase4Pickup();
 
 
 protected:
+    // -- data members--
+    // phase 1
     int m_GrowthHits = 0;
 
     f32 m_BaseSize = 0.0f;
@@ -378,7 +399,115 @@ protected:
     f32 m_RangeGrowthPerHit = 6.0f;
     f32 m_DamageGrowthPerHit = 3.0f;
 
+    f32 m_PopBonus = 0.0f;
+    bool m_WasGotHit = false;
+
+    // Phase 2
+    bool m_PhaseTwoTriggered = false;
+    bool m_PhaseTwoBlinking = false;
+    float m_PhaseBlinkTimer = 0.0f;
+    float m_PhaseBlinkDuration = 2.0f;
+    float m_PhaseBlinkInterval = 0.12f;
+    bool m_PhaseBlinkVisible = true;
+    bool m_UsePhaseTwoSprite = false;
+    bool m_PhaseTransitioning = false;
+
+    // Phase 3
+    bool m_Phase3Triggered = false;
+    bool m_Phase3Transitioning = false;
+    bool m_Phase3Blinking = false;
+    bool m_IsThrowerPhase = false;
+    bool m_RunToCenterPhase = false;
+    bool m_Phase3ReachedCenter = false;
+
+    float m_Phase3BlinkTimer = 0.0f;
+    float m_Phase3BlinkDuration = 2.0f;
+    float m_Phase3BlinkInterval = 0.10f;
+    bool  m_Phase3BlinkVisible = true;
+
+    float m_Phase3HealTarget = 0.0f;
+    float m_Phase3RunToCenterSpeed = 420.0f;
+    float m_Phase3ThrowerMoveSpeed = 60.0f;
+
+    // phase 4
+    enum class BossFinalState {
+        None,
+        FakeDeath,
+        WaitingPickup,
+        Reviving,
+        TripleDashPattern,
+        RecoveryPattern
+    };
+
+    // Phase 4
+    bool m_Phase4Triggered = false;
+    bool m_Phase4BallVisible = false;
+    bool m_Phase4Blinking = false;
+    bool m_Phase4Invulnerable = false;
+
+    BossFinalState m_FinalState = BossFinalState::None;
+
+    AEVec2 m_Phase4BallPos{ 0.0f, 0.0f };
+    float m_Phase4PickupRadius = 40.0f;
+
+    float m_Phase4ReviveBlinkTimer = 0.0f;
+    float m_Phase4ReviveBlinkInterval = 0.10f;
+    bool  m_Phase4BlinkVisible = true;
+
+    float m_Phase4HealRate = 200.0f;
+
+    int   m_Phase4DashesRemaining = 0;
+    float m_Phase4DashPauseTimer = 0.0f;
+    float m_Phase4DashPauseDuration = 0.35f;
+
+    float m_Phase4TeleportDistance = 260.0f;
+    float m_Phase4DashAccel = 3200.0f;
+    float m_Phase4DashMaxSpeed = 1400.0f;
+    AEVec2 m_Phase4LockedDashDir{ 0.0f, 0.0f };
+    float m_Phase4CurrentDashSpeed = 0.0f;
+
+    float m_Phase4RecoveryTimer = 0.0f;
+    float m_Phase4RecoveryDuration = 10.0f;
+    int   m_Phase4RecoveryStep = 0; // 0 atk, 1 atk, 2 dash
+    bool m_Phase4DashHitPlayer = false;
+
+    f32 m_Phase4Speed = 150.0f;
+    f32 m_Phase4RangeBonus = 120.0f;
+    f32 m_Phase4Damage = 40.0f; 
+    bool m_Phase4BuffApplied = false;
+
+    f32 m_Phase4PreDashBlinkTimer = 0.0f;
+    f32 m_Phase4PreDashBlinkDuration = 0.45f;
+
+    f32 m_Phase4DashDistance = 250.0f;     // slightly further than player range
+    f32 m_Phase4DashTravelled = 0.0f;
+
+    f32 m_Phase4InterDashPauseTimer = 0.0f;
+    f32 m_Phase4InterDashPauseDuration = 0.2f;
+
+    AEVec2 m_Phase4DashTarget{ 0.0f, 0.0f };
+
+    bool m_Phase4DidInitialTeleport = false;
+    bool m_Phase4PreDashBlinking = false;
+
+    // -- functions--
+    // phase 1
     void ApplyGrowthFromHits();
+
+    // phase 2
+    void TriggerPhaseTwo(std::vector<std::unique_ptr<Enemy>>& enemies);
+
+    // phase 3
+    void UpdatePhaseThree(f32 dt, Player& player, std::vector<std::unique_ptr<Enemy>>& enemies);
+
+    // phase 4
+    void TriggerPhaseFour(std::vector<std::unique_ptr<Enemy>>& enemies);
+    void UpdatePhaseFour(f32 dt, Player& player);
+    void StartPhase4TripleDash(Player& player);
+    void TeleportForPhase4Dash(Player& player);
+    void UpdatePhase4TripleDash(f32 dt, Player& player);
+    void UpdatePhase4RecoveryPattern(f32 dt, Player& player);
+    void PreparePhase4DashTarget(Player& player);
 
     void ChildUpdate(f32 dt, Combat::System& combat, Player& player,
         std::vector<std::unique_ptr<Enemy>>& enemies) override;
@@ -392,6 +521,13 @@ public:
     Thrower(AEVec2 pos, f32 size, f32 hp, f32 speed);
     void Draw() override;
 
+    void SetHideBody(bool hide) { m_HideBody = hide; }
+    void SetProjectileStats(float speed, float radius, float damage) {
+        m_projectileSpeed = speed;
+        m_projectileRadius = radius;
+        m_projectileDamage = damage;
+    }
+
 protected:
     void ChildUpdate(f32 dt, Combat::System& combat, Player& player,
         std::vector<std::unique_ptr<Enemy>>& enemies) override;
@@ -399,6 +535,7 @@ protected:
     void UpdateProjectiles(f32 dt, Combat::System& combat, Player& player,
         std::vector<std::unique_ptr<Enemy>>& enemies);
     void CleanupProjectiles();
+
 
     std::vector<Projectile> m_projectiles{};
 
@@ -411,4 +548,5 @@ protected:
     f32 m_projectileDamage{ 50.0f };
     f32 m_projectileLifetime{ 3.0f };
     ProjectileType m_projectileType{ ProjectileType::Reflect };
+    bool m_HideBody = false;
 };

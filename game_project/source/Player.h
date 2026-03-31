@@ -128,6 +128,7 @@ public:
     void SetAimVector(float x, float y) { m_AimVector.x = x, m_AimVector.y = y; }
     void SetAimAngle(float angle) { m_AimAngle = angle; }
     void SetHDP(f32 dmg) { m_healthDepletionPercentage = (dmg / m_CombatStats.maxHealth) * 100.0f; }
+    void SetKnockbackVelocity(AEVec2 const& velocity) { m_KnockbackVelocity = velocity; }
 
     // Speed multiplier for augment effects
     float m_SpeedMultiplier = 1.0f;
@@ -191,13 +192,13 @@ private:
     // -------------------------- //
     Combat::CombatStats m_CombatStats
     {
-        200.0f, // health
-        55.0f, // attack
+        22000.0f, // health
+        1555.0f, // attack
         5.0f, // defense
         0.0f, // crit chance
         0.0f, // crit multiplier
         0.0f, // attack multiplier
-        200.0f // max health
+        22000.0f // max health
     };
 
     Combat::CombatFlags m_CombatFlags
@@ -317,6 +318,8 @@ private:
         b_Held,             // held
         b_Recovered         // recovered
     };
+
+    AEVec2 m_KnockbackVelocity{ 0.0f, 0.0f };
 
     // Movement Logic
     // Dash Logic

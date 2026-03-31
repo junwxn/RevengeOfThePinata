@@ -24,6 +24,7 @@ static AEGfxVertexList* RectMesh;
 // init variables
 static Player player{};
 static Camera camera{};
+static Augments augments{};
 static MapSystem gameMap;
 static s8 s_bossFont = -1;
 static float s_bossLagHP = 0.0f;   // lags behind real HP
@@ -42,14 +43,31 @@ static bool preventingmovement{};
 static bool bossPhase2Active = false;
 static bool bossPhase2Triggered = false;
 static float bossMinionSpawnTimer = 0.0f;
-static float bossMinionSpawnInterval = 4.0f;
-static int bossMinionAliveLimit = 4;
+static float bossMinionSpawnInterval = 2.5f;
+static int bossMinionAliveLimit = 10;
+static bool bossPhaseHealActive = false;
+static float bossPhaseHealSpeed = 120.0f;
+static bool bossInitialMinionsSpawned = false;
+
+// phase 3
+static bool bossPhase3AddsSpawned = false;
+static Thrower* bossPhase3Gun = nullptr;
+static float bossPhase3SpawnTimer = 0.0f;
+static float bossPhase3SpawnInterval = 1.5f;
+static int bossPhase3MaxThrowers = 10;
+
+// phase 4
+static bool clearAddsForPhase4 = false;
+static bool phase4CleanupDone = false;
+static bool bossPhase4DropActive = false;
 
 static int CountBossMinions()
 {
 	int count = 0;
 	for (auto& enemy : Wave1) {
-		if (dynamic_cast<Boss*>(enemy.get()) == nullptr) {
+		Enemy* ePtr = enemy.get();
+
+		if (dynamic_cast<Boss*>(ePtr) == nullptr) {
 			++count;
 		}
 	}
@@ -63,20 +81,66 @@ static void SpawnBossMinionNearBoss()
 
 	AEVec2 bossPos{ boss->GetX(), boss->GetY() };
 
-	// closer to boss
-	AEVec2 spawnPos = GetRandomSpawnPos(gameMap, bossPos, 50.0f, ENEMY_SIZE);
+	const float minSpawnDist = boss->GetSize() + ENEMY_SIZE + 10.0f;
+	const float maxSpawnDist = minSpawnDist + 25.0f;
+
+	AEVec2 spawnPos{};
+	bool found = false;
+
+	for (int i = 0; i < 16; ++i) {
+		float angle = AERandFloat() * 2.0f * PI;
+		float dist = minSpawnDist + AERandFloat() * (maxSpawnDist - minSpawnDist);
+
+		spawnPos.x = bossPos.x + cosf(angle) * dist;
+		spawnPos.y = bossPos.y + sinf(angle) * dist;
+
+		if (!gameMap.IsPositionBlocked(spawnPos.x, spawnPos.y, ENEMY_SIZE)) {
+			found = true;
+			break;
+		}
+	}
+
+	if (!found) return;
 
 	int roll = rand() % 10;
 
-	if (roll < 5) {
+	if (roll < 4) {
 		Wave1.push_back(std::make_unique<Walker>(spawnPos, ENEMY_SIZE, 100.0f, 200.0f));
 	}
-	else if (roll < 8) {
+	else if (roll < 6) {
 		Wave1.push_back(std::make_unique<Dasher>(spawnPos, ENEMY_SIZE, 100.0f, 200.0f, 3.0f));
 	}
 	else {
 		Wave1.push_back(std::make_unique<Thrower>(spawnPos, ENEMY_SIZE, 80.0f, 100.0f));
 	}
+
+	Enemy* spawned = Wave1.back().get();
+	spawned->Init();
+	spawned->SetMap(&gameMap);
+}
+
+static void SpawnPhase3Thrower()
+{
+	AEVec2 playerPos{ player.GetX(), player.GetY() };
+
+	float radius = 220.0f; // distance from player
+	float angle = AERandFloat() * 2.0f * PI;
+
+	AEVec2 spawnPos;
+	spawnPos.x = playerPos.x + cosf(angle) * radius;
+	spawnPos.y = playerPos.y + sinf(angle) * radius;
+
+	// simple wall check (retry a few times)
+	for (int i = 0; i < 5; ++i) {
+		if (!gameMap.IsPositionBlocked(spawnPos.x, spawnPos.y, ENEMY_SIZE))
+			break;
+
+		angle = AERandFloat() * 2.0f * PI;
+		spawnPos.x = playerPos.x + cosf(angle) * radius;
+		spawnPos.y = playerPos.y + sinf(angle) * radius;
+	}
+
+	Wave1.push_back(std::make_unique<Thrower>(spawnPos, ENEMY_SIZE, 80.0f, 100.0f));
 
 	Enemy* spawned = Wave1.back().get();
 	spawned->Init();
@@ -89,23 +153,12 @@ static void SpawnBossWave() {
 
 	// 1 Boss (spawned on a valid tile) + 3 Walkers
 	AEVec2 bossPos = GetRandomSpawnPos(gameMap, playerPos, 200.0f, BOSS_SIZE);
-	Wave1.push_back(std::make_unique<Boss>(bossPos, 35.0f, 500.0f, 150.0f));
-	//// Walker
-	//for (int i = 0; i < 0; ++i) {
-	//	AEVec2 p1 = GetRandomSpawnPos(gameMap, playerPos, 200.0f, ENEMY_SIZE);
-	//	Wave1.push_back(std::make_unique<Walker>(p1, ENEMY_SIZE, 100.0f, 200.0f));
-	//}
-	//// Dasher
-	//for (int i = 0; i < 0; ++i) {
-	//	AEVec2 p2 = GetRandomSpawnPos(gameMap, playerPos, 200.0f, ENEMY_SIZE);
-	//	Wave1.push_back(std::make_unique<Dasher>(p2, ENEMY_SIZE, 100.0f, 200.0f, 3.0f));
-	//}
-
-	//// Thrower
-	//for (int i = 0; i < 0; ++i) {
-	//	AEVec2 p3 = GetRandomSpawnPos(gameMap, playerPos, 200.0f, ENEMY_SIZE);
-	//	Wave1.push_back(std::make_unique<Thrower>(p3, ENEMY_SIZE, 80.0f, 100.0f));
-	//}
+	Wave1.push_back(std::make_unique<Boss>(
+		bossPos, // Position
+		20.0f, // Size
+		800.0f, // HP
+		150.0f // Speed
+	));
 
 	for (auto& enemy : Wave1) {
 		enemy->Init();
@@ -138,8 +191,10 @@ static void DrawBossHealthBar(float camX, float camY)
 	float maxHp = stats.maxHealth;
 	if (maxHp <= 0.0f) return;
 
-	float ratio = AEClamp(hp / maxHp, 0.0f, 1.0f);
-	float lagRatio = AEClamp(s_bossLagHP / maxHp, 0.0f, 1.0f);
+	float displayHP = bossPhaseHealActive ? s_bossLagHP : hp;
+
+	float ratio = AEClamp(displayHP / maxHp, 0.0f, 1.0f);
+	float lagRatio = bossPhaseHealActive ? ratio : AEClamp(s_bossLagHP / maxHp, 0.0f, 1.0f);
 
 	// Match HUD style (screen-space via cam offset)
 	auto drawHUD = [&](float w, float h, float x, float y, float r, float g, float b, float a)
@@ -169,13 +224,13 @@ static void DrawBossHealthBar(float camX, float camY)
 
 	// Text under bar (same system as HUD)
 	float tw, th;
-	AEGfxGetPrintSize(s_bossFont, "BOSS BABY", 0.8f, &tw, &th);
+	AEGfxGetPrintSize(s_bossFont, "DE BOSS BABY", 0.8f, &tw, &th);
 
 	float centerX = barX + barW * 0.5f;
 
 	AEGfxPrint(
 		s_bossFont,
-		"BOSS BABY",
+		"DE BOSS BABY",
 		centerX / 800.0f - tw * 0.5f,
 		(barY - 60.0f) / 450.0f,
 		0.8f,
@@ -204,6 +259,8 @@ void BossLevel_Init() {
 
 	camera.Init(player.GetX(), player.GetY());
 	Pause_Init();
+	augments.Init();
+	augments.SetAugmentSet(AugmentSet::SET_PARRY);
 	AugmentEffects_Init(&player);
 	AugmentEffects_Register();
 
@@ -217,6 +274,13 @@ void BossLevel_Init() {
 	bossPhase2Active = false;
 	bossPhase2Triggered = false;
 	bossMinionSpawnTimer = 0.0f;
+	bossInitialMinionsSpawned = false;
+
+	bossPhase3Gun = nullptr;
+
+	clearAddsForPhase4 = false;
+	phase4CleanupDone = false;
+	bossPhase4DropActive = false;
 
 	Debug_Init();
 	DebugContext dbgCtx = {};
@@ -244,39 +308,125 @@ void BossLevel_Update(float dt) {
 
 	player.Update(dt, CombatSystem, Wave1, camera.GetX(), camera.GetY(), preventingmovement);
 
-	// --- Boss wave logic ---
+
 	if (wave1Active) {
 		Wave1.erase(
 			std::remove_if(Wave1.begin(), Wave1.end(),
-				[](const std::unique_ptr<Enemy>& e) { return e->GetCombatStats().health <= 0.0f; }),
+				[](const std::unique_ptr<Enemy>& e)
+				{
+					if (Boss* boss = dynamic_cast<Boss*>(e.get())) {
+						// Boss cannot truly die while the fake-drop / ball state is active
+						if (boss->IsPhase4Triggered() && !boss->IsPhase4BallVisible()) {
+							return boss->GetCombatStats().health <= 0.0f;
+						}
+
+						return false;
+					}
+
+					return e->GetCombatStats().health <= 0.0f;
+				}),
 			Wave1.end()
 		);
 
+
+		// =========================
+		// BOSS PHASE 1
+		// =========================
 		for (auto& enemy : Wave1) {
 			enemy->Update(dt, CombatSystem, player, Wave1);
-			CombatSystem.Update(player, *enemy, camera, dt);
+
+			if (Boss* bossEnemy = dynamic_cast<Boss*>(enemy.get())) {
+				if (bossEnemy->IsPhaseTransitioning() ||
+					bossEnemy->IsPhaseBlinking() ||
+					bossEnemy->IsPhase3Transitioning() ||
+					bossEnemy->IsPhase3Blinking() ||
+					bossEnemy->IsPhase4BallVisible() ||
+					bossEnemy->IsPhase4Blinking()) {
+					continue;
+				}
+			}
+
+			if (enemy.get() != bossPhase3Gun) {
+				CombatSystem.Update(player, *enemy, camera, dt);
+			}
+		}
+
+		if (Boss* phase4Boss = GetBoss()) {
+			if (phase4Boss->IsPhase4Triggered() && !phase4CleanupDone) {
+				clearAddsForPhase4 = true;
+			}
+		}
+
+		if (Boss* phase4Boss = GetBoss()) {
+			if (phase4Boss->IsPhase4Triggered() && phase4Boss->IsPhase4BallVisible()) {
+				if (!bossPhase4DropActive) {
+					AEVec2 ballPos = phase4Boss->GetPhase4BallPos();
+					augments.SetPosition(ballPos.x, ballPos.y);
+					bossPhase4DropActive = true;
+				}
+			}
+			else if (!phase4Boss->IsPhase4BallVisible()) {
+				bossPhase4DropActive = false;
+			}
+		}
+		else {
+			bossPhase4DropActive = false;
+		}
+
+		if (clearAddsForPhase4) {
+			Wave1.erase(
+				std::remove_if(Wave1.begin(), Wave1.end(),
+					[](const std::unique_ptr<Enemy>& e) {
+						return dynamic_cast<Boss*>(e.get()) == nullptr;
+					}),
+				Wave1.end()
+			);
+
+			bossPhase3Gun = nullptr;
+			bossPhase3AddsSpawned = false;
+			clearAddsForPhase4 = false;
+			phase4CleanupDone = true;
+		}
+
+		if (Boss* phase4Boss = GetBoss()) {
+			if (phase4Boss->IsPhase4Triggered() && !phase4CleanupDone) {
+				clearAddsForPhase4 = true;
+			}
 		}
 
 		Boss* boss = GetBoss();
-		if (boss) {
-			auto stats = boss->GetCombatStats();
-			float realHP = stats.health;
 
-			// If boss heals → snap up instantly
-			if (s_bossLagHP < realHP) {
-				s_bossLagHP = realHP;
+		// =========================
+		// BOSS PHASE 3 Minion spawn
+		// =========================
+		if (boss && boss->IsThrowerPhase() && !boss->IsPhase4Triggered()) {
+
+			bossPhase3SpawnTimer += dt;
+
+			if (bossPhase3SpawnTimer >= bossPhase3SpawnInterval) {
+				bossPhase3SpawnTimer = 0.0f;
+
+				// limit number of throwers
+				int throwerCount = 0;
+				for (auto& enemy : Wave1) {
+					Enemy* ePtr = enemy.get();
+
+					if (dynamic_cast<Thrower*>(ePtr) && ePtr != bossPhase3Gun) {
+						++throwerCount;
+					}
+				}
+
+				if (throwerCount < bossPhase3MaxThrowers) {
+					SpawnPhase3Thrower();
+				}
 			}
+		}
 
-			// Smoothly decrease when taking damage
-			float diff = s_bossLagHP - realHP;
-			if (diff > 0.0f) {
-				float decaySpeed = 120.0f; // tweak this
-				float step = decaySpeed * dt;
-
-				if (step > diff) step = diff;
-
-				s_bossLagHP -= step;
-			}
+		// =========================
+		// BOSS PHASE 3 GUN
+		// =========================
+		if (boss && bossPhase3Gun) {
+			bossPhase3Gun->SetPosition(boss->GetX(), boss->GetY());
 		}
 
 		// =========================
@@ -286,11 +436,84 @@ void BossLevel_Update(float dt) {
 			bossPhase2Triggered = true;
 			bossPhase2Active = true;
 			bossMinionSpawnTimer = bossMinionSpawnInterval;
+
+			// lock UI to current displayed value, then animate upward
+			bossPhaseHealActive = true;
+		}
+
+		// =========================
+		// BOSS PHASE 2/3 HEAL
+		// =========================
+		if (boss) {
+			float realHP = boss->GetCombatStats().health;
+			float maxHP = boss->GetCombatStats().maxHealth;
+
+			if (bossPhaseHealActive) {
+				float healTarget = maxHP;
+				bool phase3Healing = false;
+				bool phase4Healing = false;
+
+				if (boss->IsPhase3Triggered() &&
+					(boss->IsPhase3Transitioning() || boss->IsPhase3Blinking() || boss->IsThrowerPhase())) {
+					healTarget = maxHP * 0.8f;
+					phase3Healing = true;
+				}
+
+				if (boss->IsPhase4Triggered() &&
+					(boss->IsPhase4Transitioning() || boss->IsPhase4Blinking())) {
+					healTarget = maxHP;
+					phase4Healing = true;
+				}
+
+				s_bossLagHP += bossPhaseHealSpeed * dt;
+
+				if (s_bossLagHP >= healTarget) {
+					s_bossLagHP = healTarget;
+
+					if (phase4Healing) {
+						if (!boss->IsPhase4Transitioning() && !boss->IsPhase4Blinking()) {
+							bossPhaseHealActive = false;
+						}
+					}
+					else if (phase3Healing) {
+						if (!boss->IsPhase3Transitioning() && !boss->IsPhase3Blinking()) {
+							bossPhaseHealActive = false;
+						}
+					}
+					else {
+						bossPhaseHealActive = false;
+					}
+				}
+			}
+			else {
+				if (s_bossLagHP > realHP) {
+					s_bossLagHP -= 120.0f * dt;
+					if (s_bossLagHP < realHP) {
+						s_bossLagHP = realHP;
+					}
+				}
+				else if (s_bossLagHP < realHP) {
+					s_bossLagHP = realHP;
+				}
+			}
 		}
 
 		// =========================
 		// PHASE 2 MINION SPAWNING
 		// =========================
+		// Initial
+		if (bossPhase2Active && boss && !boss->IsPhaseBlinking() && !boss->IsPhaseTransitioning() && !bossInitialMinionsSpawned) {
+			for (int i = 0; i < 3; ++i) {
+				if (CountBossMinions() < bossMinionAliveLimit) {
+					SpawnBossMinionNearBoss();
+				}
+			}
+
+			bossInitialMinionsSpawned = true;
+			bossMinionSpawnTimer = bossMinionSpawnInterval;
+		}
+
+		// Periodic
 		if (bossPhase2Active && boss) {
 			bossMinionSpawnTimer -= dt;
 
@@ -303,12 +526,52 @@ void BossLevel_Update(float dt) {
 			}
 		}
 
+		// =========================
+		// PHASE 3 TRIGGER
+		// =========================
+		if (boss &&
+			bossPhase2Triggered &&
+			!boss->IsPhase3Triggered() &&
+			boss->GetCombatStats().health <= boss->GetCombatStats().maxHealth * 0.2f) {
+
+			boss->TriggerPhaseThree();
+
+			// despawn every existing minion, keep only boss
+			Wave1.erase(
+				std::remove_if(Wave1.begin(), Wave1.end(),
+					[](const std::unique_ptr<Enemy>& e) {
+						return dynamic_cast<Boss*>(e.get()) == nullptr;
+					}),
+				Wave1.end()
+			);
+
+			// now spawn hidden helper thrower
+			if (!bossPhase3Gun) {
+				AEVec2 bossPos{ boss->GetX(), boss->GetY() };
+
+				Wave1.push_back(std::make_unique<Thrower>(bossPos, ENEMY_SIZE, 99999.0f, 100.0f));
+				bossPhase3Gun = static_cast<Thrower*>(Wave1.back().get());
+				bossPhase3Gun->Init();
+				bossPhase3Gun->SetMap(&gameMap);
+				bossPhase3Gun->SetHideBody(true);
+				bossPhase3Gun->SetProjectileStats(1000.0f, 20.0f, 30.0f);
+			}
+
+			bossPhase2Active = false;
+			bossInitialMinionsSpawned = false;
+			bossPhase3AddsSpawned = false;
+			bossPhaseHealActive = true; // animate big bar to phase 3 heal target
+		}
+
+
 		if (!boss) {
 			Wave1.clear(); // remove all minions instantly
+			bossPhase3Gun = nullptr;
 			wave1Active = false;
 			bossDefeated = true;
 		}
 	}
+
 
 	// Boss defeated — go straight to victory (no augments)
 	if (bossDefeated) {
@@ -346,16 +609,66 @@ void BossLevel_Update(float dt) {
 	// Update augment effects (previous augments still active)
 	AugmentEffects_Update(dt, player, Wave1);
 
+	if (bossPhase4DropActive) {
+		Boss* boss = GetBoss();
+
+		if (boss && boss->IsPhase4Triggered() && boss->IsPhase4BallVisible()) {
+			AEVec2 playerPos{ player.GetX(), player.GetY() };
+			AEVec2 ballPos = boss->GetPhase4BallPos();
+
+			AEVec2 diff;
+			AEVec2Sub(&diff, &playerPos, &ballPos);
+
+			float interactRange = 100.0f + player.GetSize();
+
+			// Do NOT freeze movement just for being near the drop
+			if (AEVec2Length(&diff) <= interactRange) {
+				if (AEInputCheckTriggered(AEVK_X)) {
+					bossPhase4DropActive = false;
+					boss->ConsumePhase4Pickup();
+				}
+			}
+		}
+		else {
+			bossPhase4DropActive = false;
+		}
+	}
+
 	if (0 == AESysDoesWindowExist()) {
 		Transition_StartImmediate(GS_QUIT);
 	}
 	if (AEInputCheckTriggered(AEVK_K)) {
-		Wave1.clear();
+		//Wave1.clear();
 	}
 
 	if (AEInputCheckTriggered(AEVK_N)) {
 		Transition_StartImmediate(GS_VICTORY);
 	}
+
+}
+
+void Boss::PreparePhase4DashTarget(Player& player)
+{
+	AEVec2 toPlayer{ player.GetX() - m_pos.x, player.GetY() - m_pos.y };
+	float len = AEVec2Length(&toPlayer);
+
+	if (len > 0.001f) {
+		AEVec2Scale(&m_Phase4LockedDashDir, &toPlayer, 1.0f / len);
+	}
+	else {
+		m_Phase4LockedDashDir = { 1.0f, 0.0f };
+	}
+
+	// Dash past the player a little bit
+	float overshoot = 180.0f;
+
+	m_Phase4DashTarget.x = player.GetX() + m_Phase4LockedDashDir.x * overshoot;
+	m_Phase4DashTarget.y = player.GetY() + m_Phase4LockedDashDir.y * overshoot;
+
+	m_AimAngle = atan2(-m_Phase4LockedDashDir.y, -m_Phase4LockedDashDir.x);
+	m_Phase4DashTravelled = 0.0f;
+	m_Phase4CurrentDashSpeed = 0.0f;
+	m_Phase4DashHitPlayer = false;
 }
 
 void BossLevel_Draw() {
@@ -381,6 +694,7 @@ void BossLevel_Draw() {
 	if (wave1Active) {
 		for (auto& enemy : Wave1) {
 			Enemy* ePtr = enemy.get();
+
 			renderQueue.push_back({ ePtr->GetY(), [ePtr]() { ePtr->Draw(); } });
 		}
 	}
@@ -395,12 +709,15 @@ void BossLevel_Draw() {
 		node.drawCall();
 	}
 
-	Debug_DrawWorld(camera.GetX(), camera.GetY());
 	HUD_Draw(&player, camera.GetX(), camera.GetY());
 	DrawBossHealthBar(camera.GetX(), camera.GetY());
 	Pause_Draw(camera.GetX(), camera.GetY());
 	Debug_DrawHUD();
 	AugmentEffects_Draw(camera.GetX(), camera.GetY());
+
+	if (bossPhase4DropActive) {
+		augments.Draw(camera.GetX(), camera.GetY());
+	}
 }
 
 void BossLevel_Free() {
@@ -410,8 +727,10 @@ void BossLevel_Free() {
 	if (nextState >= GS_TUTORIAL && nextState <= GS_BOSSLEVEL)
 		SaveSystem_Save(nextState);
 	Wave1.clear();
+	bossPhase3Gun = nullptr;
 	player.Free();
 	Projectile::Free();
+	augments.Free();
 	AugmentEffects_Free();
 	g_Events.ClearAll();
 

@@ -267,7 +267,6 @@ void Enemy::DrawBat(float angle)
 
 void Enemy::Draw() {
     f32 dt = (f32)AEFrameRateControllerGetFrameTime();
-    Shadow_Draw(m_pos.x, m_pos.y, m_size);
 
     // Ensure Color Mode is set
     AEGfxSetRenderMode(AE_GFX_RM_COLOR);
@@ -276,10 +275,9 @@ void Enemy::Draw() {
         //f32 isoHeight = m_size * (GRID_H / GRID_W); // Squashed
         f32 isoHeight = m_size; // Normal
         float spriteScale = sizeMultiplier;
+        float shadowY = m_pos.y;
 
-        if (dynamic_cast<Boss*>(this)) {
-            spriteScale *= (m_size / 35.0f); // = your boss spawn size
-        }
+        Shadow_Draw(m_pos.x, shadowY, m_size);
 
     // Draw Meshes --------------------
     // Enemy
@@ -331,13 +329,6 @@ void Enemy::Draw() {
             m_EnemySprite.GetSpriteSheet(),
             m_EnemySprite.GetPixelScale(),
             m_EnemySprite.GetPixelScale(),
-            m_pos.x, m_pos.y, 0.0f, spriteScale);
-
-        DrawTexture(m_DasherSprite, static_cast<int>(m_CurrentDirection),
-            m_DasherSprite.GetSpriteMesh(),
-            m_DasherSprite.GetSpriteSheet(),
-            m_DasherSprite.GetPixelScale(),
-            m_DasherSprite.GetPixelScale(),
             m_pos.x, m_pos.y, 0.0f, spriteScale);
     }
 
@@ -1089,36 +1080,106 @@ Boss::Boss(AEVec2 pos, f32 size, f32 hp, f32 speed)
     m_BaseSize = m_size;
     m_BaseAttackRange = m_AttackRange;
     m_BaseAttackDamage = m_CombatStats.attack;
+
+    m_PopBonus = 0.0f;
+    m_WasGotHit = false;
+    m_SizeGrowthPerHit = (70.0f - m_BaseSize) / 5.0f;
 }
 
 void Boss::ChildUpdate(f32 dt, Combat::System& combat, Player& player,
     std::vector<std::unique_ptr<Enemy>>& enemies) {
     (void)combat;
-    (void)enemies;
+    // Prevent boss from dying before required phase transitions
+    const f32 maxHP = m_CombatStats.maxHealth;
+    const f32 phase3Threshold = maxHP * 0.2f;
+    const f32 phase4Threshold = maxHP * 0.01f;
 
-    if (m_CombatFlags.gotHit) {
-        ++m_GrowthHits;
+    // Phase 1/2 protection: boss cannot die before phase 2 is earned
+    if (!m_PhaseTwoTriggered && m_CombatStats.health <= 0.0f) {
+        m_CombatStats.health = m_CombatStats.maxHealth * 0.5f;
+        m_CombatFlags.isAlive = true;
 
-        if (m_GrowthHits > 5) {
-            m_GrowthHits = 5;
+        TriggerPhaseTwo(enemies);
+        return;
+    }
+
+    // Phase 2 protection: force phase 3 instead of dying
+    if (m_PhaseTwoTriggered && !m_Phase3Triggered && m_CombatStats.health <= 0.0f) {
+        m_CombatStats.health = phase3Threshold;
+        m_CombatFlags.isAlive = true;
+    }
+
+    // Phase 3 protection: force phase 4 instead of dying
+    if (m_Phase3Triggered && !m_Phase4Triggered && m_CombatStats.health <= 0.0f) {
+        m_CombatStats.health = phase4Threshold;
+        m_CombatFlags.isAlive = true;
+    }
+
+
+    // Phase 4 trigger MUST come before the phase 3 early return
+    if (!m_Phase4Triggered &&
+        m_Phase3Triggered &&
+        m_CombatStats.health <= m_CombatStats.maxHealth * 0.01f) {
+        TriggerPhaseFour(enemies);
+        return;
+    }
+
+    // Once phase 4 starts, it fully owns the boss
+    if (m_Phase4Triggered) {
+        UpdatePhaseFour(dt, player);
+        return;
+    }
+
+    if (m_Phase3Triggered) {
+        UpdatePhaseThree(dt, player, enemies);
+        return;
+    }
+
+    if (m_PhaseTransitioning) {
+        m_moveDir = { 0.0f, 0.0f };
+        m_AttackActive = false;
+        m_WindingUp = false;
+
+        if (m_PhaseTwoBlinking) {
+            m_PhaseBlinkTimer += dt;
+
+            int blinkStep = static_cast<int>(m_PhaseBlinkTimer / m_PhaseBlinkInterval);
+            m_PhaseBlinkVisible = (blinkStep % 2 == 0);
+
+            if (m_PhaseBlinkTimer >= m_PhaseBlinkDuration) {
+                m_PhaseTwoBlinking = false;
+                m_PhaseBlinkVisible = true;
+                m_UsePhaseTwoSprite = true;
+                m_PhaseTransitioning = false;
+            }
         }
 
-        ApplyGrowthFromHits();
-        m_CombatFlags.gotHit = false;
+        return;
     }
+
+    if (m_CombatFlags.gotHit && !m_WasGotHit) {
+        if (m_GrowthHits < 5) {
+            ++m_GrowthHits;
+            m_PopBonus = 8.0f;
+        }
+
+        if (m_GrowthHits >= 5 && !m_PhaseTwoTriggered) {
+            TriggerPhaseTwo(enemies);
+        }
+    }
+    m_WasGotHit = m_CombatFlags.gotHit;
+
+    ApplyGrowthFromHits();
 
     AEVec2 playerPos{ player.GetX(), player.GetY() };
     AEVec2Sub(&m_enemyToPlayerDir, &playerPos, &m_pos);
-
     f32 distToPlayer = AEVec2Length(&m_enemyToPlayerDir);
     if (distToPlayer > 0.001f) {
         AEVec2Scale(&m_enemyToPlayerDir, &m_enemyToPlayerDir, 1.0f / distToPlayer);
     }
 
-    // Point sword towards player
     m_AimAngle = atan2(-m_enemyToPlayerDir.y, -m_enemyToPlayerDir.x);
 
-    // Seek player via A* pathfinding until inside contact range
     if (!AreCirclesIntersecting(player.GetX(), player.GetY(), player.GetSize(),
         m_pos.x, m_pos.y, m_size)) {
         MoveTowardTarget(playerPos, dt);
@@ -1126,6 +1187,129 @@ void Boss::ChildUpdate(f32 dt, Combat::System& combat, Player& player,
     else {
         m_moveDir = { 0.0f, 0.0f };
     }
+}
+
+void Boss::Draw()
+{
+    f32 dt = (f32)AEFrameRateControllerGetFrameTime();
+    AEGfxSetRenderMode(AE_GFX_RM_COLOR);
+
+    // Phase 4 ball form
+    if (m_Phase4BallVisible) {
+        Shadow_Draw(m_Phase4BallPos.x, m_Phase4BallPos.y + 10.0f, 22.0f);
+        DrawMesh(m_enemyMesh, 26.0f, 26.0f, m_Phase4BallPos.x, m_Phase4BallPos.y, 0.0f,
+            120, 255, 255, 255);
+        return;
+    }
+
+    // Blink-hide during phase 4 revive
+    if (m_Phase4Blinking && !m_Phase4BlinkVisible) {
+        return;
+    }
+
+    // Blink-hide during phase 3
+    if (m_Phase3Blinking && !m_Phase3BlinkVisible) {
+        return;
+    }
+
+    // Blink-hide during phase 2 transition
+    if (m_PhaseTwoBlinking && !m_PhaseBlinkVisible) {
+        return;
+    }
+
+    float spriteScale = sizeMultiplier * (m_size / 35.0f);
+
+    float shadowY = m_pos.y;
+    shadowY += m_size * 0.75f;
+    Shadow_Draw(m_pos.x, shadowY, m_size);
+
+    bool isDashWindup = (m_CurrentState == EnemyState::STATE_DASH_WINDUP);
+    bool isAnyWindup = (m_WindingUp || isDashWindup);
+
+    if (m_UsePhaseTwoSprite) {
+        // ===== PHASE 2 ONWARDS: BOSS SPRITE =====
+        if (isAnyWindup && m_WindUpTimer < 0.35f && !isDashWindup) {
+            DrawTexture(m_EnemySprite, static_cast<int>(m_CurrentDirection),
+                m_EnemySprite.GetBossAttackSpriteMesh(),
+                m_EnemySprite.GetBossAttackSpriteSheet(),
+                m_EnemySprite.GetPixelScale(),
+                m_EnemySprite.GetPixelScale(),
+                m_pos.x, m_pos.y, 0.0f, spriteScale);
+        }
+        else if (m_CombatFlags.parried || m_CombatFlags.gotHit) {
+            DrawTexture(m_EnemySprite, static_cast<int>(m_CurrentDirection),
+                m_EnemySprite.GetBossAttackSpriteMesh(),
+                m_EnemySprite.GetBossAttackSpriteSheet(),
+                m_EnemySprite.GetPixelScale(),
+                m_EnemySprite.GetPixelScale(),
+                m_pos.x, m_pos.y, 0.0f, spriteScale);
+        }
+        else {
+            DrawTexture(m_EnemySprite, static_cast<int>(m_CurrentDirection),
+                m_EnemySprite.GetBossSpriteMesh(),
+                m_EnemySprite.GetBossSpriteSheet(),
+                m_EnemySprite.GetPixelScale(),
+                m_EnemySprite.GetPixelScale(),
+                m_pos.x, m_pos.y, 0.0f, spriteScale);
+        }
+    }
+    else {
+        // ===== BEFORE PHASE 2: BASE / WALKER SPRITE =====
+        if (isAnyWindup && m_WindUpTimer < 0.35f && !isDashWindup) {
+            DrawTexture(m_EnemySprite, static_cast<int>(m_CurrentDirection),
+                m_EnemySprite.GetEnemyAttackSpriteMesh(),
+                m_EnemySprite.GetEnemyAttackSpriteSheet(),
+                m_EnemySprite.GetPixelScale(),
+                m_EnemySprite.GetPixelScale(),
+                m_pos.x, m_pos.y, 0.0f, spriteScale);
+        }
+        else if (m_CombatFlags.parried || m_CombatFlags.gotHit) {
+            m_EnemySprite.SetEnemyAttackSingleFrame(0, 6);
+
+            DrawTexture(m_EnemySprite,
+                m_EnemySprite.GetEnemyAttackSpriteMesh(),
+                m_EnemySprite.GetEnemyAttackSpriteSheet(),
+                m_EnemySprite.GetPixelScale(),
+                m_EnemySprite.GetPixelScale(),
+                m_pos.x, m_pos.y, 0.0f, spriteScale);
+        }
+        else {
+            DrawTexture(m_EnemySprite, static_cast<int>(m_CurrentDirection),
+                m_EnemySprite.GetSpriteMesh(),
+                m_EnemySprite.GetSpriteSheet(),
+                m_EnemySprite.GetPixelScale(),
+                m_EnemySprite.GetPixelScale(),
+                m_pos.x, m_pos.y, 0.0f, spriteScale);
+        }
+    }
+
+    f32 swordAngle = m_AttackActive ? m_CurrentAngle : m_AimAngle;
+    if (m_AttackActive) {
+        DrawBat(swordAngle);
+    }
+
+    // Healthbar above head
+    //f32 barWidth = m_size * 2.0f * (m_CombatStats.health / m_CombatStats.maxHealth);
+    //f32 barHeight = m_size / 3.0f;
+    //f32 dbarWidth = m_size * 2.0f * AEClamp(
+    //    (m_CombatStats.health / m_CombatStats.maxHealth) + (m_healthDepletionPercentage / 100.0f),
+    //    0.0f, 1.0f);
+
+    //f32 dRate = 100.0f * dt;
+    //if (m_healthDepletionPercentage > 0.0f) {
+    //    m_healthDepletionPercentage -= dRate;
+    //    if (m_healthDepletionPercentage < 0.0f) {
+    //        m_healthDepletionPercentage = 0.0f;
+    //    }
+    //}
+
+    //DrawMesh(m_enemyHealthBarMesh, dbarWidth, barHeight,
+    //    m_pos.x - m_size, m_pos.y + m_size + barHeight / 2.0f + 25.0f,
+    //    0.0f, 255, 175, 65, 255);
+
+    //DrawMesh(m_enemyHealthBarMesh, barWidth, barHeight,
+    //    m_pos.x - m_size, m_pos.y + m_size + barHeight / 2.0f + 25.0f,
+    //    0.0f, 210, 70, 75, 255);
 }
 
 void Enemy::EvaluateCurrentDirection()
@@ -1147,16 +1331,21 @@ void Enemy::EvaluateCurrentDirection()
 
 void Boss::ApplyGrowthFromHits()
 {
+    const int clampedHits = (std::min)(m_GrowthHits, 5);
+
+    const f32 baseTargetSize = m_BaseSize + m_SizeGrowthPerHit * static_cast<f32>(clampedHits);
+    m_PopBonus = Vectors::lerp(m_PopBonus, 0.0f, 0.10f);
+
     m_size = AEClamp(
-        m_BaseSize + m_SizeGrowthPerHit * static_cast<f32>(m_GrowthHits),
-        m_BaseSize, 120.0f);
+        baseTargetSize + m_PopBonus,
+        m_BaseSize, 140.0f);
 
     m_AttackRange = AEClamp(
-        m_BaseAttackRange + m_RangeGrowthPerHit * static_cast<f32>(m_GrowthHits),
+        m_BaseAttackRange + m_RangeGrowthPerHit * static_cast<f32>(clampedHits),
         m_BaseAttackRange, 260.0f);
 
     m_CombatStats.attack = AEClamp(
-        m_BaseAttackDamage + m_DamageGrowthPerHit * static_cast<f32>(m_GrowthHits),
+        m_BaseAttackDamage + m_DamageGrowthPerHit * static_cast<f32>(clampedHits),
         m_BaseAttackDamage, 80.0f);
 
     m_Damage = static_cast<int>(m_CombatStats.attack);
@@ -1167,6 +1356,585 @@ void Boss::ApplyGrowthFromHits()
         m_AttackRangeMesh = nullptr;
     }
     m_AttackRangeMesh = CreateAttackRangeMesh(m_AttackRange, 0xFF0000);
+}
+
+void Boss::TriggerPhaseTwo(std::vector<std::unique_ptr<Enemy>>& enemies)
+{
+    (void)enemies;
+
+    m_PhaseTwoTriggered = true;
+    m_PhaseTransitioning = true;
+
+    m_PhaseTwoBlinking = true;
+    m_PhaseBlinkTimer = 0.0f;
+    m_PhaseBlinkVisible = true;
+
+    // do NOT swap yet
+    m_UsePhaseTwoSprite = false;
+
+    // stop all current actions
+    m_moveDir = { 0.0f, 0.0f };
+    m_AttackActive = false;
+    m_WindingUp = false;
+    m_AttackCooldown = 0.0f;
+    m_KnockbackVelocity = { 0.0f, 0.0f };
+
+    // heal to full
+    m_CombatStats.health = m_CombatStats.maxHealth;
+    m_healthDepletionPercentage = 0.0f;
+}
+
+void Boss::TriggerPhaseThree()
+{
+    if (m_Phase3Triggered) return;
+
+    m_Phase3Triggered = true;
+
+    // blink + invincible immediately
+    m_Phase3Transitioning = true;
+    m_Phase3Blinking = true;
+    m_Phase3BlinkVisible = true;
+
+    m_RunToCenterPhase = true;
+    m_Phase3ReachedCenter = false;
+    m_IsThrowerPhase = false;
+
+    m_Phase3BlinkTimer = 0.0f;
+    m_Phase3HealTarget = m_CombatStats.maxHealth * 0.8f;
+
+    m_EnableMelee = false;
+    m_AttackActive = false;
+    m_WindingUp = false;
+    m_AllowAttack = false;
+    m_moveDir = { 0.0f, 0.0f };
+    m_KnockbackVelocity = { 0.0f, 0.0f };
+
+    m_Phase3RunToCenterSpeed = 420.0f;
+    m_Phase3ThrowerMoveSpeed = 5.0f;
+    m_speed = m_Phase3RunToCenterSpeed;
+}
+
+void Boss::UpdatePhaseThree(f32 dt, Player& player, std::vector<std::unique_ptr<Enemy>>& enemies)
+{
+    if (!m_Phase4Triggered &&
+        m_CombatStats.health <= m_CombatStats.maxHealth * 0.01f) {
+        TriggerPhaseFour(enemies);
+        return;
+    }
+
+    if (!m_pMap) return;
+
+    // keep facing player
+    AEVec2 playerPos{ player.GetX(), player.GetY() };
+    AEVec2 toPlayer;
+    AEVec2Sub(&toPlayer, &playerPos, &m_pos);
+
+    float distToPlayer = AEVec2Length(&toPlayer);
+    if (distToPlayer > 0.001f) {
+        AEVec2Scale(&m_enemyToPlayerDir, &toPlayer, 1.0f / distToPlayer);
+        m_AimAngle = atan2(-m_enemyToPlayerDir.y, -m_enemyToPlayerDir.x);
+    }
+
+    // middle of map in grid space -> world space
+    int centerCol = static_cast<int>(m_pMap->GetMapWidth() / 2);
+    int centerRow = static_cast<int>(m_pMap->GetMapHeight() / 2);
+    AEVec2 centerPos = m_pMap->TMXToWorld(centerCol, centerRow);
+
+    // blink for the whole transition
+    if (m_Phase3Blinking) {
+        m_Phase3BlinkTimer += dt;
+        int blinkStep = static_cast<int>(m_Phase3BlinkTimer / m_Phase3BlinkInterval);
+        m_Phase3BlinkVisible = (blinkStep % 2 == 0);
+    }
+
+    // run to center while blinking
+    if (m_RunToCenterPhase && !m_Phase3ReachedCenter) {
+        AEVec2 toCenter;
+        AEVec2Sub(&toCenter, &centerPos, &m_pos);
+        float dist = AEVec2Length(&toCenter);
+
+        if (dist > 12.0f) {
+            m_speed = m_Phase3RunToCenterSpeed;
+            MoveTowardTarget(centerPos, dt);
+            m_KnockbackVelocity = { 0.0f, 0.0f };
+            return;
+        }
+
+        // reached center: stop moving, continue blinking/healing
+        m_Phase3ReachedCenter = true;
+        m_RunToCenterPhase = false;
+        m_moveDir = { 0.0f, 0.0f };
+        m_KnockbackVelocity = { 0.0f, 0.0f };
+        m_speed = 0.0f;
+
+        // restart timer so the center-heal blink lasts properly
+        m_Phase3BlinkTimer = 0.0f;
+        return;
+    }
+
+    // stand in middle, blink, then finish transition
+    if (m_Phase3Transitioning) {
+        m_moveDir = { 0.0f, 0.0f };
+        m_AttackActive = false;
+        m_WindingUp = false;
+        m_KnockbackVelocity = { 0.0f, 0.0f };
+
+        if (m_Phase3ReachedCenter && m_Phase3BlinkTimer >= m_Phase3BlinkDuration) {
+            m_Phase3Blinking = false;
+            m_Phase3BlinkVisible = true;
+            m_Phase3Transitioning = false;
+            m_IsThrowerPhase = true;
+
+            m_CombatStats.health = m_Phase3HealTarget;
+            m_healthDepletionPercentage = 0.0f;
+            m_speed = m_Phase3ThrowerMoveSpeed;
+        }
+
+        return;
+    }
+
+    if (!m_Phase4Triggered &&
+        m_CombatStats.health <= m_CombatStats.maxHealth * 0.01f) {
+        TriggerPhaseFour(enemies);
+        return;
+    }
+
+    // after transition, stay in middle
+    if (m_IsThrowerPhase) {
+        m_moveDir = { 0.0f, 0.0f };
+        m_KnockbackVelocity = { 0.0f, 0.0f };
+        m_EnableMelee = false;
+        return;
+    }
+}
+
+void Boss::TriggerPhaseFour(std::vector<std::unique_ptr<Enemy>>& enemies)
+{
+    if (m_Phase4Triggered) return;
+
+    if (!m_Phase4BuffApplied) {
+        // Override speed
+        m_speed = m_Phase4Speed;
+
+        // Increase range (additive)
+        m_AttackRange += m_Phase4RangeBonus;
+
+        // Override damage (flat)
+        m_CombatStats.attack = m_Phase4Damage;
+        m_AttackData.damage = static_cast<int>(m_Phase4Damage);
+        m_DashFollowupAttackData.damage = static_cast<int>(m_Phase4Damage);
+
+        m_Phase4BuffApplied = true;
+    }
+
+    m_FinalState = BossFinalState::FakeDeath;
+
+    // Despawn all enemies except this boss
+    m_Phase4Triggered = true;
+
+    m_Phase4BallVisible = true;
+    m_Phase4BallPos = m_pos;
+
+    m_Phase4Invulnerable = true;
+    m_Phase4Blinking = false;
+    m_Phase4BlinkVisible = true;
+    m_Phase4ReviveBlinkTimer = 0.0f;
+
+    m_moveDir = { 0.0f, 0.0f };
+    m_KnockbackVelocity = { 0.0f, 0.0f };
+    m_AttackActive = false;
+    m_WindingUp = false;
+    m_AllowAttack = false;
+    m_EnableMelee = false;
+
+    m_CurrentState = EnemyState::STATE_IDLE;
+
+    // Keep boss alive so outer erase logic does not remove it
+    m_CombatStats.health = m_CombatStats.maxHealth * 0.01f;
+    m_healthDepletionPercentage = 0.0f;
+    m_CombatFlags.isAlive = true;
+
+    m_Phase4DashesRemaining = 0;
+    m_Phase4DashPauseTimer = 0.0f;
+    m_Phase4CurrentDashSpeed = 0.0f;
+    m_Phase4RecoveryTimer = 0.0f;
+    m_Phase4RecoveryStep = 0;
+
+    m_FinalState = BossFinalState::WaitingPickup;
+}
+
+void Boss::UpdatePhaseFour(f32 dt, Player& player)
+{
+    switch (m_FinalState)
+    {
+    case BossFinalState::WaitingPickup:
+    {
+        m_moveDir = { 0.0f, 0.0f };
+        m_KnockbackVelocity = { 0.0f, 0.0f };
+        m_AttackActive = false;
+        m_WindingUp = false;
+        m_CurrentState = EnemyState::STATE_IDLE;
+        break;
+    }
+
+    case BossFinalState::Reviving:
+    {
+        m_moveDir = { 0.0f, 0.0f };
+        m_KnockbackVelocity = { 0.0f, 0.0f };
+        m_AttackActive = false;
+        m_WindingUp = false;
+        m_CurrentState = EnemyState::STATE_IDLE;
+
+        m_Phase4ReviveBlinkTimer += dt;
+        int blinkStep = static_cast<int>(m_Phase4ReviveBlinkTimer / m_Phase4ReviveBlinkInterval);
+        m_Phase4BlinkVisible = (blinkStep % 2 == 0);
+
+        m_CombatStats.health += m_Phase4HealRate * dt;
+        if (m_CombatStats.health >= m_CombatStats.maxHealth) {
+            m_CombatStats.health = m_CombatStats.maxHealth;
+            m_healthDepletionPercentage = 0.0f;
+
+            m_Phase4Blinking = false;
+            m_Phase4BlinkVisible = true;
+            m_Phase4Invulnerable = false;
+
+            StartPhase4TripleDash(player);
+        }
+        break;
+    }
+
+    case BossFinalState::TripleDashPattern:
+        UpdatePhase4TripleDash(dt, player);
+        break;
+
+    case BossFinalState::RecoveryPattern:
+        UpdatePhase4RecoveryPattern(dt, player);
+        break;
+
+    case BossFinalState::FakeDeath:
+    case BossFinalState::None:
+    default:
+        break;
+    }
+}
+
+void Boss::StartPhase4TripleDash(Player& player)
+{
+    (void)player;
+
+    m_FinalState = BossFinalState::TripleDashPattern;
+
+    m_Phase4DashesRemaining = 3;
+    m_Phase4DashTravelled = 0.0f;
+    m_Phase4CurrentDashSpeed = 0.0f;
+    m_Phase4InterDashPauseTimer = 0.0f;
+
+    m_Phase4DidInitialTeleport = false;
+    m_Phase4PreDashBlinking = true;
+    m_Phase4PreDashBlinkTimer = m_Phase4PreDashBlinkDuration;
+
+    m_Phase4Invulnerable = false;
+    m_EnableMelee = false;
+    m_AllowAttack = false;
+    m_AttackActive = false;
+    m_WindingUp = false;
+
+    m_CurrentState = EnemyState::STATE_IDLE;
+    m_moveDir = { 0.0f, 0.0f };
+}
+
+void Boss::TeleportForPhase4Dash(Player& player)
+{
+    AEVec2 face = player.GetNormalizedVector();
+    if (AEVec2Length(&face) < 0.001f) {
+        face = { 1.0f, 0.0f };
+    }
+
+    AEVec2 desiredPos{
+        player.GetX() + face.x * m_Phase4TeleportDistance,
+        player.GetY() + face.y * m_Phase4TeleportDistance
+    };
+
+    AEVec2 bestPos = desiredPos;
+    bool foundSpot = false;
+
+    if (!m_pMap || !m_pMap->IsPositionBlocked(desiredPos.x, desiredPos.y, m_size)) {
+        foundSpot = true;
+    }
+    else {
+        for (int i = 0; i < 16; ++i) {
+            float angle = (2.0f * PI / 16.0f) * i;
+            AEVec2 testPos{
+                desiredPos.x + cosf(angle) * 45.0f,
+                desiredPos.y + sinf(angle) * 45.0f
+            };
+
+            if (!m_pMap->IsPositionBlocked(testPos.x, testPos.y, m_size)) {
+                bestPos = testPos;
+                foundSpot = true;
+                break;
+            }
+        }
+    }
+
+    if (foundSpot) {
+        m_pos = bestPos;
+    }
+
+    m_Phase4DidInitialTeleport = true;
+    PreparePhase4DashTarget(player);
+}
+
+void Boss::UpdatePhase4TripleDash(f32 dt, Player& player)
+{
+    m_moveDir = { 0.0f, 0.0f };
+    m_KnockbackVelocity = { 0.0f, 0.0f };
+    m_AttackActive = false;
+    m_WindingUp = false;
+
+    if (m_Phase4DashesRemaining <= 0) {
+        m_FinalState = BossFinalState::RecoveryPattern;
+        m_Phase4RecoveryTimer = m_Phase4RecoveryDuration;
+        m_Phase4RecoveryStep = 0;
+        m_CurrentState = EnemyState::STATE_IDLE;
+        m_EnableMelee = true;
+        m_AllowAttack = true;
+        return;
+    }
+
+    // Warning blink before first teleport
+    if (m_Phase4PreDashBlinking) {
+        m_Phase4PreDashBlinkTimer -= dt;
+        m_Phase4Blinking = true;
+
+        int blinkStep = static_cast<int>((m_Phase4PreDashBlinkDuration - m_Phase4PreDashBlinkTimer) / 0.08f);
+        m_Phase4BlinkVisible = (blinkStep % 2 == 0);
+
+        if (m_Phase4PreDashBlinkTimer <= 0.0f) {
+            m_Phase4PreDashBlinking = false;
+            m_Phase4Blinking = false;
+            m_Phase4BlinkVisible = true;
+
+            TeleportForPhase4Dash(player);
+            m_CurrentState = EnemyState::STATE_DASH;
+        }
+        return;
+    }
+
+    // Pause between dashes, then re-aim from current side
+    if (m_Phase4InterDashPauseTimer > 0.0f) {
+        m_Phase4InterDashPauseTimer -= dt;
+        m_CurrentState = EnemyState::STATE_IDLE;
+        m_Phase4CurrentDashSpeed = 0.0f;
+
+        if (m_Phase4InterDashPauseTimer <= 0.0f) {
+            PreparePhase4DashTarget(player);
+            m_CurrentState = EnemyState::STATE_DASH;
+        }
+        return;
+    }
+
+    if (m_CurrentState != EnemyState::STATE_DASH) {
+        PreparePhase4DashTarget(player);
+        m_CurrentState = EnemyState::STATE_DASH;
+    }
+
+    m_Phase4CurrentDashSpeed += m_Phase4DashAccel * dt;
+    if (m_Phase4CurrentDashSpeed > m_Phase4DashMaxSpeed) {
+        m_Phase4CurrentDashSpeed = m_Phase4DashMaxSpeed;
+    }
+
+    AEVec2 step;
+    AEVec2Scale(&step, &m_Phase4LockedDashDir, m_Phase4CurrentDashSpeed * dt);
+
+    float newX = m_pos.x + step.x;
+    float newY = m_pos.y + step.y;
+
+    bool endDash = false;
+
+    if (m_pMap && m_pMap->IsPositionBlocked(newX, newY, m_size)) {
+        endDash = true;
+    }
+    else {
+        m_pos.x = newX;
+        m_pos.y = newY;
+    }
+
+    if (!m_Phase4DashHitPlayer &&
+        AreCirclesIntersecting(player.GetX(), player.GetY(), player.GetSize(),
+            m_pos.x, m_pos.y, m_size)) {
+
+        f32 dashDamage = m_Phase4Damage;
+        player.DeductHealth(dashDamage);
+        player.SetHDP(dashDamage);
+
+        AEVec2 kb;
+
+        // Perpendicular (side) direction
+        AEVec2 perp{ -m_Phase4LockedDashDir.y, m_Phase4LockedDashDir.x };
+
+        // Decide left or right based on player position
+        AEVec2 toPlayer{ player.GetX() - m_pos.x, player.GetY() - m_pos.y };
+
+        // Dot product to determine side
+        float side = toPlayer.x * perp.x + toPlayer.y * perp.y;
+
+        if (side < 0.0f) {
+            // flip direction → push opposite side
+            perp.x = -perp.x;
+            perp.y = -perp.y;
+        }
+
+        // Knockback force
+        float kbForce = 420.0f;
+        kbForce += m_Phase4CurrentDashSpeed * 0.25f;
+
+        AEVec2 forward;
+        AEVec2Scale(&forward, &m_Phase4LockedDashDir, 120.0f);
+
+        AEVec2Add(&kb, &kb, &forward);
+
+        // Apply
+        AEVec2Scale(&kb, &perp, kbForce);
+        player.SetKnockbackVelocity(kb);
+    }
+
+    // Stop when boss reaches or passes target point
+    AEVec2 toTarget{ m_Phase4DashTarget.x - m_pos.x, m_Phase4DashTarget.y - m_pos.y };
+    float dot = toTarget.x * m_Phase4LockedDashDir.x + toTarget.y * m_Phase4LockedDashDir.y;
+
+    if (dot <= 0.0f) {
+        endDash = true;
+    }
+
+    if (endDash) {
+        --m_Phase4DashesRemaining;
+        m_CurrentState = EnemyState::STATE_IDLE;
+        m_Phase4CurrentDashSpeed = 0.0f;
+
+        if (m_Phase4DashesRemaining > 0) {
+            m_Phase4InterDashPauseTimer = m_Phase4InterDashPauseDuration;
+        }
+    }
+}
+
+void Boss::UpdatePhase4RecoveryPattern(f32 dt, Player& player)
+{
+    m_Phase4RecoveryTimer -= dt;
+    if (m_Phase4RecoveryTimer <= 0.0f) {
+        StartPhase4TripleDash(player);
+        return;
+    }
+
+    AEVec2 playerPos{ player.GetX(), player.GetY() };
+    AEVec2Sub(&m_enemyToPlayerDir, &playerPos, &m_pos);
+    f32 distToPlayer = AEVec2Length(&m_enemyToPlayerDir);
+
+    if (distToPlayer > 0.001f) {
+        AEVec2Scale(&m_enemyToPlayerDir, &m_enemyToPlayerDir, 1.0f / distToPlayer);
+    }
+
+    m_AimAngle = atan2(-m_enemyToPlayerDir.y, -m_enemyToPlayerDir.x);
+
+    switch (m_Phase4RecoveryStep)
+    {
+    case 0:
+    case 1:
+    {
+        m_EnableMelee = true;
+
+        if (!AreCirclesIntersecting(player.GetX(), player.GetY(), player.GetSize(),
+            m_pos.x, m_pos.y, m_size)) {
+            MoveTowardTarget(playerPos, dt);
+        }
+        else {
+            m_moveDir = { 0.0f, 0.0f };
+        }
+
+        if (!m_AttackActive && !m_WindingUp && m_AllowAttack) {
+            ++m_Phase4RecoveryStep;
+        }
+        break;
+    }
+
+    case 2:
+    {
+        m_EnableMelee = false;
+        m_AttackActive = false;
+        m_WindingUp = false;
+
+        if (m_Phase4DashPauseTimer <= 0.0f && m_CurrentState != EnemyState::STATE_DASH) {
+            TeleportForPhase4Dash(player);
+            m_Phase4CurrentDashSpeed = 350.0f;
+        }
+
+        if (m_CurrentState == EnemyState::STATE_DASH) {
+            m_Phase4CurrentDashSpeed += m_Phase4DashAccel * dt;
+            if (m_Phase4CurrentDashSpeed > m_Phase4DashMaxSpeed) {
+                m_Phase4CurrentDashSpeed = m_Phase4DashMaxSpeed;
+            }
+
+            AEVec2 step;
+            AEVec2Scale(&step, &m_Phase4LockedDashDir, m_Phase4CurrentDashSpeed * dt);
+
+            float newX = m_pos.x + step.x;
+            float newY = m_pos.y + step.y;
+
+            bool endDash = false;
+
+            if (m_pMap && m_pMap->IsPositionBlocked(newX, newY, m_size)) {
+                endDash = true;
+            }
+            else {
+                m_pos.x = newX;
+                m_pos.y = newY;
+            }
+
+            if (!m_Phase4DashHitPlayer &&
+                AreCirclesIntersecting(player.GetX(), player.GetY(), player.GetSize(),
+                    m_pos.x, m_pos.y, m_size)) {
+
+                constexpr f32 dashDamage = 25.0f;
+                player.DeductHealth(dashDamage);
+                player.SetHDP(dashDamage);
+
+                AEVec2 kb;
+                AEVec2Scale(&kb, &m_Phase4LockedDashDir, 250.0f);
+                player.SetKnockbackVelocity(kb);
+
+                m_Phase4DashHitPlayer = true;
+                endDash = true;
+            }
+
+            if (endDash) {
+                m_CurrentState = EnemyState::STATE_IDLE;
+                m_Phase4CurrentDashSpeed = 0.0f;
+                m_Phase4RecoveryStep = 0;
+                m_EnableMelee = true;
+                m_AllowAttack = true;
+            }
+        }
+        break;
+    }
+
+    default:
+        m_Phase4RecoveryStep = 0;
+        break;
+    }
+}
+
+void Boss::ConsumePhase4Pickup()
+{
+    if (m_FinalState != BossFinalState::WaitingPickup) return;
+
+    m_Phase4BallVisible = false;
+
+    m_pos = m_Phase4BallPos;
+    m_Phase4Blinking = true;
+    m_Phase4BlinkVisible = true;
+    m_Phase4ReviveBlinkTimer = 0.0f;
+
+    m_FinalState = BossFinalState::Reviving;
 }
 
 // ------------------------
@@ -1183,7 +1951,82 @@ Thrower::Thrower(AEVec2 pos, f32 size, f32 hp, f32 speed) :
 }
 
 void Thrower::Draw() {
-    Enemy::Draw();
+    if (m_HideBody) {
+        for (Projectile const& projectile : m_projectiles) {
+            projectile.Draw();
+        }
+        return;
+    }
+
+    f32 dt = (f32)AEFrameRateControllerGetFrameTime();
+    AEGfxSetRenderMode(AE_GFX_RM_COLOR);
+
+    float spriteScale = sizeMultiplier;
+    float shadowY = m_pos.y;
+
+    Shadow_Draw(m_pos.x, shadowY, m_size);
+
+    bool isDashWindup = (m_CurrentState == EnemyState::STATE_DASH_WINDUP);
+    bool isAnyWindup = (m_WindingUp || isDashWindup);
+
+    if (isAnyWindup && m_WindUpTimer < 0.35f && !isDashWindup) {
+        DrawTexture(m_EnemySprite, static_cast<int>(m_CurrentDirection),
+            m_EnemySprite.GetThrowerAttackSpriteMesh(),
+            m_EnemySprite.GetThrowerAttackSpriteSheet(),
+            m_EnemySprite.GetPixelScale(),
+            m_EnemySprite.GetPixelScale(),
+            m_pos.x, m_pos.y, 0.0f, spriteScale);
+    }
+    else if (m_CombatFlags.parried || m_CombatFlags.gotHit) {
+        DrawTexture(m_EnemySprite, static_cast<int>(m_CurrentDirection),
+            m_EnemySprite.GetThrowerAttackSpriteMesh(),
+            m_EnemySprite.GetThrowerAttackSpriteSheet(),
+            m_EnemySprite.GetPixelScale(),
+            m_EnemySprite.GetPixelScale(),
+            m_pos.x, m_pos.y, 0.0f, spriteScale);
+    }
+    else {
+        DrawTexture(m_EnemySprite, static_cast<int>(m_CurrentDirection),
+            m_EnemySprite.GetThrowerSpriteMesh(),
+            m_EnemySprite.GetThrowerSpriteSheet(),
+            m_EnemySprite.GetPixelScale(),
+            m_EnemySprite.GetPixelScale(),
+            m_pos.x, m_pos.y, 0.0f, spriteScale);
+    }
+
+    f32 barWidth = m_size * 2.0f * (m_CombatStats.health / m_CombatStats.maxHealth);
+    f32 barHeight = m_size / 3.0f;
+    f32 dbarWidth = m_size * 2.0f * AEClamp(
+        (m_CombatStats.health / m_CombatStats.maxHealth) + (m_healthDepletionPercentage / 100.0f),
+        0.0f, 1.0f);
+
+    f32 dRate = 100.0f * dt;
+    if (m_healthDepletionPercentage > 0.0f) {
+        m_healthDepletionPercentage -= dRate;
+        if (m_healthDepletionPercentage < 0.0f) {
+            m_healthDepletionPercentage = 0.0f;
+        }
+    }
+
+    DrawMesh(m_enemyHealthBarMesh, dbarWidth, barHeight,
+        m_pos.x - m_size, m_pos.y + m_size + barHeight / 2.0f + 25.0f,
+        0.0f, 255, 175, 65, 255);
+
+    DrawMesh(m_enemyHealthBarMesh, barWidth, barHeight,
+        m_pos.x - m_size, m_pos.y + m_size + barHeight / 2.0f + 25.0f,
+        0.0f, 210, 70, 75, 255);
+
+    if (m_marked && !m_markDetonating && m_markMesh) {
+        float bobOffset = sinf(m_markTimer * 5.0f) * 4.0f;
+        float daggerY = m_pos.y + m_size + 40.0f + bobOffset;
+        DrawMesh(m_markMesh, 14.0f, 20.0f, m_pos.x, daggerY, 0.0f, 255, 255, 255, 255);
+    }
+    else if (m_markDetonating && m_markMesh) {
+        float t = m_markDetonateTimer / 0.3f;
+        float hoverY = m_pos.y + m_size + 40.0f;
+        float daggerY = m_pos.y + (hoverY - m_pos.y) * t;
+        DrawMesh(m_markMesh, 14.0f, 20.0f, m_pos.x, daggerY, 0.0f, 255, 80, 80, 255);
+    }
 
     for (Projectile const& projectile : m_projectiles) {
         projectile.Draw();

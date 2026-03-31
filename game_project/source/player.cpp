@@ -82,6 +82,21 @@ void Player::Update(float dt, Combat::System& combat, std::vector<std::unique_pt
     EvaluateCurrentDirection();
     m_PlayerSprite.Sprite_Update(dt);
 
+    // --- Knockback movement (applied every frame) ---
+    AEVec2 frameMove;
+    AEVec2Scale(&frameMove, &m_KnockbackVelocity, dt);
+
+    float newX = m_PosX + frameMove.x;
+    float newY = m_PosY + frameMove.y;
+
+    if (!m_pMap || !m_pMap->IsPositionBlocked(newX, newY, m_Size)) {
+        m_PosX = newX;
+        m_PosY = newY;
+    }
+
+    // decay knockback over time
+    AEVec2Scale(&m_KnockbackVelocity, &m_KnockbackVelocity, 0.85f);
+
     if (m_CombatStats.health <= 0) m_CombatFlags.isAlive = false;
     // Attack / Combat Logic
     // Mouse input
