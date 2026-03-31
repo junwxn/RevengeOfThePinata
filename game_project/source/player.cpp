@@ -72,6 +72,11 @@ void Player::Init()
     m_BatMesh = CreateBatMesh(0xFFFFFFFF);
     m_BatTexture = AEGfxTextureLoad("Assets/Sprites/BatBat.png");
 
+    if (m_SeeingRedMesh) { AEGfxMeshFree(m_SeeingRedMesh); m_SeeingRedMesh = nullptr; }
+    if (m_SeeingRedTexture) { AEGfxTextureUnload(m_SeeingRedTexture); m_SeeingRedTexture = nullptr; }
+    m_SeeingRedMesh = CreateSpriteRectMesh(0xFFFFFFFF, 8.0f, 8.0f);
+    m_SeeingRedTexture = AEGfxTextureLoad("Assets/Sprites/SeeingRed_Spritesheet.png");
+
     m_PlayerSprite.Sprite_Init();
     m_PlayerSpriteSheet = m_PlayerSprite.GetPlayerSpriteSheet();
     m_PlayerCombatSpriteSheet = m_PlayerSprite.GetPlayerCombatSpriteSheet();
@@ -578,6 +583,37 @@ void Player::Update(float dt, Combat::System& combat, std::vector<std::unique_pt
     UpdateDashParticles(dt);
 }
 
+static void DrawSeeingRedSprite(PlayerDirection dir, int frame,
+    AEGfxVertexList* mesh, AEGfxTexture* texture,
+    float x, float y, float sizeMultiplier, float pixelScale)
+{
+    if (!mesh || !texture) return;
+
+    int col = frame % 8;
+    int row = static_cast<int>(dir);
+
+    float u = col * (1.0f / 8.0f);
+    float v = row * (1.0f / 8.0f);
+
+    AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
+    AEGfxSetColorToMultiply(1.0f, 1.0f, 1.0f, 1.0f);
+    AEGfxSetColorToAdd(0.0f, 0.0f, 0.0f, 0.0f);
+    AEGfxSetBlendMode(AE_GFX_BM_BLEND);
+    AEGfxSetTransparency(1.0f);
+    AEGfxTextureSet(texture, u, v);
+
+    AEMtx33 scale, rot, trans, final;
+    AEMtx33Scale(&scale, pixelScale * sizeMultiplier, pixelScale * sizeMultiplier);
+    AEMtx33Rot(&rot, 0.0f);
+    AEMtx33Trans(&trans, x, y);
+
+    AEMtx33Concat(&final, &rot, &scale);
+    AEMtx33Concat(&final, &trans, &final);
+
+    AEGfxSetTransform(final.m);
+    AEGfxMeshDraw(mesh, AE_GFX_MDM_TRIANGLES);
+}
+
 void Player::Draw()
 {
     f32 dt = (f32)AEFrameRateControllerGetFrameTime();
@@ -641,10 +677,25 @@ void Player::Draw()
 
     if (!batInFront) DrawBat(batAngle);
 
-    DrawTexturePlayer(m_PlayerSprite, static_cast<int>(m_CurrentDirection),
-        m_PlayerSprite.GetPlayerSpriteMesh(), m_PlayerSprite.GetPlayerSpriteSheet(),
-        m_PlayerSprite.GetPixelScale(), m_PlayerSprite.GetPixelScale(),
-        m_PosX, m_PosY, 0.0f, sizeMultiplier);
+    if (g_Augments.Has(AugmentID::AMPLIFIED_DAMAGE) && m_SeeingRedMesh && m_SeeingRedTexture)
+    {
+        DrawSeeingRedSprite(
+            m_CurrentDirection,
+            m_PlayerSprite.GetPlayerFrame(),
+            m_SeeingRedMesh,
+            m_SeeingRedTexture,
+            m_PosX, m_PosY,
+            sizeMultiplier,
+            m_PlayerSprite.GetPixelScale()
+        );
+    }
+    else
+    {
+        DrawTexturePlayer(m_PlayerSprite, static_cast<int>(m_CurrentDirection),
+            m_PlayerSprite.GetPlayerSpriteMesh(), m_PlayerSprite.GetPlayerSpriteSheet(),
+            m_PlayerSprite.GetPixelScale(), m_PlayerSprite.GetPixelScale(),
+            m_PosX, m_PosY, 0.0f, sizeMultiplier);
+    }
 
     if (batInFront) DrawBat(batAngle);
 }
@@ -678,6 +729,14 @@ void Player::Free()
     if (m_DashParticleMesh) {
         AEGfxMeshFree(m_DashParticleMesh);
         m_DashParticleMesh = nullptr;
+    }
+    if (m_SeeingRedMesh) {
+        AEGfxMeshFree(m_SeeingRedMesh);
+        m_SeeingRedMesh = nullptr;
+    }
+    if (m_SeeingRedTexture) {
+        AEGfxTextureUnload(m_SeeingRedTexture);
+        m_SeeingRedTexture = nullptr;
     }
 }
 

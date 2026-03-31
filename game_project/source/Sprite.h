@@ -55,6 +55,7 @@ class Sprite
 		int GetRow() const { return row; }
 		int GetFrameWidth() const { return frameUSize; }
 		int GetFrameHeight() const { return frameVSize; }
+		int GetPlayerFrame() const { return pFrame; }
 
 		void SetTextureU() { u0 = frame * frameUSize; }
 		void SetTextureV(int animRow) { row = animRow; v0 = row * frameVSize; }

@@ -186,6 +186,9 @@ private:
     AEGfxVertexList* m_playerHealthBarMesh{ nullptr };
     AEGfxVertexList* m_DashParticleMesh = nullptr;
 
+    AEGfxVertexList* m_SeeingRedMesh{ nullptr };
+    AEGfxTexture* m_SeeingRedTexture{ nullptr };
+
     // -------------------------- //
     //      COMBAT VARIABLES      //
     // -------------------------- //

@@ -121,6 +121,9 @@ public:
     bool  m_markDetonating = false;
     AEGfxVertexList* m_markMesh{ nullptr };
 
+    AEGfxVertexList* m_DetonateMesh{ nullptr };
+    AEGfxTexture* m_DetonateTexture{ nullptr };
+
     // Augment: Amplified Damage
     bool m_damageAmplified = false;
     float m_amplifyTimer = 0.0f;
