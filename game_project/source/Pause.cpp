@@ -142,7 +142,7 @@ bool Pause_Update(bool isPlayerAlive) {
 
 	if (!paused) return false;
 
-	float dt = AEFrameRateControllerGetFrameTime();
+	float dt = static_cast<float>(AEFrameRateControllerGetFrameTime());
 	entranceTimer += dt;
 	pauseAnimTimer += dt;
 

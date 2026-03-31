@@ -94,17 +94,17 @@ void Audio::PlayCombatSFX(CombatSFX combatSound)
 {
 	if (combatSound == COMBAT_HIT)
 	{
-		int soundID{ Vectors::get_random(0, m_hitSFX.size()-1) };
+		int soundID{ Vectors::get_random(0, static_cast<int>(m_hitSFX.size())-1) };
 		AEAudioPlay(m_hitSFX[soundID], m_audioGroup.combat, 1.0f, 1.0f, 0);
 	}
 	if (combatSound == COMBAT_SWING)
 	{
-		int soundID{ Vectors::get_random(0, m_swingSFX.size()-1) };
+		int soundID{ Vectors::get_random(0, static_cast<int>(m_swingSFX.size())-1) };
 		AEAudioPlay(m_swingSFX[soundID], m_audioGroup.combat, 1.0f, 1.0f, 0);
 	}
 	if (combatSound == COMBAT_PARRY)
 	{
-		int soundID{ Vectors::get_random(0, m_parrySFX.size()-1) };
+		int soundID{ Vectors::get_random(0, static_cast<int>(m_parrySFX.size())-1) };
 		AEAudioPlay(m_parrySFX[soundID], m_audioGroup.combat, 1.0f, 1.0f, 0);
 	}
 }
@@ -113,17 +113,17 @@ void Audio::PlayEnemySFX(EnemySFX enemySound)
 {
 	if (enemySound == ENEMY_HURT)
 	{
-		int soundID{ Vectors::get_random(0, m_enemyVocal_SFX.size() - 1)};
+		int soundID{ Vectors::get_random(0, static_cast<int>(m_enemyVocal_SFX.size()) - 1)};
 		AEAudioPlay(m_enemyVocal_SFX[soundID], m_audioGroup.enemy, 1.0f, 1.0f, 0);
 	}
 	if (enemySound == ENEMY_VOCAL)
 	{
-		int soundID{ Vectors::get_random(0, m_enemyHurt_SFX.size() - 1) };
+		int soundID{ Vectors::get_random(0, static_cast<int>(m_enemyHurt_SFX.size()) - 1) };
 		AEAudioPlay(m_enemyHurt_SFX[soundID], m_audioGroup.enemy, 1.0f, 1.0f, 0);
 	}
 	if (enemySound == ENEMY_LAUGH)
 	{
-		int soundID{ Vectors::get_random(0, m_enemyLaugh_SFX.size() - 1) };
+		int soundID{ Vectors::get_random(0, static_cast<int>(m_enemyLaugh_SFX.size()) - 1) };
 		AEAudioPlay(m_enemyLaugh_SFX[soundID], m_audioGroup.enemy, 1.0f, 1.0f, 0);
 	}
 }
@@ -132,12 +132,12 @@ void Audio::PlayPlayerSFX(PlayerSFX playerSound)
 {
 	if (playerSound == PLAYER_DEATH)
 	{
-		int soundID{ Vectors::get_random(0, m_playerDeath_SFX.size() - 1)};
+		int soundID{ Vectors::get_random(0, static_cast<int>(m_playerDeath_SFX.size()) - 1)};
 		AEAudioPlay(m_playerDeath_SFX[soundID], m_audioGroup.player, 1.0f, 1.0f, 0);
 	}
 	if (playerSound == PLAYER_HURT)
 	{
-		int soundID{ Vectors::get_random(0, m_playerHurt_SFX.size() - 1)};
+		int soundID{ Vectors::get_random(0, static_cast<int>(m_playerHurt_SFX.size()) - 1)};
 		AEAudioPlay(m_playerHurt_SFX[soundID], m_audioGroup.player, 1.0f, 1.0f, 0);
 	}
 }
@@ -160,7 +160,7 @@ void Audio::PlayGeneralSFX(GeneralSFX generalSound)
 
 void Audio::PlayFireworksSFX()
 {
-		int soundID{ Vectors::get_random(0, m_fireworksSFX.size() - 1) };
+		int soundID{ Vectors::get_random(0, static_cast<int>(m_fireworksSFX.size()) - 1) };
 		AEAudioPlay(m_fireworksSFX[soundID], m_audioGroup.fireworks, 1.0f, 1.0f, 0);
 }
 

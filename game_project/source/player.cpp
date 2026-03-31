@@ -111,7 +111,7 @@ void Player::Update(float dt, Combat::System& combat, std::vector<std::unique_pt
     //// Distance magnitude between
     m_DistMagMP = Vectors::magnitude(m_AimVector.x, m_AimVector.y); // Dist between mouse and player
     //// Normalize vectors (To get direction)
-    m_VectorNormalizedMP = Vectors::normalize(m_DistMagMP, m_AimVector.x, m_AimVector.y); // Normalized vector between mouse and player
+    m_VectorNormalizedMP = Vectors::normalize(static_cast<f32>(m_DistMagMP), m_AimVector.x, m_AimVector.y); // Normalized vector between mouse and player
 
     // Angle
     // Returns the angle at which quadrant the mouse is at

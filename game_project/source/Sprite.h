@@ -53,8 +53,8 @@ class Sprite
 
 		int GetFrame() const { return m_frame; }
 		int GetRow() const { return m_row; }
-		int GetFrameWidth() const { return m_frameUSize; }
-		int GetFrameHeight() const { return m_frameVSize; }
+		int GetFrameWidth() const { return static_cast<int>(m_frameUSize); }
+		int GetFrameHeight() const { return static_cast<int>(m_frameVSize); }
 		int GetPlayerFrame() const { return m_pFrame; }
 
 		void SetTextureU() { m_u0 = m_frame * m_frameUSize; }
