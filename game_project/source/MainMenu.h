@@ -1,4 +1,4 @@
-#pragma once;
+#pragma once
 
 void MainMenu_Load();
 void MainMenu_Init();

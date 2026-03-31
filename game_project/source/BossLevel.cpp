@@ -13,6 +13,7 @@
 #include "Shadow.h"
 #include "Transition.h"
 #include "Audio.h"
+#include "SaveSystem.h"
 
 // load variables
 static AEGfxTexture* TexBlock2;
@@ -107,6 +108,7 @@ void BossLevel_Init() {
 
 void BossLevel_Update(float dt) {
 	if (!AESysDoesWindowExist()) {
+		SaveSystem_Save(GS_BOSSLEVEL);
 		Transition_StartImmediate(GS_QUIT);
 		return;
 	}
@@ -237,6 +239,9 @@ void BossLevel_Draw() {
 void BossLevel_Free() {
 	if (Transition_GetState() != current)
 		g_PlayerAttackCharges = player.GetAttackCharges();
+	int nextState = Transition_GetState();
+	if (nextState >= GS_TUTORIAL && nextState <= GS_BOSSLEVEL)
+		SaveSystem_Save(nextState);
 	Wave1.clear();
 	player.Free();
 	Projectile::Free();

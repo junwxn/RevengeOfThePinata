@@ -13,6 +13,7 @@
 #include "Combat.h"
 #include "AugmentData.h"
 #include "EventSystem.h"
+#include "SaveSystem.h"
 #include "Transition.h"
 
 // --- Tutorial steps ---
@@ -240,6 +241,7 @@ void Tutorial_Init() {
 
 void Tutorial_Update(float dt) {
 	if (!AESysDoesWindowExist()) {
+		SaveSystem_Save(GS_TUTORIAL);
 		Transition_StartImmediate(GS_QUIT);
 		return;
 	}
@@ -585,6 +587,9 @@ void Tutorial_Draw() {
 }
 
 void Tutorial_Free() {
+	int nextState = Transition_GetState();
+	if (nextState >= GS_TUTORIAL && nextState <= GS_BOSSLEVEL)
+		SaveSystem_Save(nextState);
 	tutorialEnemies.clear();
 	player.Free();
 	Projectile::Free();

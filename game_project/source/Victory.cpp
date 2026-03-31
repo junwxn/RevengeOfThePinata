@@ -3,6 +3,7 @@
 #include "GameStateManager.h"
 #include "Utils.h"
 #include "Transition.h"
+#include "SaveSystem.h"
 #include <cstdlib>
 
 static AEGfxVertexList* rectMesh = nullptr;
@@ -53,6 +54,7 @@ void Victory_Load() {
 }
 
 void Victory_Init() {
+	SaveSystem_ClearSave();
 	AEGfxSetCamPosition(0.0f, 0.0f);
 	animTimer = 0.0f;
 	entranceTimer = 0.0f;
