@@ -550,7 +550,7 @@ void Enemy::ComputePath(AEVec2 const& targetPos) {
     // Boss (50) → 1.
     const float halfMin = (std::min)(GRID_W * 0.5f, GRID_H * 0.5f);
     int clearance = static_cast<int>(std::ceilf(m_size * 0.9f / halfMin)) - 1;
-    if (clearance < 0) clearance = 0.5;
+    if (clearance < 0) clearance = 0;
 
     GridPos start = m_pMap->WorldToTMX(m_pos.x, m_pos.y);
     GridPos goal  = m_pMap->WorldToTMX(targetPos.x, targetPos.y);
@@ -943,7 +943,7 @@ void Dasher::UpdateDash(f32 dt, Player& player)
         m_dashCurrentFrame <= m_dashTotalFrames)
     {
         ++m_dashCurrentFrame;
-        m_dashFrameAccumulator -= m_CombatSystem.GetOneFPS();
+        m_dashFrameAccumulator -= static_cast<f32>(m_CombatSystem.GetOneFPS());
 
         if (m_dashCurrentFrame >= m_dashStartFrames &&
             m_dashCurrentFrame < m_dashStartFrames + m_dashActiveFrames)
