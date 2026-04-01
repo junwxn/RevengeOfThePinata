@@ -264,7 +264,7 @@ void Level2_Update(float dt) {
 			preventingmovement = true;
 		}
 		if (augments.GetAugmentSelected()) {
-			Transition_Start(GS_LEVEL3);
+			Transition_Start(GS_LEVEL3, TransitionSheet::LEVEL3);
 		}
 	}
 	else {

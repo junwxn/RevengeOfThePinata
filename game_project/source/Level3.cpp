@@ -332,7 +332,7 @@ void Level3_Update(float dt) {
 			preventingmovement = true;
 		}
 		if (augments.GetAugmentSelected()) {
-			Transition_Start(GS_BOSSLEVEL);
+			Transition_Start(GS_BOSSLEVEL, TransitionSheet::BOSSLEVEL);
 		}
 	}
 	else {
@@ -350,7 +350,7 @@ void Level3_Update(float dt) {
 	}
 
 	if (AEInputCheckTriggered(AEVK_N)) {
-		Transition_Start(GS_BOSSLEVEL);
+		Transition_Start(GS_BOSSLEVEL, TransitionSheet::BOSSLEVEL);
 	}
 }
 

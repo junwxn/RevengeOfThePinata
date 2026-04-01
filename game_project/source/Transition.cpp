@@ -14,10 +14,14 @@ namespace
     AEGfxVertexList* g_TransitionMesh = nullptr;
     AEGfxVertexList* g_Transition_Level1_Mesh = nullptr;
     AEGfxVertexList* g_Transition_Level2_Mesh = nullptr;
+    AEGfxVertexList* g_Transition_Level3_Mesh = nullptr;
+    AEGfxVertexList* g_Transition_BossLevel_Mesh = nullptr;
 
     AEGfxTexture* g_TransitionSpriteSheet = nullptr;
     AEGfxTexture* g_Transition_Level1_SpriteSheet = nullptr;
     AEGfxTexture* g_Transition_Level2_SpriteSheet = nullptr;
+    AEGfxTexture* g_Transition_Level3_SpriteSheet = nullptr;
+    AEGfxTexture* g_Transition_BossLevel_SpriteSheet = nullptr;
 
     TransitionSheet g_CurrentTransitionSheet = TransitionSheet::DEFAULT;
     AEGfxTexture* g_ActiveTransitionSpriteSheet = nullptr;
@@ -51,6 +55,16 @@ static void Transition_SetSheet(TransitionSheet sheet)
         g_ActiveTransitionMesh = g_Transition_Level2_Mesh;
         break;
 
+    case TransitionSheet::LEVEL3:
+        g_ActiveTransitionSpriteSheet = g_Transition_Level3_SpriteSheet;
+        g_ActiveTransitionMesh = g_Transition_Level3_Mesh;
+        break;
+
+    case TransitionSheet::BOSSLEVEL:
+        g_ActiveTransitionSpriteSheet = g_Transition_BossLevel_SpriteSheet;
+        g_ActiveTransitionMesh = g_Transition_BossLevel_Mesh;
+        break;
+
     case TransitionSheet::DEFAULT:
     default:
         g_ActiveTransitionSpriteSheet = g_TransitionSpriteSheet;
@@ -58,7 +72,6 @@ static void Transition_SetSheet(TransitionSheet sheet)
         break;
     }
 
-    // Safety fallback
     if (!g_ActiveTransitionSpriteSheet || !g_ActiveTransitionMesh)
     {
         g_ActiveTransitionSpriteSheet = g_TransitionSpriteSheet;
@@ -138,6 +151,44 @@ void Transition_Init()
         g_Transition_Level2_Mesh = nullptr;
     }
 
+    // LEVEL 3 TRANSITION
+    if (g_Transition_Level3_SpriteSheet)
+    {
+        AEGfxTextureUnload(g_Transition_Level3_SpriteSheet);
+        g_Transition_Level3_SpriteSheet = nullptr;
+    }
+
+    g_Transition_Level3_SpriteSheet = AEGfxTextureLoad("Assets/Sprites/Pinata_Transition_Spritesheet_Level3.png");
+    if (!g_Transition_Level3_SpriteSheet)
+    {
+        std::cout << "ERROR LOADING LEVEL3 TRANSITION SPRITESHEET" << std::endl;
+    }
+
+    if (g_Transition_Level3_Mesh)
+    {
+        AEGfxMeshFree(g_Transition_Level3_Mesh);
+        g_Transition_Level3_Mesh = nullptr;
+    }
+
+    // BOSS LEVEL TRANSITION
+    if (g_Transition_BossLevel_SpriteSheet)
+    {
+        AEGfxTextureUnload(g_Transition_BossLevel_SpriteSheet);
+        g_Transition_BossLevel_SpriteSheet = nullptr;
+    }
+
+    g_Transition_BossLevel_SpriteSheet = AEGfxTextureLoad("Assets/Sprites/Pinata_Transition_Spritesheet_LevelBoss.png");
+    if (!g_Transition_BossLevel_SpriteSheet)
+    {
+        std::cout << "ERROR LOADING BOSS LEVEL TRANSITION SPRITESHEET" << std::endl;
+    }
+
+    if (g_Transition_BossLevel_Mesh)
+    {
+        AEGfxMeshFree(g_Transition_BossLevel_Mesh);
+        g_Transition_BossLevel_Mesh = nullptr;
+    }
+
     // BLACK BACKGROUND
     if (g_BlackBackgroundMesh)
     {
@@ -149,6 +200,8 @@ void Transition_Init()
     g_TransitionMesh = CreateSpriteRectMesh(0xFFFFFFFF, 8.0f, 1.0f);
     g_Transition_Level1_Mesh = CreateSpriteRectMesh(0xFFFFFFFF, 8.0f, 1.0f);
     g_Transition_Level2_Mesh = CreateSpriteRectMesh(0xFFFFFFFF, 8.0f, 1.0f);
+    g_Transition_Level3_Mesh = CreateSpriteRectMesh(0xFFFFFFFF, 8.0f, 1.0f);
+    g_Transition_BossLevel_Mesh = CreateSpriteRectMesh(0xFFFFFFFF, 8.0f, 1.0f);
 
     AEGfxMeshStart();
 
@@ -192,6 +245,14 @@ void Transition_Free()
         AEGfxMeshFree(g_Transition_Level2_Mesh);
         g_Transition_Level2_Mesh = nullptr;
     }
+    if (g_Transition_Level3_Mesh) {
+        AEGfxMeshFree(g_Transition_Level3_Mesh);
+        g_Transition_Level3_Mesh = nullptr;
+    }
+    if (g_Transition_BossLevel_Mesh) {
+        AEGfxMeshFree(g_Transition_BossLevel_Mesh);
+        g_Transition_BossLevel_Mesh = nullptr;
+    }
 
     if (g_BlackBackgroundMesh) {
         AEGfxMeshFree(g_BlackBackgroundMesh);
@@ -209,6 +270,14 @@ void Transition_Free()
     if (g_Transition_Level2_SpriteSheet) {
         AEGfxTextureUnload(g_Transition_Level2_SpriteSheet);
         g_Transition_Level2_SpriteSheet = nullptr;
+    }
+    if (g_Transition_Level3_SpriteSheet) {
+        AEGfxTextureUnload(g_Transition_Level3_SpriteSheet);
+        g_Transition_Level3_SpriteSheet = nullptr;
+    }
+    if (g_Transition_BossLevel_SpriteSheet) {
+        AEGfxTextureUnload(g_Transition_BossLevel_SpriteSheet);
+        g_Transition_BossLevel_SpriteSheet = nullptr;
     }
 
     g_ActiveTransitionSpriteSheet = nullptr;
@@ -378,6 +447,14 @@ void Transition_Draw()
 
     case TransitionSheet::LEVEL2:
         AEGfxSetColorToMultiply(0.93f, 0.48f, 0.10f, 1.0f); // ed7b1a
+        break;
+
+    case TransitionSheet::LEVEL3:
+        AEGfxSetColorToMultiply(0.25f, 0.75f, 0.95f, 1.0f); // light blue-ish
+        break;
+
+    case TransitionSheet::BOSSLEVEL:
+        AEGfxSetColorToMultiply(0.08f, 0.08f, 0.08f, 1.0f); // dark gray / near black
         break;
 
     case TransitionSheet::DEFAULT:

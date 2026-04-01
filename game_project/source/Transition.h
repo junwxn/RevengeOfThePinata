@@ -4,9 +4,11 @@
 
 enum class TransitionSheet
 {
-	DEFAULT,
-	LEVEL1,
-	LEVEL2
+    DEFAULT = 0,
+    LEVEL1,
+    LEVEL2,
+    LEVEL3,
+    BOSSLEVEL
 };
 
 enum class TransitionPhase
