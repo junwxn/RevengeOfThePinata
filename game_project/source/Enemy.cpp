@@ -11,6 +11,16 @@
 #include "Audio.h"
 #include <queue>
 
+// Static shared resource definitions
+AEGfxVertexList* Enemy::s_enemyMesh = nullptr;
+AEGfxVertexList* Enemy::s_healthBarMesh = nullptr;
+AEGfxVertexList* Enemy::s_markMesh = nullptr;
+AEGfxVertexList* Enemy::s_batMesh = nullptr;
+AEGfxTexture*    Enemy::s_batTexture = nullptr;
+AEGfxVertexList* Enemy::s_detonateMesh = nullptr;
+AEGfxTexture*    Enemy::s_detonateTexture = nullptr;
+int Enemy::s_sharedRefCount = 0;
+
 // Helper Functions
 namespace {
     static f32 EaseInOutSine(f32 t)
@@ -31,61 +41,64 @@ std::ostream& operator<<(std::ostream& os, AEVec2 vector) {
 Enemy::Enemy(AEVec2 pos, f32 size, f32 hp, f32 speed)
     : m_pos{ pos }, m_hp{ hp }, m_speed{ speed }, m_size{ size } {}
 
-// Base destructor 
+// Base destructor
 Enemy::~Enemy() {
-    if (m_enemyMesh) {
-        AEGfxMeshFree(m_enemyMesh);
-        m_enemyMesh = nullptr;
-    }
-
+    // Per-instance resources
     if (m_AttackRangeMesh) {
         AEGfxMeshFree(m_AttackRangeMesh);
         m_AttackRangeMesh = nullptr;
     }
 
-    if (m_enemyHealthBarMesh) {
-        AEGfxMeshFree(m_enemyHealthBarMesh);
-        m_enemyHealthBarMesh = nullptr;
-    }
+    // Clear instance pointers to shared resources (don't free them here)
+    m_enemyMesh = nullptr;
+    m_enemyHealthBarMesh = nullptr;
+    m_markMesh = nullptr;
+    m_BatMesh = nullptr;
+    m_BatTexture = nullptr;
+    m_DetonateMesh = nullptr;
+    m_DetonateTexture = nullptr;
 
-    if (m_markMesh) {
-        AEGfxMeshFree(m_markMesh);
-        m_markMesh = nullptr;
-    }
-
-    // Weapon
-    if (m_BatMesh) {
-        AEGfxMeshFree(m_BatMesh);
-        m_BatMesh = nullptr;
-    }
-    if (m_BatTexture) {
-        AEGfxTextureUnload(m_BatTexture);
-        m_BatTexture = nullptr;
-    }
-
-    // Detonate Mark
-    if (m_DetonateMesh) {
-        AEGfxMeshFree(m_DetonateMesh);
-        m_DetonateMesh = nullptr;
-    }
-    if (m_DetonateTexture) {
-        AEGfxTextureUnload(m_DetonateTexture);
-        m_DetonateTexture = nullptr;
+    // Shared resource cleanup (last enemy frees them)
+    --s_sharedRefCount;
+    if (s_sharedRefCount <= 0) {
+        s_sharedRefCount = 0;
+        if (s_enemyMesh)      { AEGfxMeshFree(s_enemyMesh);           s_enemyMesh = nullptr; }
+        if (s_healthBarMesh)  { AEGfxMeshFree(s_healthBarMesh);       s_healthBarMesh = nullptr; }
+        if (s_markMesh)       { AEGfxMeshFree(s_markMesh);            s_markMesh = nullptr; }
+        if (s_batMesh)        { AEGfxMeshFree(s_batMesh);             s_batMesh = nullptr; }
+        if (s_batTexture)     { AEGfxTextureUnload(s_batTexture);     s_batTexture = nullptr; }
+        if (s_detonateMesh)   { AEGfxMeshFree(s_detonateMesh);        s_detonateMesh = nullptr; }
+        if (s_detonateTexture){ AEGfxTextureUnload(s_detonateTexture); s_detonateTexture = nullptr; }
     }
 }
 
 void Enemy::Init() {
-    // Free any existing meshes before creating new ones (prevents leaks on re-init)
-    if (m_AttackRangeMesh)    { AEGfxMeshFree(m_AttackRangeMesh);    m_AttackRangeMesh    = nullptr; }
-    if (m_enemyMesh)          { AEGfxMeshFree(m_enemyMesh);          m_enemyMesh          = nullptr; }
-    if (m_enemyHealthBarMesh) { AEGfxMeshFree(m_enemyHealthBarMesh); m_enemyHealthBarMesh = nullptr; }
-    if (m_markMesh)           { AEGfxMeshFree(m_markMesh);           m_markMesh           = nullptr; }
+    // Shared resources: create once, reuse for all enemies
+    ++s_sharedRefCount;
+    if (s_sharedRefCount == 1) {
+        s_enemyMesh      = CreateCircleMesh(1.0f, 32, 0x50A655);
+        s_healthBarMesh  = CreateRectMesh(0xAEF359);
+        s_markMesh       = CreateRectMesh(0xFFFFFF);
+        s_batMesh        = CreateBatMesh(0xFFFFFFFF);
+        s_batTexture     = AEGfxTextureLoad("Assets/Sprites/BatBat.png");
+        s_detonateMesh   = CreateSpriteRectMesh(0xFFFFFFFF, 8.0f, 2.0f);
+        s_detonateTexture= AEGfxTextureLoad("Assets/Sprites/Detonate_Spritesheet.png");
+    }
 
+    // Point instance members to shared resources
+    m_enemyMesh          = s_enemyMesh;
+    m_enemyHealthBarMesh = s_healthBarMesh;
+    m_markMesh           = s_markMesh;
+    m_BatMesh            = s_batMesh;
+    m_BatTexture         = s_batTexture;
+    m_DetonateMesh       = s_detonateMesh;
+    m_DetonateTexture    = s_detonateTexture;
+
+    // Per-instance: attack range mesh (may vary per enemy type)
+    if (m_AttackRangeMesh) { AEGfxMeshFree(m_AttackRangeMesh); m_AttackRangeMesh = nullptr; }
     m_AttackRangeMesh = CreateAttackRangeMesh(m_AttackRange, 0xFF0000);
-    m_enemyMesh = CreateCircleMesh(1.0f, 32, 0x50A655);
-    m_enemyHealthBarMesh = CreateRectMesh(0xAEF359);
-    m_markMesh = CreateRectMesh(0xFFFFFF);
 
+    // Sprite init (uses its own static caching internally)
     m_EnemySprite.Sprite_Init();
     m_EnemySpriteSheet = m_EnemySprite.GetSpriteSheet();
     m_EnemyWindupSpriteSheet = m_EnemySprite.GetEnemyWindupSpriteSheet();
@@ -95,16 +108,6 @@ void Enemy::Init() {
     m_DasherSpriteSheet = m_DasherSprite.GetSpriteSheet();
     m_DasherWindupSpriteSheet = m_DasherSprite.GetEnemyWindupSpriteSheet();
     m_DasherAttackSpriteSheet = m_DasherSprite.GetEnemyAttackSpriteSheet();
-
-    if (m_BatMesh) { AEGfxMeshFree(m_BatMesh); m_BatMesh = nullptr; }
-    if (m_BatTexture) { AEGfxTextureUnload(m_BatTexture); m_BatTexture = nullptr; }
-    m_BatMesh = CreateBatMesh(0xFFFFFFFF);
-    m_BatTexture = AEGfxTextureLoad("Assets/Sprites/BatBat.png");
-
-    if (m_DetonateMesh) { AEGfxMeshFree(m_DetonateMesh); m_DetonateMesh = nullptr; }
-    if (m_DetonateTexture) { AEGfxTextureUnload(m_DetonateTexture); m_DetonateTexture = nullptr; }
-    m_DetonateMesh = CreateSpriteRectMesh(0xFFFFFFFF, 8.0f, 2.0f);
-    m_DetonateTexture = AEGfxTextureLoad("Assets/Sprites/Detonate_Spritesheet.png");
 }
 
 void Enemy::BaseUpdate(f32 dt, Combat::System& combat, Player& player) {
