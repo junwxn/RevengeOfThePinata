@@ -69,9 +69,14 @@ private:
     bool spawn_anim = false;
     bool choose = false;
 
-    bool startingAnimation = true;
+    bool startingAnimation = false;
 
     bool cardsInPosition = false;
+
+    float beamStartY;
+    float beamX;
+    float beamY;
+    float beamTargetY;
 
     AugmentSet m_currentSet = AugmentSet::SET_DASH;
     AugmentID m_cardIDs[3] = { AugmentID::NONE, AugmentID::NONE, AugmentID::NONE };
@@ -79,6 +84,7 @@ private:
     // Visual Assets
     AEGfxTexture* m_candyTex = nullptr;
     AEGfxTexture* interactTex = nullptr;
+    AEGfxTexture* beamTex = nullptr;
 
     AEGfxTexture* m_amplifieddamageTex = nullptr;
     AEGfxTexture* m_attackmomentumTex = nullptr;
@@ -95,11 +101,13 @@ private:
     AEGfxVertexList* candyMesh = nullptr;
     AEGfxVertexList* cardMesh = nullptr;
     AEGfxVertexList* interactMesh = nullptr;
+    AEGfxVertexList* beamMesh = nullptr;
     s8 m_cardFont = -1;
 
     Sprite interactSprite;
-
     Sprite candySprite;
+
+    Sprite beamSprite;
 
     Sprite cardSprite;
 
