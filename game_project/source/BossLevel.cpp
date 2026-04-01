@@ -362,15 +362,14 @@ void BossLevel_Update(float dt) {
 				if (!bossPhase4DropActive) {
 					AEVec2 ballPos = phase4Boss->GetPhase4BallPos();
 					augments.SetPosition(ballPos.x, ballPos.y);
+					augments.SetSpawnAnim(true);
 					bossPhase4DropActive = true;
 				}
 			}
 			else if (!phase4Boss->IsPhase4BallVisible()) {
 				bossPhase4DropActive = false;
+				augments.SetSpawnAnim(false);
 			}
-		}
-		else {
-			bossPhase4DropActive = false;
 		}
 
 		if (clearAddsForPhase4) {

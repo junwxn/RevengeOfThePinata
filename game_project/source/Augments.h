@@ -19,7 +19,7 @@ public:
 
     // Set the world position where the augment sphere spawns
     void SetPosition(float x, float y) { augPosX = x; augPosY = y; hoverPosY = y; }
-
+    void SetSpawnAnim(bool active) { spawn_anim = active; }
 
     // takes choose from private
     bool GetChoose() const {
