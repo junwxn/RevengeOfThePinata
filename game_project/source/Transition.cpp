@@ -26,7 +26,7 @@ namespace
     int g_CurrentFrame = 0;
     float g_FrameTimer = 0.0f;
 
-    float g_TransitionDuration = 0.35f;
+    float g_TransitionDuration = 0.55f;
     float g_FrameDuration = 0.35f / 8.0f;
 
     float g_U0 = 0.0f;
@@ -87,7 +87,7 @@ void Transition_Init()
         g_TransitionSpriteSheet = nullptr;
     }
 
-    g_TransitionSpriteSheet = AEGfxTextureLoad("Assets/Sprites/Pinata_Transition_SpritesheetTEST2.png");
+    g_TransitionSpriteSheet = AEGfxTextureLoad("Assets/Sprites/Pinata_Transition_Spritesheet_Loading.png");
     if (!g_TransitionSpriteSheet)
     {
         std::cout << "ERROR LOADING DEFAULT TRANSITION SPRITESHEET" << std::endl;
@@ -351,6 +351,9 @@ void Transition_Draw()
     if (!g_ActiveTransitionMesh || !g_ActiveTransitionSpriteSheet || !g_BlackBackgroundMesh)
         return;
 
+    // Force screen-space drawing so camera from the level does not affect transition
+    AEGfxSetCamPosition(0.0f, 0.0f);
+
     AEMtx33 scale{};
     AEMtx33 trans{};
     AEMtx33 final{};
@@ -362,22 +365,24 @@ void Transition_Draw()
     AEMtx33Trans(&trans, 0.0f, 0.0f);
     AEMtx33Concat(&final, &trans, &scale);
 
+    // =========================
     // 1) Draw colored background
+    // =========================
     AEGfxSetRenderMode(AE_GFX_RM_COLOR);
 
     switch (g_CurrentTransitionSheet)
     {
     case TransitionSheet::LEVEL1:
-        AEGfxSetColorToMultiply(0.63f, 0.29f, 0.81f, 1.0f);
+        AEGfxSetColorToMultiply(0.63f, 0.29f, 0.81f, 1.0f); // a04acf
         break;
 
     case TransitionSheet::LEVEL2:
-        AEGfxSetColorToMultiply(0.93f, 0.48f, 0.10f, 1.0f);
+        AEGfxSetColorToMultiply(0.93f, 0.48f, 0.10f, 1.0f); // ed7b1a
         break;
 
     case TransitionSheet::DEFAULT:
     default:
-        AEGfxSetColorToMultiply(0.36f, 0.87f, 0.33f, 1.0f);
+        AEGfxSetColorToMultiply(0.36f, 0.87f, 0.33f, 1.0f); // 5cdf53
         break;
     }
 
@@ -387,7 +392,9 @@ void Transition_Draw()
     AEGfxSetTransform(final.m);
     AEGfxMeshDraw(g_BlackBackgroundMesh, AE_GFX_MDM_TRIANGLES);
 
-    // Draw selected transition sheet
+    // =========================
+    // 2) Draw selected transition sheet
+    // =========================
     AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
     AEGfxSetColorToMultiply(1.0f, 1.0f, 1.0f, 1.0f);
     AEGfxSetColorToAdd(0.0f, 0.0f, 0.0f, 0.0f);
@@ -398,6 +405,8 @@ void Transition_Draw()
     AEGfxSetTransform(final.m);
     AEGfxMeshDraw(g_ActiveTransitionMesh, AE_GFX_MDM_TRIANGLES);
 
+    // Reset states
     AEGfxSetTransparency(1.0f);
     AEGfxSetBlendMode(AE_GFX_BM_NONE);
+    AEGfxSetCamPosition(0.0f, 0.0f);
 }

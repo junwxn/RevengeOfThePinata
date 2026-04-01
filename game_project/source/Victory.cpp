@@ -1,8 +1,19 @@
+/*************************************************************************
+@file		Victory.cpp
+@Author		Chiu Jun Wen j.chiu@digipen.edu
+@Co-authors	nil
+@brief		This file contains the function definitions for managing the
+			victory screen, including its initialization, updating, and rendering.
+
+Copyright © 2026 DigiPen, All rights reserved.
+*************************************************************************/
+
 #include "pch.h"
 #include "Victory.h"
 #include "GameStateManager.h"
 #include "Utils.h"
 #include "Transition.h"
+#include "SaveSystem.h"
 #include <cstdlib>
 
 static AEGfxVertexList* rectMesh = nullptr;
@@ -53,6 +64,7 @@ void Victory_Load() {
 }
 
 void Victory_Init() {
+	SaveSystem_ClearSave();
 	AEGfxSetCamPosition(0.0f, 0.0f);
 	animTimer = 0.0f;
 	entranceTimer = 0.0f;

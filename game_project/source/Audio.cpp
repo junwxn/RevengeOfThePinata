@@ -31,44 +31,44 @@ void Audio::Audio_Load(std::string const& filename)
 		{
 			filePath += folder + "/" + audioName;
 			//std::cout << filePath << std::endl;
-			BGM.push_back(AEAudioLoadMusic(filePath.c_str()));
+			m_BGM.push_back(AEAudioLoadMusic(filePath.c_str()));
 		}
 		if (folder == "Combat")
 		{
 			filePath += folder + "/" + subFolder + "/" + audioName;
 			//std::cout << filePath << std::endl;
-			if (category == "hit") hitSFX.push_back(AEAudioLoadSound(filePath.c_str()));
-			if (category == "parry") parrySFX.push_back(AEAudioLoadSound(filePath.c_str()));
-			if (category == "swing") swingSFX.push_back(AEAudioLoadSound(filePath.c_str()));
+			if (category == "hit") m_hitSFX.push_back(AEAudioLoadSound(filePath.c_str()));
+			if (category == "parry") m_parrySFX.push_back(AEAudioLoadSound(filePath.c_str()));
+			if (category == "swing") m_swingSFX.push_back(AEAudioLoadSound(filePath.c_str()));
 		}
 		if (folder == "Enemy")
 		{
 			filePath += folder + "/" + audioName;
 			//std::cout << filePath << std::endl;
 			
-			if (subFolder == "vocal") enemyVocal_SFX.push_back(AEAudioLoadSound(filePath.c_str()));
-			if (subFolder == "hurt") enemyHurt_SFX.push_back(AEAudioLoadSound(filePath.c_str()));
-			if (subFolder == "laugh") enemyLaugh_SFX.push_back(AEAudioLoadSound(filePath.c_str()));
+			if (subFolder == "vocal") m_enemyVocal_SFX.push_back(AEAudioLoadSound(filePath.c_str()));
+			if (subFolder == "hurt") m_enemyHurt_SFX.push_back(AEAudioLoadSound(filePath.c_str()));
+			if (subFolder == "laugh") m_enemyLaugh_SFX.push_back(AEAudioLoadSound(filePath.c_str()));
 		}
 		if (folder == "Fireworks")
 		{
 			filePath += folder + "/" + audioName;
 			//std::cout << filePath << std::endl;
-			fireworksSFX.push_back(AEAudioLoadSound(filePath.c_str()));
+			m_fireworksSFX.push_back(AEAudioLoadSound(filePath.c_str()));
 		}
 		if (folder == "General")
 		{
 			filePath += folder + "/" + audioName;
 			//std::cout << filePath << std::endl;
-			generalSFX.push_back(AEAudioLoadSound(filePath.c_str()));
+			m_generalSFX.push_back(AEAudioLoadSound(filePath.c_str()));
 		}
 		if (folder == "Player")
 		{
 			filePath += folder + "/" + audioName;
 			//std::cout << filePath << std::endl;
 			
-			if (subFolder == "death") playerDeath_SFX.push_back(AEAudioLoadSound(filePath.c_str()));
-			if (subFolder == "hurt") playerHurt_SFX.push_back(AEAudioLoadSound(filePath.c_str()));
+			if (subFolder == "death") m_playerDeath_SFX.push_back(AEAudioLoadSound(filePath.c_str()));
+			if (subFolder == "hurt") m_playerHurt_SFX.push_back(AEAudioLoadSound(filePath.c_str()));
 		}
 	}
 }
@@ -76,17 +76,17 @@ void Audio::Audio_Load(std::string const& filename)
 void Audio::Audio_Init()
 {
 	Audio_Load("Assets/Audio/config.txt");
-	gAudio.audioGroup.combat = AEAudioCreateGroup();
-	gAudio.audioGroup.player = AEAudioCreateGroup();
-	gAudio.audioGroup.enemy = AEAudioCreateGroup();
-	gAudio.audioGroup.fireworks = AEAudioCreateGroup();
-	gAudio.audioGroup.general = AEAudioCreateGroup();
-	gAudio.audioGroup.BGM = AEAudioCreateGroup();
+	gAudio.m_audioGroup.combat = AEAudioCreateGroup();
+	gAudio.m_audioGroup.player = AEAudioCreateGroup();
+	gAudio.m_audioGroup.enemy = AEAudioCreateGroup();
+	gAudio.m_audioGroup.fireworks = AEAudioCreateGroup();
+	gAudio.m_audioGroup.general = AEAudioCreateGroup();
+	gAudio.m_audioGroup.BGM = AEAudioCreateGroup();
 }
 
 void Audio::PlayBGM(BGMSFX bgmSFX)
 {
-	AEAudioPlay(BGM[bgmSFX], audioGroup.BGM, 1.0f, 1.0f, -1); // loop = true
+	AEAudioPlay(m_BGM[bgmSFX], m_audioGroup.BGM, 1.0f, 1.0f, -1); // loop = true
 }
 
 
@@ -94,18 +94,18 @@ void Audio::PlayCombatSFX(CombatSFX combatSound)
 {
 	if (combatSound == COMBAT_HIT)
 	{
-		int soundID{ Vectors::get_random(0, hitSFX.size()-1) };
-		AEAudioPlay(hitSFX[soundID], audioGroup.combat, 1.0f, 1.0f, 0);
+		int soundID{ Vectors::get_random(0, static_cast<int>(m_hitSFX.size())-1) };
+		AEAudioPlay(m_hitSFX[soundID], m_audioGroup.combat, 1.0f, 1.0f, 0);
 	}
 	if (combatSound == COMBAT_SWING)
 	{
-		int soundID{ Vectors::get_random(0, swingSFX.size()-1) };
-		AEAudioPlay(swingSFX[soundID], audioGroup.combat, 1.0f, 1.0f, 0);
+		int soundID{ Vectors::get_random(0, static_cast<int>(m_swingSFX.size())-1) };
+		AEAudioPlay(m_swingSFX[soundID], m_audioGroup.combat, 1.0f, 1.0f, 0);
 	}
 	if (combatSound == COMBAT_PARRY)
 	{
-		int soundID{ Vectors::get_random(0, parrySFX.size()-1) };
-		AEAudioPlay(parrySFX[soundID], audioGroup.combat, 1.0f, 1.0f, 0);
+		int soundID{ Vectors::get_random(0, static_cast<int>(m_parrySFX.size())-1) };
+		AEAudioPlay(m_parrySFX[soundID], m_audioGroup.combat, 1.0f, 1.0f, 0);
 	}
 }
 
@@ -113,18 +113,18 @@ void Audio::PlayEnemySFX(EnemySFX enemySound)
 {
 	if (enemySound == ENEMY_HURT)
 	{
-		int soundID{ Vectors::get_random(0, enemyVocal_SFX.size() - 1)};
-		AEAudioPlay(enemyVocal_SFX[soundID], audioGroup.enemy, 1.0f, 1.0f, 0);
+		int soundID{ Vectors::get_random(0, static_cast<int>(m_enemyVocal_SFX.size()) - 1)};
+		AEAudioPlay(m_enemyVocal_SFX[soundID], m_audioGroup.enemy, 1.0f, 1.0f, 0);
 	}
 	if (enemySound == ENEMY_VOCAL)
 	{
-		int soundID{ Vectors::get_random(0, enemyHurt_SFX.size() - 1) };
-		AEAudioPlay(enemyHurt_SFX[soundID], audioGroup.enemy, 1.0f, 1.0f, 0);
+		int soundID{ Vectors::get_random(0, static_cast<int>(m_enemyHurt_SFX.size()) - 1) };
+		AEAudioPlay(m_enemyHurt_SFX[soundID], m_audioGroup.enemy, 1.0f, 1.0f, 0);
 	}
 	if (enemySound == ENEMY_LAUGH)
 	{
-		int soundID{ Vectors::get_random(0, enemyLaugh_SFX.size() - 1) };
-		AEAudioPlay(enemyLaugh_SFX[soundID], audioGroup.enemy, 1.0f, 1.0f, 0);
+		int soundID{ Vectors::get_random(0, static_cast<int>(m_enemyLaugh_SFX.size()) - 1) };
+		AEAudioPlay(m_enemyLaugh_SFX[soundID], m_audioGroup.enemy, 1.0f, 1.0f, 0);
 	}
 }
 
@@ -132,13 +132,13 @@ void Audio::PlayPlayerSFX(PlayerSFX playerSound)
 {
 	if (playerSound == PLAYER_DEATH)
 	{
-		int soundID{ Vectors::get_random(0, playerDeath_SFX.size() - 1)};
-		AEAudioPlay(playerDeath_SFX[soundID], audioGroup.player, 1.0f, 1.0f, 0);
+		int soundID{ Vectors::get_random(0, static_cast<int>(m_playerDeath_SFX.size()) - 1)};
+		AEAudioPlay(m_playerDeath_SFX[soundID], m_audioGroup.player, 1.0f, 1.0f, 0);
 	}
 	if (playerSound == PLAYER_HURT)
 	{
-		int soundID{ Vectors::get_random(0, playerHurt_SFX.size() - 1)};
-		AEAudioPlay(playerHurt_SFX[soundID], audioGroup.player, 1.0f, 1.0f, 0);
+		int soundID{ Vectors::get_random(0, static_cast<int>(m_playerHurt_SFX.size()) - 1)};
+		AEAudioPlay(m_playerHurt_SFX[soundID], m_audioGroup.player, 1.0f, 1.0f, 0);
 	}
 }
 
@@ -146,164 +146,170 @@ void Audio::PlayGeneralSFX(GeneralSFX generalSound)
 {
 	if (generalSound == GENERAL_ANNOUNCEMENT)
 	{
-		AEAudioPlay(generalSFX[GENERAL_ANNOUNCEMENT], audioGroup.general, 1.0f, 1.0f, 0);
+		AEAudioPlay(m_generalSFX[GENERAL_ANNOUNCEMENT], m_audioGroup.general, 1.0f, 1.0f, 0);
 	}
 	if (generalSound == GENERAL_GAMEOVER)
 	{
-		AEAudioPlay(generalSFX[GENERAL_GAMEOVER], audioGroup.general, 1.0f, 1.0f, 0);
+		AEAudioPlay(m_generalSFX[GENERAL_GAMEOVER], m_audioGroup.general, 1.0f, 1.0f, 0);
 	}
 	if (generalSound == GENERAL_TRUMPET)
 	{
-		AEAudioPlay(generalSFX[GENERAL_TRUMPET], audioGroup.general, 1.0f, 1.0f, 0);
+		AEAudioPlay(m_generalSFX[GENERAL_TRUMPET], m_audioGroup.general, 1.0f, 1.0f, 0);
 	}
 }
 
 void Audio::PlayFireworksSFX()
 {
-		int soundID{ Vectors::get_random(0, fireworksSFX.size() - 1) };
-		AEAudioPlay(fireworksSFX[soundID], audioGroup.fireworks, 1.0f, 1.0f, 0);
+		int soundID{ Vectors::get_random(0, static_cast<int>(m_fireworksSFX.size()) - 1) };
+		AEAudioPlay(m_fireworksSFX[soundID], m_audioGroup.fireworks, 1.0f, 1.0f, 0);
+}
+
+void Audio::PlayClickSFX()
+{
+		int soundID{ Vectors::get_random(0, 7) };
+		AEAudioPlay(m_enemyVocal_SFX[soundID], m_audioGroup.enemy, 1.0f, 1.0f, 0);
 }
 
 void Audio::SetBGMVolume(float v) {
-	BGMVolume = v;
+	m_BGMVolume = v;
 
 	// If muted, keep volume at 0
 	if (IsMuted()) {
-		AEAudioSetGroupVolume(audioGroup.BGM, 0.0f);
+		AEAudioSetGroupVolume(m_audioGroup.BGM, 0.0f);
 	}
 	else {
-		AEAudioSetGroupVolume(audioGroup.BGM, BGMVolume);
+		AEAudioSetGroupVolume(m_audioGroup.BGM, m_BGMVolume);
 	}
 }
 
 void Audio::SetGeneralSFXVolume(float v) {
-	GeneralSFXVolume = v;
+	m_GeneralSFXVolume = v;
 
 	// If muted, keep volume at 0
 	if (IsMuted()) {
-		AEAudioSetGroupVolume(audioGroup.fireworks, 0.0f);
-		AEAudioSetGroupVolume(audioGroup.general, 0.0f);
+		AEAudioSetGroupVolume(m_audioGroup.fireworks, 0.0f);
+		AEAudioSetGroupVolume(m_audioGroup.general, 0.0f);
 	}
 	else {
-		AEAudioSetGroupVolume(audioGroup.fireworks, GeneralSFXVolume);
-		AEAudioSetGroupVolume(audioGroup.general, GeneralSFXVolume);
+		AEAudioSetGroupVolume(m_audioGroup.fireworks, m_GeneralSFXVolume);
+		AEAudioSetGroupVolume(m_audioGroup.general, m_GeneralSFXVolume);
 	}
 }
 
 void Audio::SetCombatSFXVolume(float v) {
-	CombatSFXVolume = v;
+	m_CombatSFXVolume = v;
 
 	// If muted, keep volume at 0
 	if (IsMuted()) {
-		AEAudioSetGroupVolume(audioGroup.combat, 0.0f);
+		AEAudioSetGroupVolume(m_audioGroup.combat, 0.0f);
 	}
 	else {
-		AEAudioSetGroupVolume(audioGroup.combat, CombatSFXVolume);
+		AEAudioSetGroupVolume(m_audioGroup.combat, m_CombatSFXVolume);
 	}
 }
 
 void Audio::SetPlayerSFXVolume(float v) {
-	PlayerSFXVolume = v;
+	m_PlayerSFXVolume = v;
 
 	// If muted, keep volume at 0
 	if (IsMuted()) {
-		AEAudioSetGroupVolume(audioGroup.player, 0.0f);
+		AEAudioSetGroupVolume(m_audioGroup.player, 0.0f);
 	}
 	else {
-		AEAudioSetGroupVolume(audioGroup.player, PlayerSFXVolume);
+		AEAudioSetGroupVolume(m_audioGroup.player, m_PlayerSFXVolume);
 	}
 }
 
 void Audio::SetEnemySFXVolume(float v) {
-	EnemySFXVolume = v;
+	m_EnemySFXVolume = v;
 
 	// If muted, keep volume at 0
 	if (IsMuted()) {
-		AEAudioSetGroupVolume(audioGroup.enemy, 0.0f);
+		AEAudioSetGroupVolume(m_audioGroup.enemy, 0.0f);
 	}
 	else {
-		AEAudioSetGroupVolume(audioGroup.enemy, EnemySFXVolume);
+		AEAudioSetGroupVolume(m_audioGroup.enemy, m_EnemySFXVolume);
 	}
 }
 
 void Audio::UnloadBGM()
 {
-	AEAudioStopGroup(audioGroup.BGM);
+	AEAudioStopGroup(m_audioGroup.BGM);
 
-	for (int i{}; i < BGM.size(); ++i) AEAudioUnloadAudio(BGM[i]);
+	for (int i{}; i < m_BGM.size(); ++i) AEAudioUnloadAudio(m_BGM[i]);
 
-	BGM.clear();
-	AEAudioUnloadAudioGroup(audioGroup.BGM);
+	m_BGM.clear();
+	AEAudioUnloadAudioGroup(m_audioGroup.BGM);
 }
 void Audio::UnloadCombatSFX()
 {
-	AEAudioStopGroup(audioGroup.combat);
+	AEAudioStopGroup(m_audioGroup.combat);
 
-	for (int i{}; i < hitSFX.size(); ++i) AEAudioUnloadAudio(hitSFX[i]);
- 	for (int i{}; i < swingSFX.size(); ++i) AEAudioUnloadAudio(swingSFX[i]);
-	for (int i{}; i < parrySFX.size(); ++i) AEAudioUnloadAudio(parrySFX[i]);
+	for (int i{}; i < m_hitSFX.size(); ++i) AEAudioUnloadAudio(m_hitSFX[i]);
+ 	for (int i{}; i < m_swingSFX.size(); ++i) AEAudioUnloadAudio(m_swingSFX[i]);
+	for (int i{}; i < m_parrySFX.size(); ++i) AEAudioUnloadAudio(m_parrySFX[i]);
 
-	hitSFX.clear();
-	swingSFX.clear();
-	parrySFX.clear();
-	AEAudioUnloadAudioGroup(audioGroup.combat);
+	m_hitSFX.clear();
+	m_swingSFX.clear();
+	m_parrySFX.clear();
+	AEAudioUnloadAudioGroup(m_audioGroup.combat);
 }
 void Audio::UnloadEnemySFX()
 {
-	AEAudioStopGroup(audioGroup.enemy);
+	AEAudioStopGroup(m_audioGroup.enemy);
 
-	for (int i{}; i < enemyVocal_SFX.size(); ++i) AEAudioUnloadAudio(enemyVocal_SFX[i]);
-	for (int i{}; i < enemyHurt_SFX.size(); ++i) AEAudioUnloadAudio(enemyHurt_SFX[i]);
-	for (int i{}; i < enemyLaugh_SFX.size(); ++i) AEAudioUnloadAudio(enemyLaugh_SFX[i]);
+	for (int i{}; i < m_enemyVocal_SFX.size(); ++i) AEAudioUnloadAudio(m_enemyVocal_SFX[i]);
+	for (int i{}; i < m_enemyHurt_SFX.size(); ++i) AEAudioUnloadAudio(m_enemyHurt_SFX[i]);
+	for (int i{}; i < m_enemyLaugh_SFX.size(); ++i) AEAudioUnloadAudio(m_enemyLaugh_SFX[i]);
 
-	enemyVocal_SFX.clear();
-	enemyHurt_SFX.clear();
-	enemyLaugh_SFX.clear();
-	AEAudioUnloadAudioGroup(audioGroup.enemy);
+	m_enemyVocal_SFX.clear();
+	m_enemyHurt_SFX.clear();
+	m_enemyLaugh_SFX.clear();
+	AEAudioUnloadAudioGroup(m_audioGroup.enemy);
 }
 void Audio::UnloadPlayerSFX()
 {
-	AEAudioStopGroup(audioGroup.player);
+	AEAudioStopGroup(m_audioGroup.player);
 
-	for (int i{}; i < playerDeath_SFX.size(); ++i) AEAudioUnloadAudio(playerDeath_SFX[i]);
-	for (int i{}; i < playerHurt_SFX.size(); ++i) AEAudioUnloadAudio(playerHurt_SFX[i]);
+	for (int i{}; i < m_playerDeath_SFX.size(); ++i) AEAudioUnloadAudio(m_playerDeath_SFX[i]);
+	for (int i{}; i < m_playerHurt_SFX.size(); ++i) AEAudioUnloadAudio(m_playerHurt_SFX[i]);
 
-	playerDeath_SFX.clear();
-	playerHurt_SFX.clear();
-	AEAudioUnloadAudioGroup(audioGroup.player);
+	m_playerDeath_SFX.clear();
+	m_playerHurt_SFX.clear();
+	AEAudioUnloadAudioGroup(m_audioGroup.player);
 }
 void Audio::UnloadGeneralSFX()
 {
-	AEAudioStopGroup(audioGroup.general);
+	AEAudioStopGroup(m_audioGroup.general);
 
-	for (int i{}; i < generalSFX.size(); ++i) AEAudioUnloadAudio(generalSFX[i]);
+	for (int i{}; i < m_generalSFX.size(); ++i) AEAudioUnloadAudio(m_generalSFX[i]);
 
-	generalSFX.clear();
-	AEAudioUnloadAudioGroup(audioGroup.general);
+	m_generalSFX.clear();
+	AEAudioUnloadAudioGroup(m_audioGroup.general);
 }
 void Audio::ToggleMute()
 {
-	muted = !muted;
-	float vol = muted ? 0.0f : 1.0f;
-	AEAudioSetGroupVolume(audioGroup.combat, vol);
-	AEAudioSetGroupVolume(audioGroup.player, vol);
-	AEAudioSetGroupVolume(audioGroup.enemy, vol);
-	AEAudioSetGroupVolume(audioGroup.fireworks, vol);
-	AEAudioSetGroupVolume(audioGroup.general, vol);
-	AEAudioSetGroupVolume(audioGroup.BGM, vol);
+	m_muted = !m_muted;
+	float vol = m_muted ? 0.0f : 1.0f;
+	AEAudioSetGroupVolume(m_audioGroup.combat, vol);
+	AEAudioSetGroupVolume(m_audioGroup.player, vol);
+	AEAudioSetGroupVolume(m_audioGroup.enemy, vol);
+	AEAudioSetGroupVolume(m_audioGroup.fireworks, vol);
+	AEAudioSetGroupVolume(m_audioGroup.general, vol);
+	AEAudioSetGroupVolume(m_audioGroup.BGM, vol);
 }
 
 bool Audio::IsMuted() const
 {
-	return muted;
+	return m_muted;
 }
 
 void Audio::UnloadFireworksSFX()
 {
-	AEAudioStopGroup(audioGroup.fireworks);
+	AEAudioStopGroup(m_audioGroup.fireworks);
 
-	for (int i{}; i < fireworksSFX.size(); ++i) AEAudioUnloadAudio(fireworksSFX[i]);
+	for (int i{}; i < m_fireworksSFX.size(); ++i) AEAudioUnloadAudio(m_fireworksSFX[i]);
 
-	fireworksSFX.clear();
-	AEAudioUnloadAudioGroup(audioGroup.fireworks);
+	m_fireworksSFX.clear();
+	AEAudioUnloadAudioGroup(m_audioGroup.fireworks);
 }

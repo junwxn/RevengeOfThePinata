@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
 	<ItemGroup>
@@ -8,244 +8,326 @@
 		<Filter Include="Header Files">
 			<UniqueIdentifier>{22222222-2222-2222-2222-222222222222}</UniqueIdentifier>
 		</Filter>
+		<Filter Include="Source Files\Core">
+			<UniqueIdentifier>{a1000001-0000-0000-0000-000000000001}</UniqueIdentifier>
+		</Filter>
+		<Filter Include="Header Files\Core">
+			<UniqueIdentifier>{a2000001-0000-0000-0000-000000000001}</UniqueIdentifier>
+		</Filter>
+		<Filter Include="Source Files\Levels">
+			<UniqueIdentifier>{a1000002-0000-0000-0000-000000000002}</UniqueIdentifier>
+		</Filter>
+		<Filter Include="Header Files\Levels">
+			<UniqueIdentifier>{a2000002-0000-0000-0000-000000000002}</UniqueIdentifier>
+		</Filter>
+		<Filter Include="Source Files\UI">
+			<UniqueIdentifier>{a1000003-0000-0000-0000-000000000003}</UniqueIdentifier>
+		</Filter>
+		<Filter Include="Header Files\UI">
+			<UniqueIdentifier>{a2000003-0000-0000-0000-000000000003}</UniqueIdentifier>
+		</Filter>
+		<Filter Include="Source Files\Gameplay">
+			<UniqueIdentifier>{a1000004-0000-0000-0000-000000000004}</UniqueIdentifier>
+		</Filter>
+		<Filter Include="Header Files\Gameplay">
+			<UniqueIdentifier>{a2000004-0000-0000-0000-000000000004}</UniqueIdentifier>
+		</Filter>
+		<Filter Include="Source Files\Rendering">
+			<UniqueIdentifier>{a1000005-0000-0000-0000-000000000005}</UniqueIdentifier>
+		</Filter>
+		<Filter Include="Header Files\Rendering">
+			<UniqueIdentifier>{a2000005-0000-0000-0000-000000000005}</UniqueIdentifier>
+		</Filter>
+		<Filter Include="Source Files\Systems">
+			<UniqueIdentifier>{a1000006-0000-0000-0000-000000000006}</UniqueIdentifier>
+		</Filter>
+		<Filter Include="Header Files\Systems">
+			<UniqueIdentifier>{a2000006-0000-0000-0000-000000000006}</UniqueIdentifier>
+		</Filter>
+		<Filter Include="Source Files\Utilities">
+			<UniqueIdentifier>{a1000007-0000-0000-0000-000000000007}</UniqueIdentifier>
+		</Filter>
+		<Filter Include="Header Files\Utilities">
+			<UniqueIdentifier>{a2000007-0000-0000-0000-000000000007}</UniqueIdentifier>
+		</Filter>
+		<Filter Include="Source Files\TMXLoader">
+			<UniqueIdentifier>{a1000008-0000-0000-0000-000000000008}</UniqueIdentifier>
+		</Filter>
+		<Filter Include="Header Files\TMXLoader">
+			<UniqueIdentifier>{a2000008-0000-0000-0000-000000000008}</UniqueIdentifier>
+		</Filter>
 	</ItemGroup>
 
 	<ItemGroup>
-		<!-- CPP FILES -->
-		<ClCompile Include="source\Audio.cpp">
-			<Filter>Source Files</Filter>
-		</ClCompile>
-		<ClCompile Include="source\AugmentData.cpp">
-			<Filter>Source Files</Filter>
-		</ClCompile>
-		<ClCompile Include="source\AugmentEffects.cpp">
-			<Filter>Source Files</Filter>
-		</ClCompile>
-		<ClCompile Include="source\Augments.cpp">
-			<Filter>Source Files</Filter>
-		</ClCompile>
-		<ClCompile Include="source\EventSystem.cpp">
-			<Filter>Source Files</Filter>
-		</ClCompile>
-		<ClCompile Include="source\BossLevel.cpp">
-			<Filter>Source Files</Filter>
-		</ClCompile>
-		<ClCompile Include="source\Camera.cpp">
-			<Filter>Source Files</Filter>
-		</ClCompile>
-		<ClCompile Include="source\Combat.cpp">
-			<Filter>Source Files</Filter>
-		</ClCompile>
-		<ClCompile Include="source\Debug.cpp">
-			<Filter>Source Files</Filter>
-		</ClCompile>
-		<ClCompile Include="source\Enemy.cpp">
-			<Filter>Source Files</Filter>
-		</ClCompile>
-		<ClCompile Include="source\GameStateManager.cpp">
-			<Filter>Source Files</Filter>
-		</ClCompile>
-		<ClCompile Include="source\Level1.cpp">
-			<Filter>Source Files</Filter>
-		</ClCompile>
-		<ClCompile Include="source\Splash.cpp">
-			<Filter>Source Files</Filter>
-		</ClCompile>
-		<ClCompile Include="source\TestLevel.cpp">
-			<Filter>Source Files</Filter>
-		</ClCompile>
-		<ClCompile Include="source\Level2.cpp">
-			<Filter>Source Files</Filter>
-		</ClCompile>
-		<ClCompile Include="source\Level3.cpp">
-			<Filter>Source Files</Filter>
-		</ClCompile>
+		<!-- Core -->
 		<ClCompile Include="source\Main.cpp">
-			<Filter>Source Files</Filter>
-		</ClCompile>
-		<ClCompile Include="source\MainMenu.cpp">
-			<Filter>Source Files</Filter>
-		</ClCompile>
-		<ClCompile Include="source\Map.cpp">
-			<Filter>Source Files</Filter>
-		</ClCompile>
-		<ClCompile Include="source\MathFunctions.cpp">
-			<Filter>Source Files</Filter>
-		</ClCompile>
-		<ClCompile Include="source\HUD.cpp">
-			<Filter>Source Files</Filter>
-		</ClCompile>
-		<ClCompile Include="source\Pause.cpp">
-			<Filter>Source Files</Filter>
-		</ClCompile>
-		<ClCompile Include="source\GameOver.cpp">
-			<Filter>Source Files</Filter>
-		</ClCompile>
-		<ClCompile Include="source\Projectile.cpp">
-			<Filter>Source Files</Filter>
-		</ClCompile>
-		<ClCompile Include="source\Raycast.cpp">
-			<Filter>Source Files</Filter>
-		</ClCompile>
-		<ClCompile Include="source\Sprite.cpp">
-			<Filter>Source Files</Filter>
-		</ClCompile>
-		<ClCompile Include="source\Transition.cpp">
-			<Filter>Source Files</Filter>
-		</ClCompile>
-		<ClCompile Include="source\Tutorial.cpp">
-			<Filter>Source Files</Filter>
-		</ClCompile>
-		<ClCompile Include="source\Victory.cpp">
-			<Filter>Source Files</Filter>
+			<Filter>Source Files\Core</Filter>
 		</ClCompile>
 		<ClCompile Include="source\pch.cpp">
-			<Filter>Source Files</Filter>
+			<Filter>Source Files\Core</Filter>
 		</ClCompile>
+		<ClCompile Include="source\GameStateManager.cpp">
+			<Filter>Source Files\Core</Filter>
+		</ClCompile>
+
+		<!-- Levels -->
+		<ClCompile Include="source\Level1.cpp">
+			<Filter>Source Files\Levels</Filter>
+		</ClCompile>
+		<ClCompile Include="source\Level2.cpp">
+			<Filter>Source Files\Levels</Filter>
+		</ClCompile>
+		<ClCompile Include="source\Level3.cpp">
+			<Filter>Source Files\Levels</Filter>
+		</ClCompile>
+		<ClCompile Include="source\BossLevel.cpp">
+			<Filter>Source Files\Levels</Filter>
+		</ClCompile>
+		<ClCompile Include="source\TestLevel.cpp">
+			<Filter>Source Files\Levels</Filter>
+		</ClCompile>
+
+		<!-- UI -->
+		<ClCompile Include="source\MainMenu.cpp">
+			<Filter>Source Files\UI</Filter>
+		</ClCompile>
+		<ClCompile Include="source\Pause.cpp">
+			<Filter>Source Files\UI</Filter>
+		</ClCompile>
+		<ClCompile Include="source\GameOver.cpp">
+			<Filter>Source Files\UI</Filter>
+		</ClCompile>
+		<ClCompile Include="source\Victory.cpp">
+			<Filter>Source Files\UI</Filter>
+		</ClCompile>
+		<ClCompile Include="source\Splash.cpp">
+			<Filter>Source Files\UI</Filter>
+		</ClCompile>
+		<ClCompile Include="source\Tutorial.cpp">
+			<Filter>Source Files\UI</Filter>
+		</ClCompile>
+		<ClCompile Include="source\HUD.cpp">
+			<Filter>Source Files\UI</Filter>
+		</ClCompile>
+		<ClCompile Include="source\Transition.cpp">
+			<Filter>Source Files\UI</Filter>
+		</ClCompile>
+
+		<!-- Gameplay -->
 		<ClCompile Include="source\player.cpp">
-			<Filter>Source Files</Filter>
+			<Filter>Source Files\Gameplay</Filter>
 		</ClCompile>
-		<ClCompile Include="source\TMXLoader\TMXLoader.cpp">
-			<Filter>Source Files</Filter>
+		<ClCompile Include="source\Combat.cpp">
+			<Filter>Source Files\Gameplay</Filter>
 		</ClCompile>
-		<ClCompile Include="source\TMXLoader\TMXMap.cpp">
-			<Filter>Source Files</Filter>
+		<ClCompile Include="source\Enemy.cpp">
+			<Filter>Source Files\Gameplay</Filter>
 		</ClCompile>
-		<ClCompile Include="source\TMXLoader\TMXTile.cpp">
-			<Filter>Source Files</Filter>
+		<ClCompile Include="source\Projectile.cpp">
+			<Filter>Source Files\Gameplay</Filter>
 		</ClCompile>
-		<ClCompile Include="source\TMXLoader\TMXTileLayer.cpp">
-			<Filter>Source Files</Filter>
+		<ClCompile Include="source\Augments.cpp">
+			<Filter>Source Files\Gameplay</Filter>
 		</ClCompile>
-		<ClCompile Include="source\TMXLoader\TMXTileSet.cpp">
-			<Filter>Source Files</Filter>
+		<ClCompile Include="source\AugmentData.cpp">
+			<Filter>Source Files\Gameplay</Filter>
 		</ClCompile>
-		<ClCompile Include="source\Utils.cpp">
-			<Filter>Source Files</Filter>
+		<ClCompile Include="source\AugmentEffects.cpp">
+			<Filter>Source Files\Gameplay</Filter>
+		</ClCompile>
+
+		<!-- Rendering -->
+		<ClCompile Include="source\Sprite.cpp">
+			<Filter>Source Files\Rendering</Filter>
+		</ClCompile>
+		<ClCompile Include="source\Camera.cpp">
+			<Filter>Source Files\Rendering</Filter>
 		</ClCompile>
 		<ClCompile Include="source\Shadow.cpp">
-			<Filter>Source Files</Filter>
+			<Filter>Source Files\Rendering</Filter>
+		</ClCompile>
+
+		<!-- Systems -->
+		<ClCompile Include="source\Audio.cpp">
+			<Filter>Source Files\Systems</Filter>
+		</ClCompile>
+		<ClCompile Include="source\EventSystem.cpp">
+			<Filter>Source Files\Systems</Filter>
+		</ClCompile>
+		<ClCompile Include="source\SaveSystem.cpp">
+			<Filter>Source Files\Systems</Filter>
+		</ClCompile>
+		<ClCompile Include="source\Map.cpp">
+			<Filter>Source Files\Systems</Filter>
+		</ClCompile>
+
+		<!-- Utilities -->
+		<ClCompile Include="source\Utils.cpp">
+			<Filter>Source Files\Utilities</Filter>
+		</ClCompile>
+		<ClCompile Include="source\MathFunctions.cpp">
+			<Filter>Source Files\Utilities</Filter>
+		</ClCompile>
+		<ClCompile Include="source\Raycast.cpp">
+			<Filter>Source Files\Utilities</Filter>
+		</ClCompile>
+		<ClCompile Include="source\Debug.cpp">
+			<Filter>Source Files\Utilities</Filter>
+		</ClCompile>
+
+		<!-- TMXLoader -->
+		<ClCompile Include="source\TMXLoader\TMXLoader.cpp">
+			<Filter>Source Files\TMXLoader</Filter>
+		</ClCompile>
+		<ClCompile Include="source\TMXLoader\TMXMap.cpp">
+			<Filter>Source Files\TMXLoader</Filter>
+		</ClCompile>
+		<ClCompile Include="source\TMXLoader\TMXTile.cpp">
+			<Filter>Source Files\TMXLoader</Filter>
+		</ClCompile>
+		<ClCompile Include="source\TMXLoader\TMXTileLayer.cpp">
+			<Filter>Source Files\TMXLoader</Filter>
+		</ClCompile>
+		<ClCompile Include="source\TMXLoader\TMXTileSet.cpp">
+			<Filter>Source Files\TMXLoader</Filter>
 		</ClCompile>
 	</ItemGroup>
 
 	<ItemGroup>
-		<!-- HEADER FILES -->
-		<ClInclude Include="source\Audio.h">
-			<Filter>Header Files</Filter>
-		</ClInclude>
-		<ClInclude Include="source\AugmentData.h">
-			<Filter>Header Files</Filter>
-		</ClInclude>
-		<ClInclude Include="source\AugmentEffects.h">
-			<Filter>Header Files</Filter>
-		</ClInclude>
-		<ClInclude Include="source\Augments.h">
-			<Filter>Header Files</Filter>
-		</ClInclude>
-		<ClInclude Include="source\EventSystem.h">
-			<Filter>Header Files</Filter>
-		</ClInclude>
-		<ClInclude Include="source\BossLevel.h">
-			<Filter>Header Files</Filter>
-		</ClInclude>
-		<ClInclude Include="source\Camera.h">
-			<Filter>Header Files</Filter>
-		</ClInclude>
-		<ClInclude Include="source\Colors.h">
-			<Filter>Header Files</Filter>
-		</ClInclude>
-		<ClInclude Include="source\Combat.h">
-			<Filter>Header Files</Filter>
-		</ClInclude>
-		<ClInclude Include="source\Debug.h">
-			<Filter>Header Files</Filter>
-		</ClInclude>
-		<ClInclude Include="source\Enemy.h">
-			<Filter>Header Files</Filter>
-		</ClInclude>
-		<ClInclude Include="source\GameStateList.h">
-			<Filter>Header Files</Filter>
+		<!-- Core -->
+		<ClInclude Include="source\pch.h">
+			<Filter>Header Files\Core</Filter>
 		</ClInclude>
 		<ClInclude Include="source\GameStateManager.h">
-			<Filter>Header Files</Filter>
+			<Filter>Header Files\Core</Filter>
 		</ClInclude>
+		<ClInclude Include="source\GameStateList.h">
+			<Filter>Header Files\Core</Filter>
+		</ClInclude>
+
+		<!-- Levels -->
 		<ClInclude Include="source\Level1.h">
-			<Filter>Header Files</Filter>
-		</ClInclude>
-		<ClInclude Include="source\Splash.h">
-			<Filter>Header Files</Filter>
-		</ClInclude>
-		<ClInclude Include="source\TestLevel.h">
-			<Filter>Header Files</Filter>
+			<Filter>Header Files\Levels</Filter>
 		</ClInclude>
 		<ClInclude Include="source\Level2.h">
-			<Filter>Header Files</Filter>
+			<Filter>Header Files\Levels</Filter>
 		</ClInclude>
 		<ClInclude Include="source\Level3.h">
-			<Filter>Header Files</Filter>
+			<Filter>Header Files\Levels</Filter>
 		</ClInclude>
+		<ClInclude Include="source\BossLevel.h">
+			<Filter>Header Files\Levels</Filter>
+		</ClInclude>
+		<ClInclude Include="source\TestLevel.h">
+			<Filter>Header Files\Levels</Filter>
+		</ClInclude>
+
+		<!-- UI -->
 		<ClInclude Include="source\MainMenu.h">
-			<Filter>Header Files</Filter>
-		</ClInclude>
-		<ClInclude Include="source\Map.h">
-			<Filter>Header Files</Filter>
-		</ClInclude>
-		<ClInclude Include="source\MathFunctions.h">
-			<Filter>Header Files</Filter>
-		</ClInclude>
-		<ClInclude Include="source\HUD.h">
-			<Filter>Header Files</Filter>
+			<Filter>Header Files\UI</Filter>
 		</ClInclude>
 		<ClInclude Include="source\Pause.h">
-			<Filter>Header Files</Filter>
+			<Filter>Header Files\UI</Filter>
 		</ClInclude>
 		<ClInclude Include="source\GameOver.h">
-			<Filter>Header Files</Filter>
-		</ClInclude>
-		<ClInclude Include="source\Projectile.h">
-			<Filter>Header Files</Filter>
-		</ClInclude>
-		<ClInclude Include="source\Raycast.h">
-			<Filter>Header Files</Filter>
-		</ClInclude>
-		<ClInclude Include="source\Sprite.h">
-			<Filter>Header Files</Filter>
-		</ClInclude>
-		<ClInclude Include="source\Transition.h">
-			<Filter>Header Files</Filter>
-		</ClInclude>
-		<ClInclude Include="source\Tutorial.h">
-			<Filter>Header Files</Filter>
+			<Filter>Header Files\UI</Filter>
 		</ClInclude>
 		<ClInclude Include="source\Victory.h">
-			<Filter>Header Files</Filter>
+			<Filter>Header Files\UI</Filter>
 		</ClInclude>
-		<ClInclude Include="source\pch.h">
-			<Filter>Header Files</Filter>
+		<ClInclude Include="source\Splash.h">
+			<Filter>Header Files\UI</Filter>
 		</ClInclude>
+		<ClInclude Include="source\Tutorial.h">
+			<Filter>Header Files\UI</Filter>
+		</ClInclude>
+		<ClInclude Include="source\HUD.h">
+			<Filter>Header Files\UI</Filter>
+		</ClInclude>
+		<ClInclude Include="source\Transition.h">
+			<Filter>Header Files\UI</Filter>
+		</ClInclude>
+
+		<!-- Gameplay -->
 		<ClInclude Include="source\Player.h">
-			<Filter>Header Files</Filter>
+			<Filter>Header Files\Gameplay</Filter>
 		</ClInclude>
-		<ClInclude Include="source\TMXLoader\TMXLoader.h">
-			<Filter>Header Files</Filter>
+		<ClInclude Include="source\Combat.h">
+			<Filter>Header Files\Gameplay</Filter>
 		</ClInclude>
-		<ClInclude Include="source\TMXLoader\TMXMap.h">
-			<Filter>Header Files</Filter>
+		<ClInclude Include="source\Enemy.h">
+			<Filter>Header Files\Gameplay</Filter>
 		</ClInclude>
-		<ClInclude Include="source\TMXLoader\TMXTile.h">
-			<Filter>Header Files</Filter>
+		<ClInclude Include="source\Projectile.h">
+			<Filter>Header Files\Gameplay</Filter>
 		</ClInclude>
-		<ClInclude Include="source\TMXLoader\TMXTileLayer.h">
-			<Filter>Header Files</Filter>
+		<ClInclude Include="source\Augments.h">
+			<Filter>Header Files\Gameplay</Filter>
 		</ClInclude>
-		<ClInclude Include="source\TMXLoader\TMXTileSet.h">
-			<Filter>Header Files</Filter>
+		<ClInclude Include="source\AugmentData.h">
+			<Filter>Header Files\Gameplay</Filter>
 		</ClInclude>
-		<ClInclude Include="source\Utils.h">
-			<Filter>Header Files</Filter>
+		<ClInclude Include="source\AugmentEffects.h">
+			<Filter>Header Files\Gameplay</Filter>
+		</ClInclude>
+
+		<!-- Rendering -->
+		<ClInclude Include="source\Sprite.h">
+			<Filter>Header Files\Rendering</Filter>
+		</ClInclude>
+		<ClInclude Include="source\Camera.h">
+			<Filter>Header Files\Rendering</Filter>
 		</ClInclude>
 		<ClInclude Include="source\Shadow.h">
-			<Filter>Header Files</Filter>
+			<Filter>Header Files\Rendering</Filter>
+		</ClInclude>
+		<ClInclude Include="source\Colors.h">
+			<Filter>Header Files\Rendering</Filter>
+		</ClInclude>
+
+		<!-- Systems -->
+		<ClInclude Include="source\Audio.h">
+			<Filter>Header Files\Systems</Filter>
+		</ClInclude>
+		<ClInclude Include="source\EventSystem.h">
+			<Filter>Header Files\Systems</Filter>
+		</ClInclude>
+		<ClInclude Include="source\SaveSystem.h">
+			<Filter>Header Files\Systems</Filter>
+		</ClInclude>
+		<ClInclude Include="source\Map.h">
+			<Filter>Header Files\Systems</Filter>
+		</ClInclude>
+
+		<!-- Utilities -->
+		<ClInclude Include="source\Utils.h">
+			<Filter>Header Files\Utilities</Filter>
+		</ClInclude>
+		<ClInclude Include="source\MathFunctions.h">
+			<Filter>Header Files\Utilities</Filter>
+		</ClInclude>
+		<ClInclude Include="source\Raycast.h">
+			<Filter>Header Files\Utilities</Filter>
+		</ClInclude>
+		<ClInclude Include="source\Debug.h">
+			<Filter>Header Files\Utilities</Filter>
+		</ClInclude>
+
+		<!-- TMXLoader -->
+		<ClInclude Include="source\TMXLoader\TMXLoader.h">
+			<Filter>Header Files\TMXLoader</Filter>
+		</ClInclude>
+		<ClInclude Include="source\TMXLoader\TMXMap.h">
+			<Filter>Header Files\TMXLoader</Filter>
+		</ClInclude>
+		<ClInclude Include="source\TMXLoader\TMXTile.h">
+			<Filter>Header Files\TMXLoader</Filter>
+		</ClInclude>
+		<ClInclude Include="source\TMXLoader\TMXTileLayer.h">
+			<Filter>Header Files\TMXLoader</Filter>
+		</ClInclude>
+		<ClInclude Include="source\TMXLoader\TMXTileSet.h">
+			<Filter>Header Files\TMXLoader</Filter>
 		</ClInclude>
 	</ItemGroup>
 

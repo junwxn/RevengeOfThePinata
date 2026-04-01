@@ -1,3 +1,13 @@
+/*************************************************************************
+@file		Camera.h
+@Author		Chiu Jun Wen j.chiu@digipen.edu
+@Co-authors	nil
+@brief		This file contains the function declarations for the camera,
+            including its initialization, updating, and screen shake functionality.
+
+Copyright © 2026 DigiPen, All rights reserved.
+*************************************************************************/
+
 #pragma once
 #include "AEEngine.h"
 

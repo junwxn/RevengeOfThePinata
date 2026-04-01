@@ -61,6 +61,8 @@ class Audio
 		void PlayFireworksSFX();
 		void UnloadFireworksSFX();
 
+		void PlayClickSFX();
+
 		void ToggleMute();
 		bool IsMuted() const;
 
@@ -70,11 +72,11 @@ class Audio
 		void SetPlayerSFXVolume(float v);
 		void SetEnemySFXVolume(float v);
 
-		float BGMVolume = 1.0f;
-		float GeneralSFXVolume = 1.0f;
-		float CombatSFXVolume = 1.0f;
-		float PlayerSFXVolume = 1.0f;
-		float EnemySFXVolume = 1.0f;
+		float m_BGMVolume = 1.0f;
+		float m_GeneralSFXVolume = 1.0f;
+		float m_CombatSFXVolume = 1.0f;
+		float m_PlayerSFXVolume = 1.0f;
+		float m_EnemySFXVolume = 1.0f;
 
 		struct AudioGroups
 		{
@@ -86,19 +88,19 @@ class Audio
 			AEAudioGroup BGM;
 		};
 
-		AudioGroups audioGroup;
+		AudioGroups m_audioGroup;
 
-		std::vector<AEAudio> BGM;
-		std::vector<AEAudio> generalSFX;
-		std::vector<AEAudio> fireworksSFX;
+		std::vector<AEAudio> m_BGM;
+		std::vector<AEAudio> m_generalSFX;
+		std::vector<AEAudio> m_fireworksSFX;
 		// Combat Sounds
-		std::vector<AEAudio> hitSFX, swingSFX, parrySFX;
+		std::vector<AEAudio> m_hitSFX, m_swingSFX, m_parrySFX;
 
 		// Enemy Sounds
-		std::vector<AEAudio> enemyVocal_SFX, enemyHurt_SFX, enemyLaugh_SFX;
-		std::vector<AEAudio> playerDeath_SFX, playerHurt_SFX;
+		std::vector<AEAudio> m_enemyVocal_SFX, m_enemyHurt_SFX, m_enemyLaugh_SFX;
+		std::vector<AEAudio> m_playerDeath_SFX, m_playerHurt_SFX;
 
-		bool muted = false;
+		bool m_muted = false;
 };
 
 extern Audio gAudio;

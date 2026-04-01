@@ -6,100 +6,100 @@ Sprite::~Sprite()
 {
 	// Enemy
 	// Base
-	if (pSpriteMesh) {
-		AEGfxMeshFree(pSpriteMesh);
-		pSpriteMesh = nullptr;
+	if (m_pSpriteMesh) {
+		AEGfxMeshFree(m_pSpriteMesh);
+		m_pSpriteMesh = nullptr;
 	}
-	if (pEnemySpriteSheet) {
-		AEGfxTextureUnload(pEnemySpriteSheet);
-		pEnemySpriteSheet = nullptr;
+	if (m_pEnemySpriteSheet) {
+		AEGfxTextureUnload(m_pEnemySpriteSheet);
+		m_pEnemySpriteSheet = nullptr;
 	}
-	if (pEnemyWindup_SpriteMesh) {
-		AEGfxMeshFree(pEnemyWindup_SpriteMesh);
-		pEnemyWindup_SpriteMesh = nullptr;
+	if (m_pEnemyWindup_SpriteMesh) {
+		AEGfxMeshFree(m_pEnemyWindup_SpriteMesh);
+		m_pEnemyWindup_SpriteMesh = nullptr;
 	}
-	if (pEnemyWindup_SpriteSheet) {
-		AEGfxTextureUnload(pEnemyWindup_SpriteSheet);
-		pEnemyWindup_SpriteSheet = nullptr;
+	if (m_pEnemyWindup_SpriteSheet) {
+		AEGfxTextureUnload(m_pEnemyWindup_SpriteSheet);
+		m_pEnemyWindup_SpriteSheet = nullptr;
 	}
-	if (pEnemyAttack_SpriteMesh) {
-		AEGfxMeshFree(pEnemyAttack_SpriteMesh);
-		pEnemyAttack_SpriteMesh = nullptr;
+	if (m_pEnemyAttack_SpriteMesh) {
+		AEGfxMeshFree(m_pEnemyAttack_SpriteMesh);
+		m_pEnemyAttack_SpriteMesh = nullptr;
 	}
-	if (pEnemyAttack_SpriteSheet) {
-		AEGfxTextureUnload(pEnemyAttack_SpriteSheet);
-		pEnemyAttack_SpriteSheet = nullptr;
+	if (m_pEnemyAttack_SpriteSheet) {
+		AEGfxTextureUnload(m_pEnemyAttack_SpriteSheet);
+		m_pEnemyAttack_SpriteSheet = nullptr;
 	}
 
 	// Dasher
-	if (pDasherSpriteMesh) {
-		AEGfxMeshFree(pDasherSpriteMesh);
-		pDasherSpriteMesh = nullptr;
+	if (m_pDasherSpriteMesh) {
+		AEGfxMeshFree(m_pDasherSpriteMesh);
+		m_pDasherSpriteMesh = nullptr;
 	}
-	if (pDasherSpriteSheet) {
-		AEGfxTextureUnload(pDasherSpriteSheet);
-		pDasherSpriteSheet = nullptr;
+	if (m_pDasherSpriteSheet) {
+		AEGfxTextureUnload(m_pDasherSpriteSheet);
+		m_pDasherSpriteSheet = nullptr;
 	}
-	if (pDasherWindup_SpriteMesh) {
-		AEGfxMeshFree(pDasherWindup_SpriteMesh);
-		pDasherWindup_SpriteMesh = nullptr;
+	if (m_pDasherWindup_SpriteMesh) {
+		AEGfxMeshFree(m_pDasherWindup_SpriteMesh);
+		m_pDasherWindup_SpriteMesh = nullptr;
 	}
-	if (pDasherWindup_SpriteSheet) {
-		AEGfxTextureUnload(pDasherWindup_SpriteSheet);
-		pDasherWindup_SpriteSheet = nullptr;
+	if (m_pDasherWindup_SpriteSheet) {
+		AEGfxTextureUnload(m_pDasherWindup_SpriteSheet);
+		m_pDasherWindup_SpriteSheet = nullptr;
 	}
-	if (pDasherAttack_SpriteMesh) {
-		AEGfxMeshFree(pDasherAttack_SpriteMesh);
-		pDasherAttack_SpriteMesh = nullptr;
+	if (m_pDasherAttack_SpriteMesh) {
+		AEGfxMeshFree(m_pDasherAttack_SpriteMesh);
+		m_pDasherAttack_SpriteMesh = nullptr;
 	}
-	if (pDasherAttack_SpriteSheet) {
-		AEGfxTextureUnload(pDasherAttack_SpriteSheet);
-		pDasherAttack_SpriteSheet = nullptr;
+	if (m_pDasherAttack_SpriteSheet) {
+		AEGfxTextureUnload(m_pDasherAttack_SpriteSheet);
+		m_pDasherAttack_SpriteSheet = nullptr;
 	}
 
 	// Boss
-	if (pBossSpriteMesh) {
-		AEGfxMeshFree(pBossSpriteMesh);
-		pBossSpriteMesh = nullptr;
+	if (m_pBossSpriteMesh) {
+		AEGfxMeshFree(m_pBossSpriteMesh);
+		m_pBossSpriteMesh = nullptr;
 	}
-	if (pBossSpriteSheet) {
-		AEGfxTextureUnload(pBossSpriteSheet);
-		pBossSpriteSheet = nullptr;
+	if (m_pBossSpriteSheet) {
+		AEGfxTextureUnload(m_pBossSpriteSheet);
+		m_pBossSpriteSheet = nullptr;
 	}
-	if (pBossWindup_SpriteMesh) {
-		AEGfxMeshFree(pBossWindup_SpriteMesh);
-		pBossWindup_SpriteMesh = nullptr;
+	if (m_pBossWindup_SpriteMesh) {
+		AEGfxMeshFree(m_pBossWindup_SpriteMesh);
+		m_pBossWindup_SpriteMesh = nullptr;
 	}
-	if (pBossWindup_SpriteSheet) {
-		AEGfxTextureUnload(pBossWindup_SpriteSheet);
-		pBossWindup_SpriteSheet = nullptr;
+	if (m_pBossWindup_SpriteSheet) {
+		AEGfxTextureUnload(m_pBossWindup_SpriteSheet);
+		m_pBossWindup_SpriteSheet = nullptr;
 	}
-	if (pBossAttack_SpriteMesh) {
-		AEGfxMeshFree(pBossAttack_SpriteMesh);
-		pBossAttack_SpriteMesh = nullptr;
+	if (m_pBossAttack_SpriteMesh) {
+		AEGfxMeshFree(m_pBossAttack_SpriteMesh);
+		m_pBossAttack_SpriteMesh = nullptr;
 	}
-	if (pBossAttack_SpriteSheet) {
-		AEGfxTextureUnload(pBossAttack_SpriteSheet);
-		pBossAttack_SpriteSheet = nullptr;
+	if (m_pBossAttack_SpriteSheet) {
+		AEGfxTextureUnload(m_pBossAttack_SpriteSheet);
+		m_pBossAttack_SpriteSheet = nullptr;
 	}
 
 	// Player
-	if (pPlayerSpriteMesh) {
-		AEGfxMeshFree(pPlayerSpriteMesh);
-		pPlayerSpriteMesh = nullptr;
+	if (m_pPlayerSpriteMesh) {
+		AEGfxMeshFree(m_pPlayerSpriteMesh);
+		m_pPlayerSpriteMesh = nullptr;
 	}
-	if (pPlayerSpriteSheet) {
-		AEGfxTextureUnload(pPlayerSpriteSheet);
-		pPlayerSpriteSheet = nullptr;
+	if (m_pPlayerSpriteSheet) {
+		AEGfxTextureUnload(m_pPlayerSpriteSheet);
+		m_pPlayerSpriteSheet = nullptr;
 	}
 
-	if (pPlayerCombatSpriteMesh) {
-		AEGfxMeshFree(pPlayerCombatSpriteMesh);
-		pPlayerCombatSpriteMesh = nullptr;
+	if (m_pPlayerCombatSpriteMesh) {
+		AEGfxMeshFree(m_pPlayerCombatSpriteMesh);
+		m_pPlayerCombatSpriteMesh = nullptr;
 	}
-	if (pPlayerCombatSpriteSheet) {
-		AEGfxTextureUnload(pPlayerCombatSpriteSheet);
-		pPlayerCombatSpriteSheet = nullptr;
+	if (m_pPlayerCombatSpriteSheet) {
+		AEGfxTextureUnload(m_pPlayerCombatSpriteSheet);
+		m_pPlayerCombatSpriteSheet = nullptr;
 	}
 }
 
@@ -110,111 +110,111 @@ void Sprite::Sprite_Load()
 	/////////////////////
 	// ENEMY SPRITE SHEET
 	/////////////////////
-	if (pEnemySpriteSheet) {
-		AEGfxTextureUnload(pEnemySpriteSheet);
-		pEnemySpriteSheet = nullptr;
+	if (m_pEnemySpriteSheet) {
+		AEGfxTextureUnload(m_pEnemySpriteSheet);
+		m_pEnemySpriteSheet = nullptr;
 	}
 
-	pEnemySpriteSheet = AEGfxTextureLoad("Assets/Sprites/Enemy_SpriteSheet.png");
-	if (!pEnemySpriteSheet)
+	m_pEnemySpriteSheet = AEGfxTextureLoad("Assets/Sprites/Enemy_SpriteSheet.png");
+	if (!m_pEnemySpriteSheet)
 	{
 		std::cout << "ERROR LOADING ENEMY SPRITE SHEET" << std::endl;
 		return;
 	}
 
-	if (pEnemyWindup_SpriteSheet) {
-		AEGfxTextureUnload(pEnemyWindup_SpriteSheet);
-		pEnemyWindup_SpriteSheet = nullptr;
+	if (m_pEnemyWindup_SpriteSheet) {
+		AEGfxTextureUnload(m_pEnemyWindup_SpriteSheet);
+		m_pEnemyWindup_SpriteSheet = nullptr;
 	}
 
-	pEnemyWindup_SpriteSheet = AEGfxTextureLoad("Assets/Sprites/Enemy_Windup_SpriteSheet.png");
-	if (!pEnemyWindup_SpriteSheet)
+	m_pEnemyWindup_SpriteSheet = AEGfxTextureLoad("Assets/Sprites/Enemy_Windup_SpriteSheet.png");
+	if (!m_pEnemyWindup_SpriteSheet)
 	{
 		std::cout << "ERROR LOADING ENEMY WINDUP SPRITE SHEET" << std::endl;
 		return;
 	}
 
-	if (pEnemyAttack_SpriteSheet) {
-		AEGfxTextureUnload(pEnemyAttack_SpriteSheet);
-		pEnemyAttack_SpriteSheet = nullptr;
+	if (m_pEnemyAttack_SpriteSheet) {
+		AEGfxTextureUnload(m_pEnemyAttack_SpriteSheet);
+		m_pEnemyAttack_SpriteSheet = nullptr;
 	}
 
-	pEnemyAttack_SpriteSheet = AEGfxTextureLoad("Assets/Sprites/Enemy_Attack_SpriteSheet2.png");
-	if (!pEnemyAttack_SpriteSheet)
+	m_pEnemyAttack_SpriteSheet = AEGfxTextureLoad("Assets/Sprites/Enemy_Attack_SpriteSheet2.png");
+	if (!m_pEnemyAttack_SpriteSheet)
 	{
 		std::cout << "ERROR LOADING ENEMY ATTACK SPRITE SHEET" << std::endl;
 		return;
 	}
 
 	// Dasher
-	if (pDasherSpriteSheet) {
-		AEGfxTextureUnload(pDasherSpriteSheet);
-		pDasherSpriteSheet = nullptr;
+	if (m_pDasherSpriteSheet) {
+		AEGfxTextureUnload(m_pDasherSpriteSheet);
+		m_pDasherSpriteSheet = nullptr;
 	}
 
-	pDasherSpriteSheet = AEGfxTextureLoad("Assets/Sprites/BlackKid_SpriteSheet.png");
-	if (!pDasherSpriteSheet)
+	m_pDasherSpriteSheet = AEGfxTextureLoad("Assets/Sprites/BlackKid_SpriteSheet.png");
+	if (!m_pDasherSpriteSheet)
 	{
 		std::cout << "ERROR LOADING ENEMY SPRITE SHEET" << std::endl;
 		return;
 	}
 
-	if (pDasherWindup_SpriteSheet) {
-		AEGfxTextureUnload(pDasherWindup_SpriteSheet);
-		pDasherWindup_SpriteSheet = nullptr;
+	if (m_pDasherWindup_SpriteSheet) {
+		AEGfxTextureUnload(m_pDasherWindup_SpriteSheet);
+		m_pDasherWindup_SpriteSheet = nullptr;
 	}
 
-	pDasherWindup_SpriteSheet = AEGfxTextureLoad("Assets/Sprites/BlackKid_Windup_SpriteSheet.png");
-	if (!pDasherWindup_SpriteSheet)
+	m_pDasherWindup_SpriteSheet = AEGfxTextureLoad("Assets/Sprites/BlackKid_Windup_SpriteSheet.png");
+	if (!m_pDasherWindup_SpriteSheet)
 	{
 		std::cout << "ERROR LOADING ENEMY WINDUP SPRITE SHEET" << std::endl;
 		return;
 	}
 
-	if (pDasherAttack_SpriteSheet) {
-		AEGfxTextureUnload(pDasherAttack_SpriteSheet);
-		pDasherAttack_SpriteSheet = nullptr;
+	if (m_pDasherAttack_SpriteSheet) {
+		AEGfxTextureUnload(m_pDasherAttack_SpriteSheet);
+		m_pDasherAttack_SpriteSheet = nullptr;
 	}
 
-	pDasherAttack_SpriteSheet = AEGfxTextureLoad("Assets/Sprites/BlackKid_Attack_SpriteSheet2.png");
-	if (!pDasherAttack_SpriteSheet)
+	m_pDasherAttack_SpriteSheet = AEGfxTextureLoad("Assets/Sprites/BlackKid_Attack_SpriteSheet2.png");
+	if (!m_pDasherAttack_SpriteSheet)
 	{
 		std::cout << "ERROR LOADING ENEMY ATTACK SPRITE SHEET" << std::endl;
 		return;
 	}
 
 	// Boss
-	if (pBossSpriteSheet) {
-		AEGfxTextureUnload(pBossSpriteSheet);
-		pBossSpriteSheet = nullptr;
+	if (m_pBossSpriteSheet) {
+		AEGfxTextureUnload(m_pBossSpriteSheet);
+		m_pBossSpriteSheet = nullptr;
 	}
 
-	pBossSpriteSheet = AEGfxTextureLoad("Assets/Sprites/ChineseKid_SpriteSheet.png");
-	if (!pBossSpriteSheet)
+	m_pBossSpriteSheet = AEGfxTextureLoad("Assets/Sprites/ChineseKid_SpriteSheet.png");
+	if (!m_pBossSpriteSheet)
 	{
 		std::cout << "ERROR LOADING BOSS SPRITE SHEET" << std::endl;
 		return;
 	}
 
-	if (pBossWindup_SpriteSheet) {
-		AEGfxTextureUnload(pBossWindup_SpriteSheet);
-		pBossWindup_SpriteSheet = nullptr;
+	if (m_pBossWindup_SpriteSheet) {
+		AEGfxTextureUnload(m_pBossWindup_SpriteSheet);
+		m_pBossWindup_SpriteSheet = nullptr;
 	}
 
-	pBossWindup_SpriteSheet = AEGfxTextureLoad("Assets/Sprites/ChineseKid_Windup_SpriteSheet.png");
-	if (!pBossWindup_SpriteSheet)
+	m_pBossWindup_SpriteSheet = AEGfxTextureLoad("Assets/Sprites/ChineseKid_Windup_SpriteSheet.png");
+	if (!m_pBossWindup_SpriteSheet)
 	{
 		std::cout << "ERROR LOADING BOSS WINDUP SPRITE SHEET" << std::endl;
 		return;
 	}
 
-	if (pBossAttack_SpriteSheet) {
-		AEGfxTextureUnload(pBossAttack_SpriteSheet);
-		pBossAttack_SpriteSheet = nullptr;
+	if (m_pBossAttack_SpriteSheet) {
+		AEGfxTextureUnload(m_pBossAttack_SpriteSheet);
+		m_pBossAttack_SpriteSheet = nullptr;
 	}
 
-	pBossAttack_SpriteSheet = AEGfxTextureLoad("Assets/Sprites/ChineseKid_Attack_SpriteSheet2.png");
-	if (!pBossAttack_SpriteSheet)
+	m_pBossAttack_SpriteSheet = AEGfxTextureLoad("Assets/Sprites/ChineseKid_Attack_SpriteSheet2.png");
+	if (!m_pBossAttack_SpriteSheet)
 	{
 		std::cout << "ERROR LOADING BOSS ATTACK SPRITE SHEET" << std::endl;
 		return;
@@ -223,13 +223,13 @@ void Sprite::Sprite_Load()
 	//////////////////////
 	// PLAYER SPRITE SHEET
 	//////////////////////
-	if (pPlayerSpriteSheet) {
-		AEGfxTextureUnload(pPlayerSpriteSheet);
-		pPlayerSpriteSheet = nullptr;
+	if (m_pPlayerSpriteSheet) {
+		AEGfxTextureUnload(m_pPlayerSpriteSheet);
+		m_pPlayerSpriteSheet = nullptr;
 	}
 
-	pPlayerSpriteSheet = AEGfxTextureLoad("Assets/Sprites/Pinata_Spritesheet.png");
-	if (!pPlayerSpriteSheet)
+	m_pPlayerSpriteSheet = AEGfxTextureLoad("Assets/Sprites/Pinata_Spritesheet.png");
+	if (!m_pPlayerSpriteSheet)
 	{
 		std::cout << "ERROR LOADING PLAYER SPRITE SHEET" << std::endl;
 		return;
@@ -238,13 +238,13 @@ void Sprite::Sprite_Load()
 	/////////////////////////////
 	// PLAYER COMBAT SPRITE SHEET
 	/////////////////////////////
-	if (pPlayerCombatSpriteSheet) {
-		AEGfxTextureUnload(pPlayerCombatSpriteSheet);
-		pPlayerCombatSpriteSheet = nullptr;
+	if (m_pPlayerCombatSpriteSheet) {
+		AEGfxTextureUnload(m_pPlayerCombatSpriteSheet);
+		m_pPlayerCombatSpriteSheet = nullptr;
 	}
 
-	pPlayerCombatSpriteSheet = AEGfxTextureLoad("Assets/Sprites/Pinata_Bat_Spritesheet.png");
-	if (!pPlayerCombatSpriteSheet)
+	m_pPlayerCombatSpriteSheet = AEGfxTextureLoad("Assets/Sprites/Pinata_Bat_Spritesheet.png");
+	if (!m_pPlayerCombatSpriteSheet)
 	{
 		std::cout << "ERROR LOADING PLAYER COMBAT SPRITE SHEET" << std::endl;
 		return;
@@ -257,101 +257,101 @@ void Sprite::Sprite_Init()
 	////////////////////
 	// Enemy Spritesheet
 	////////////////////
-	if (pSpriteMesh) {
-		AEGfxMeshFree(pSpriteMesh);
-		pSpriteMesh = nullptr;
+	if (m_pSpriteMesh) {
+		AEGfxMeshFree(m_pSpriteMesh);
+		m_pSpriteMesh = nullptr;
 	}
-	if (pEnemyWindup_SpriteMesh) {
-		AEGfxMeshFree(pEnemyWindup_SpriteMesh);
-		pEnemyWindup_SpriteMesh = nullptr;
+	if (m_pEnemyWindup_SpriteMesh) {
+		AEGfxMeshFree(m_pEnemyWindup_SpriteMesh);
+		m_pEnemyWindup_SpriteMesh = nullptr;
 	}
-	if (pEnemyAttack_SpriteMesh) {
-		AEGfxMeshFree(pEnemyAttack_SpriteMesh);
-		pEnemyAttack_SpriteMesh = nullptr;
+	if (m_pEnemyAttack_SpriteMesh) {
+		AEGfxMeshFree(m_pEnemyAttack_SpriteMesh);
+		m_pEnemyAttack_SpriteMesh = nullptr;
 	}
 
 	// Dasher
-	if (pDasherSpriteMesh) {
-		AEGfxMeshFree(pDasherSpriteMesh);
-		pDasherSpriteMesh = nullptr;
+	if (m_pDasherSpriteMesh) {
+		AEGfxMeshFree(m_pDasherSpriteMesh);
+		m_pDasherSpriteMesh = nullptr;
 	}
-	if (pDasherWindup_SpriteMesh) {
-		AEGfxMeshFree(pDasherWindup_SpriteMesh);
-		pDasherWindup_SpriteMesh = nullptr;
+	if (m_pDasherWindup_SpriteMesh) {
+		AEGfxMeshFree(m_pDasherWindup_SpriteMesh);
+		m_pDasherWindup_SpriteMesh = nullptr;
 	}
-	if (pDasherAttack_SpriteMesh) {
-		AEGfxMeshFree(pDasherAttack_SpriteMesh);
-		pDasherAttack_SpriteMesh = nullptr;
+	if (m_pDasherAttack_SpriteMesh) {
+		AEGfxMeshFree(m_pDasherAttack_SpriteMesh);
+		m_pDasherAttack_SpriteMesh = nullptr;
 	}
 
 	// Boss
-	if (pBossSpriteMesh) {
-		AEGfxMeshFree(pBossSpriteMesh);
-		pBossSpriteMesh = nullptr;
+	if (m_pBossSpriteMesh) {
+		AEGfxMeshFree(m_pBossSpriteMesh);
+		m_pBossSpriteMesh = nullptr;
 	}
-	if (pBossWindup_SpriteMesh) {
-		AEGfxMeshFree(pBossWindup_SpriteMesh);
-		pBossWindup_SpriteMesh = nullptr;
+	if (m_pBossWindup_SpriteMesh) {
+		AEGfxMeshFree(m_pBossWindup_SpriteMesh);
+		m_pBossWindup_SpriteMesh = nullptr;
 	}
-	if (pBossAttack_SpriteMesh) {
-		AEGfxMeshFree(pBossAttack_SpriteMesh);
-		pBossAttack_SpriteMesh = nullptr;
+	if (m_pBossAttack_SpriteMesh) {
+		AEGfxMeshFree(m_pBossAttack_SpriteMesh);
+		m_pBossAttack_SpriteMesh = nullptr;
 	}
 
 	/////////////////////
 	// Player Spritesheet
 	/////////////////////
-	if (pPlayerSpriteMesh) {
-		AEGfxMeshFree(pPlayerSpriteMesh);
-		pPlayerSpriteMesh = nullptr;
+	if (m_pPlayerSpriteMesh) {
+		AEGfxMeshFree(m_pPlayerSpriteMesh);
+		m_pPlayerSpriteMesh = nullptr;
 	}
 
 	////////////////////////////
 	// Player Combat Spritesheet
 	////////////////////////////
-	if (pPlayerCombatSpriteMesh) {
-		AEGfxMeshFree(pPlayerCombatSpriteMesh);
-		pPlayerCombatSpriteMesh = nullptr;
+	if (m_pPlayerCombatSpriteMesh) {
+		AEGfxMeshFree(m_pPlayerCombatSpriteMesh);
+		m_pPlayerCombatSpriteMesh = nullptr;
 	}
 
 	Sprite_Load();
 	// Enemy Spritesheet
-	pSpriteMesh = CreateSpriteRectMesh(0xAEF359, 8.0f, 7.0f);
-	pEnemyWindup_SpriteMesh = CreateSpriteRectMesh(0xAEF359, 8.0f, 7.0f);
-	pEnemyAttack_SpriteMesh = CreateSpriteRectMesh(0xAEF359, 8.0f, 7.0f);
+	m_pSpriteMesh = CreateSpriteRectMesh(0xAEF359, 8.0f, 7.0f);
+	m_pEnemyWindup_SpriteMesh = CreateSpriteRectMesh(0xAEF359, 8.0f, 7.0f);
+	m_pEnemyAttack_SpriteMesh = CreateSpriteRectMesh(0xAEF359, 8.0f, 7.0f);
 
 	// Dasher Spritesheet
-	pDasherSpriteMesh = CreateSpriteRectMesh(0xAEF359, 8.0f, 7.0f);
-	pDasherWindup_SpriteMesh = CreateSpriteRectMesh(0xAEF359, 8.0f, 7.0f);
-	pDasherAttack_SpriteMesh = CreateSpriteRectMesh(0xAEF359, 8.0f, 7.0f);
+	m_pDasherSpriteMesh = CreateSpriteRectMesh(0xAEF359, 8.0f, 7.0f);
+	m_pDasherWindup_SpriteMesh = CreateSpriteRectMesh(0xAEF359, 8.0f, 7.0f);
+	m_pDasherAttack_SpriteMesh = CreateSpriteRectMesh(0xAEF359, 8.0f, 7.0f);
 
 	// Boss Spritesheet
-	pBossSpriteMesh = CreateSpriteRectMesh(0xAEF359, 8.0f, 7.0f);
-	pBossWindup_SpriteMesh = CreateSpriteRectMesh(0xAEF359, 8.0f, 7.0f);
-	pBossAttack_SpriteMesh = CreateSpriteRectMesh(0xAEF359, 8.0f, 7.0f);
+	m_pBossSpriteMesh = CreateSpriteRectMesh(0xAEF359, 8.0f, 7.0f);
+	m_pBossWindup_SpriteMesh = CreateSpriteRectMesh(0xAEF359, 8.0f, 7.0f);
+	m_pBossAttack_SpriteMesh = CreateSpriteRectMesh(0xAEF359, 8.0f, 7.0f);
 
 	// Player Spritesheet
-	pPlayerSpriteMesh = CreateSpriteRectMesh(0xAEF359, 10.0f, 8.0f);
+	m_pPlayerSpriteMesh = CreateSpriteRectMesh(0xAEF359, 10.0f, 8.0f);
 	// Player Combat Spritesheet
-	pPlayerCombatSpriteMesh = CreateSpriteRectMesh(0xAEF359, 10.0f, 8.0f);
+	m_pPlayerCombatSpriteMesh = CreateSpriteRectMesh(0xAEF359, 10.0f, 8.0f);
 }
 
 void Sprite::Sprite_Update(float dt)
 {
-	frameTimer += dt;
-	pFrameTimer += dt;
+	m_frameTimer += dt;
+	m_pFrameTimer += dt;
 
-	if (frameTimer > frameSpeed)
+	if (m_frameTimer > m_frameSpeed)
 	{
-		frame++;
-		frame %= 8;   // 8 frames
-		frameTimer = 0;
+		m_frame++;
+		m_frame %= 8;   // 8 frames
+		m_frameTimer = 0;
 	}
 
-	if (pFrameTimer > pFrameSpeed)
+	if (m_pFrameTimer > m_pFrameSpeed)
 	{
-		pFrame++;
-		pFrame %= 10;   // 10 frames
-		pFrameTimer = 0;
+		m_pFrame++;
+		m_pFrame %= 10;   // 10 frames
+		m_pFrameTimer = 0;
 	}
 }

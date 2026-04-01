@@ -1,3 +1,13 @@
+/*************************************************************************
+@file		EventSystem.h
+@Author		Chiu Jun Wen j.chiu@digipen.edu
+@Co-authors	nil
+@brief		This file contains the function declarations for the event system,
+            including subscribing to events, firing events, and clearing all events.
+
+Copyright © 2026 DigiPen, All rights reserved.
+*************************************************************************/
+
 #pragma once
 #include <functional>
 #include <unordered_map>

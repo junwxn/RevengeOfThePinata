@@ -40,6 +40,11 @@ void Player::Init()
 
     m_CurrentState = PlayerState::STATE_IDLE;
 
+    // Reset input restrictions (all allowed by default)
+    m_InputCanDash   = true;
+    m_InputCanAttack = true;
+    m_InputCanBlock  = true;
+
     // Reset combat state for fresh start
     m_CombatStats.health = m_CombatStats.maxHealth;
     m_CombatFlags.isAlive = true;
@@ -65,7 +70,12 @@ void Player::Init()
     if (m_BatMesh) { AEGfxMeshFree(m_BatMesh); m_BatMesh = nullptr; }
     if (m_BatTexture) { AEGfxTextureUnload(m_BatTexture); m_BatTexture = nullptr; }
     m_BatMesh = CreateBatMesh(0xFFFFFFFF);
-    m_BatTexture = AEGfxTextureLoad("Assets/Sprites/bat.png");
+    m_BatTexture = AEGfxTextureLoad("Assets/Sprites/BatBat.png");
+
+    if (m_SeeingRedMesh) { AEGfxMeshFree(m_SeeingRedMesh); m_SeeingRedMesh = nullptr; }
+    if (m_SeeingRedTexture) { AEGfxTextureUnload(m_SeeingRedTexture); m_SeeingRedTexture = nullptr; }
+    m_SeeingRedMesh = CreateSpriteRectMesh(0xFFFFFFFF, 8.0f, 8.0f);
+    m_SeeingRedTexture = AEGfxTextureLoad("Assets/Sprites/SeeingRed_Spritesheet.png");
 
     m_PlayerSprite.Sprite_Init();
     m_PlayerSpriteSheet = m_PlayerSprite.GetPlayerSpriteSheet();
@@ -101,7 +111,7 @@ void Player::Update(float dt, Combat::System& combat, std::vector<std::unique_pt
     //// Distance magnitude between
     m_DistMagMP = Vectors::magnitude(m_AimVector.x, m_AimVector.y); // Dist between mouse and player
     //// Normalize vectors (To get direction)
-    m_VectorNormalizedMP = Vectors::normalize(m_DistMagMP, m_AimVector.x, m_AimVector.y); // Normalized vector between mouse and player
+    m_VectorNormalizedMP = Vectors::normalize(static_cast<f32>(m_DistMagMP), m_AimVector.x, m_AimVector.y); // Normalized vector between mouse and player
 
     // Angle
     // Returns the angle at which quadrant the mouse is at
@@ -151,7 +161,7 @@ void Player::Update(float dt, Combat::System& combat, std::vector<std::unique_pt
     else m_AllowAttack = true;
 
     // Start attack
-    if ((AEInputCheckTriggered(AEVK_LBUTTON) && m_AllowAttack && !m_BlockActive) || (m_CombatFlags.attackQueued && g_Augments.Has(AugmentID::CHAIN_ATTACK)))
+    if ((AEInputCheckTriggered(AEVK_LBUTTON) && m_AllowAttack && !m_BlockActive && m_InputCanAttack) || (m_CombatFlags.attackQueued && g_Augments.Has(AugmentID::CHAIN_ATTACK)))
     {
         std::cout << "ATTACK" << std::endl;
         m_AllowBlock = false;
@@ -160,17 +170,17 @@ void Player::Update(float dt, Combat::System& combat, std::vector<std::unique_pt
         gAudio.PlayCombatSFX(COMBAT_SWING);
 
         //for (auto& enemy : wave) {
-        //    if (combatSystem.IsEnemyInRange(*this, *enemy)) {
+        //    if (m_combatSystem.IsEnemyInRange(*this, *enemy)) {
         //        std::cout << "ENEMY HIT!" << std::endl;
         //        m_CombatFlags.attackHit = true;
-        //        m_AttackStopFrames = combatSystem.GetAttackerStopFrames();
+        //        m_AttackStopFrames = m_combatSystem.GetAttackerStopFrames();
         //    }
         //}
         std::cout << "Attack Charges Left: " << m_AttackCharges - 1 << std::endl;
     }
     //else m_CombatFlags.attackHit = false;
 
-    if (AEInputCheckTriggered(AEVK_RBUTTON) && m_AllowBlock && !m_AttackActive)
+    if (AEInputCheckTriggered(AEVK_RBUTTON) && m_AllowBlock && !m_AttackActive && m_InputCanBlock)
     {
         std::cout << "BLOCK" << std::endl;
         m_AllowAttack = false;
@@ -197,9 +207,9 @@ void Player::Update(float dt, Combat::System& combat, std::vector<std::unique_pt
     //    m_CurrentState = PlayerState::STATE_ATTACK;
     //    m_AttackFrameAccumulator += dt;
 
-    //    while (m_AttackFrameAccumulator >= combatSystem.GetOneFPS() && m_AttackCurrentFrame <= m_AttackFrames.total) {
+    //    while (m_AttackFrameAccumulator >= m_combatSystem.GetOneFPS() && m_AttackCurrentFrame <= m_AttackFrames.total) {
     //        ++m_AttackCurrentFrame;
-    //        m_AttackFrameAccumulator -= combatSystem.GetOneFPS();
+    //        m_AttackFrameAccumulator -= m_combatSystem.GetOneFPS();
     //    }
 
     //    // For normalized value between 0.0 - 1.0 range
@@ -273,9 +283,9 @@ void Player::Update(float dt, Combat::System& combat, std::vector<std::unique_pt
 
         if (m_AttackStopFrames <= 0) m_AttackFrameAccumulator += dt;
 
-        while (m_AttackFrameAccumulator >= combatSystem.GetOneFPS() && m_AttackCurrentFrame <= m_AttackBasic.total) {
+        while (m_AttackFrameAccumulator >= m_combatSystem.GetOneFPS() && m_AttackCurrentFrame <= m_AttackBasic.total) {
             ++m_AttackCurrentFrame;
-            m_AttackFrameAccumulator -= combatSystem.GetOneFPS();
+            m_AttackFrameAccumulator -= m_combatSystem.GetOneFPS();
         }
 
         // For normalized value between 0.0 - 1.0 range
@@ -302,14 +312,14 @@ void Player::Update(float dt, Combat::System& combat, std::vector<std::unique_pt
             {
                 if (!enemy->GetCombatFlag().gotHit
                     && enemy->GetLastAttackID() != m_AttackID
-                    && combatSystem.IsEnemyInRange(*this, *enemy))
+                    && m_combatSystem.IsEnemyInRange(*this, *enemy))
                 {
                     enemy->SetGotHit(true);
                     enemy->SetLastAttackID(m_AttackID);
 
                     m_CombatFlags.attackHit = true;
-                    m_AttackStopFrames = combatSystem.GetAttackerStopFrames();
-                    combatSystem.ApplyDamage(*enemy, *this);
+                    m_AttackStopFrames = m_combatSystem.GetAttackerStopFrames();
+                    m_combatSystem.ApplyDamage(*enemy, *this);
 
                     // Fire ON_ATTACK_HIT event for augment effects
                     EventData hitData;
@@ -379,10 +389,10 @@ void Player::Update(float dt, Combat::System& combat, std::vector<std::unique_pt
         if (m_BlockCurrentFrame < m_BlockData.startUp + m_BlockData.parry)
         {
             //std::cout << "WHILE 1" << std::endl;
-            while (m_BlockFrameAccumulator >= combatSystem.GetOneFPS())
+            while (m_BlockFrameAccumulator >= m_combatSystem.GetOneFPS())
             {
                 ++m_BlockCurrentFrame;
-                m_BlockFrameAccumulator -= combatSystem.GetOneFPS();
+                m_BlockFrameAccumulator -= m_combatSystem.GetOneFPS();
             }
         }
         else/* if (m_BlockCurrentFrame < m_BlockData.total)*/
@@ -392,11 +402,11 @@ void Player::Update(float dt, Combat::System& combat, std::vector<std::unique_pt
             //{
             //    std::cout << "NOT HOLDING" << std::endl;
 
-            while (m_BlockFrameAccumulator >= combatSystem.GetOneFPS())
+            while (m_BlockFrameAccumulator >= m_combatSystem.GetOneFPS())
             {
                 //std::cout << "RESTARTED" << std::endl;
                 if (!m_BlockState.held) ++m_BlockCurrentFrame;
-                m_BlockFrameAccumulator -= combatSystem.GetOneFPS();
+                m_BlockFrameAccumulator -= m_combatSystem.GetOneFPS();
             }
             //}
         }
@@ -414,7 +424,7 @@ void Player::Update(float dt, Combat::System& combat, std::vector<std::unique_pt
 
             for (auto& enemy : wave)
             {
-                if (enemy->GetCombatFlag().parried) m_ParryStopFrames = combatSystem.GetParryStopFrames();
+                if (enemy->GetCombatFlag().parried) m_ParryStopFrames = m_combatSystem.GetParryStopFrames();
 
             }
 
@@ -437,6 +447,7 @@ void Player::Update(float dt, Combat::System& combat, std::vector<std::unique_pt
         {
             blockProgress = 1.0f;
             if (!m_CombatFlags.parryOn) m_ParryActive = false;
+            m_CombatFlags.blockOn = true;
             m_CombatFlags.parryOn = false;
         }
     }
@@ -518,7 +529,7 @@ void Player::Update(float dt, Combat::System& combat, std::vector<std::unique_pt
 
             std::cout << "DASH: " << m_DashActive << std::endl;
             // --- 4. Dash Logic ---
-            if (AEInputCheckTriggered(AEVK_SPACE) && m_DashCharges > 0 && !m_DashActive)
+            if (AEInputCheckTriggered(AEVK_SPACE) && m_DashCharges > 0 && !m_DashActive && m_InputCanDash)
             {
                 StartDash(moveX, moveY, dirX, dirY);
             }
@@ -530,13 +541,13 @@ void Player::Update(float dt, Combat::System& combat, std::vector<std::unique_pt
             m_CurrentState = PlayerState::STATE_DASH;
             m_DashFrameAccumulator += dt;
 
-            while (m_DashFrameAccumulator >= combatSystem.GetOneFPS() && m_DashCurrentFrame <= m_MovementData.total) {
+            while (m_DashFrameAccumulator >= m_combatSystem.GetOneFPS() && m_DashCurrentFrame <= m_MovementData.total) {
                 ++m_DashCurrentFrame;
 
                 if (m_DashCurrentFrame > m_MovementData.total)
                     m_DashCurrentFrame = m_MovementData.total;
 
-                m_DashFrameAccumulator -= combatSystem.GetOneFPS();
+                m_DashFrameAccumulator -= m_combatSystem.GetOneFPS();
 
                 if (m_DashCurrentFrame >= m_MovementData.startUp
                     && m_DashCurrentFrame < m_MovementData.startUp + m_MovementData.active)
@@ -570,6 +581,37 @@ void Player::Update(float dt, Combat::System& combat, std::vector<std::unique_pt
         }
     }
     UpdateDashParticles(dt);
+}
+
+static void DrawSeeingRedSprite(PlayerDirection dir, int frame,
+    AEGfxVertexList* mesh, AEGfxTexture* texture,
+    float x, float y, float sizeMultiplier, float pixelScale)
+{
+    if (!mesh || !texture) return;
+
+    int col = frame % 8;
+    int row = static_cast<int>(dir);
+
+    float u = col * (1.0f / 8.0f);
+    float v = row * (1.0f / 8.0f);
+
+    AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
+    AEGfxSetColorToMultiply(1.0f, 1.0f, 1.0f, 1.0f);
+    AEGfxSetColorToAdd(0.0f, 0.0f, 0.0f, 0.0f);
+    AEGfxSetBlendMode(AE_GFX_BM_BLEND);
+    AEGfxSetTransparency(1.0f);
+    AEGfxTextureSet(texture, u, v);
+
+    AEMtx33 scale, rot, trans, final;
+    AEMtx33Scale(&scale, pixelScale * sizeMultiplier, pixelScale * sizeMultiplier);
+    AEMtx33Rot(&rot, 0.0f);
+    AEMtx33Trans(&trans, x, y);
+
+    AEMtx33Concat(&final, &rot, &scale);
+    AEMtx33Concat(&final, &trans, &final);
+
+    AEGfxSetTransform(final.m);
+    AEGfxMeshDraw(mesh, AE_GFX_MDM_TRIANGLES);
 }
 
 void Player::Draw()
@@ -635,10 +677,25 @@ void Player::Draw()
 
     if (!batInFront) DrawBat(batAngle);
 
-    DrawTexturePlayer(m_PlayerSprite, static_cast<int>(m_CurrentDirection),
-        m_PlayerSprite.GetPlayerSpriteMesh(), m_PlayerSprite.GetPlayerSpriteSheet(),
-        m_PlayerSprite.GetPixelScale(), m_PlayerSprite.GetPixelScale(),
-        m_PosX, m_PosY, 0.0f, sizeMultiplier);
+    if (g_Augments.Has(AugmentID::AMPLIFIED_DAMAGE) && m_SeeingRedMesh && m_SeeingRedTexture)
+    {
+        DrawSeeingRedSprite(
+            m_CurrentDirection,
+            m_PlayerSprite.GetPlayerFrame(),
+            m_SeeingRedMesh,
+            m_SeeingRedTexture,
+            m_PosX, m_PosY,
+            m_sizeMultiplier,
+            m_PlayerSprite.GetPixelScale()
+        );
+    }
+    else
+    {
+        DrawTexturePlayer(m_PlayerSprite, static_cast<int>(m_CurrentDirection),
+            m_PlayerSprite.GetPlayerSpriteMesh(), m_PlayerSprite.GetPlayerSpriteSheet(),
+            m_PlayerSprite.GetPixelScale(), m_PlayerSprite.GetPixelScale(),
+            m_PosX, m_PosY, 0.0f, m_sizeMultiplier);
+    }
 
     if (batInFront) DrawBat(batAngle);
 }
@@ -672,6 +729,14 @@ void Player::Free()
     if (m_DashParticleMesh) {
         AEGfxMeshFree(m_DashParticleMesh);
         m_DashParticleMesh = nullptr;
+    }
+    if (m_SeeingRedMesh) {
+        AEGfxMeshFree(m_SeeingRedMesh);
+        m_SeeingRedMesh = nullptr;
+    }
+    if (m_SeeingRedTexture) {
+        AEGfxTextureUnload(m_SeeingRedTexture);
+        m_SeeingRedTexture = nullptr;
     }
 }
 
@@ -915,6 +980,7 @@ void Player::StartDash(float moveX, float moveY, float dirX, float dirY)
     m_MovementState.recovered = false;
     m_DashFrameAccumulator = 0.0f;
     m_DashCurrentFrame = 0;
+    m_CombatFlags.dashResolved = false;
 
     m_DashDirX = dirX;
     m_DashDirY = dirY;

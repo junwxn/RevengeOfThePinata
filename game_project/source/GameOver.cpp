@@ -1,9 +1,19 @@
+/*************************************************************************
+@file		GameOver.cpp
+@Author		Chiu Jun Wen j.chiu@digipen.edu
+@Co-authors	nil
+@brief		This file contains the function definitions for managing the
+			game over state, including its initialization, updating, and rendering.
+
+Copyright © 2026 DigiPen, All rights reserved.
+*************************************************************************/
 #include "pch.h"
 #include "GameOver.h"
 #include "GameStateManager.h"
 #include "Player.h"
 #include "Utils.h"
 #include "Transition.h"
+#include "SaveSystem.h"
 
 static AEGfxVertexList* rectMesh = nullptr;
 static s8 fontTitle = -1;
@@ -54,6 +64,7 @@ void GameOver_Load() {
 }
 
 void GameOver_Init() {
+	SaveSystem_ClearSave();
 	g_PlayerAttackCharges = DEFAULT_ATTACK_CHARGES;  // Reset charges on death
 	AEGfxSetCamPosition(0.0f, 0.0f);
 	animTimer = 0.0f;
@@ -96,7 +107,7 @@ void GameOver_Update(float dt) {
 	}
 
 	if (AEInputCheckTriggered(AEVK_LBUTTON)) {
-		if (buttons[0].hovered) Transition_Start(static_cast<GS_STATES>(current));
+		if (buttons[0].hovered) Transition_Start(static_cast<GS_STATES>(previous));
 		if (buttons[1].hovered) Transition_Start(GS_MAINMENU);
 	}
 

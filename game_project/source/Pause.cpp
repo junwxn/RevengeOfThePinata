@@ -1,3 +1,12 @@
+/*************************************************************************
+@file		Pause.cpp
+@Author		Chiu Jun Wen j.chiu@digipen.edu
+@Co-authors	nil
+@brief		This file contains the function definitions for managing the
+			pause menu, including its initialization, updating, and rendering.
+
+Copyright © 2026 DigiPen, All rights reserved.
+*************************************************************************/
 #include "pch.h"
 #include "Pause.h"
 #include "GameStateManager.h"
@@ -5,6 +14,7 @@
 #include "Audio.h"
 #include "Player.h"
 #include "Transition.h"
+#include "SaveSystem.h"
 
 enum PauseScreen { PAUSE_MAIN, PAUSE_CONFIRM_MAINMENU, PAUSE_CONFIRM_RESTART };
 
@@ -132,7 +142,7 @@ bool Pause_Update(bool isPlayerAlive) {
 
 	if (!paused) return false;
 
-	float dt = AEFrameRateControllerGetFrameTime();
+	float dt = static_cast<float>(AEFrameRateControllerGetFrameTime());
 	entranceTimer += dt;
 	pauseAnimTimer += dt;
 
@@ -186,6 +196,7 @@ bool Pause_Update(bool isPlayerAlive) {
 		}
 		else if (pauseScreen == PAUSE_CONFIRM_MAINMENU) {
 			if (yesButton.hovered) {
+				SaveSystem_Save(current);
 				paused = false;
 				pauseScreen = PAUSE_MAIN;
 				Transition_Start(GS_MAINMENU);
@@ -196,6 +207,7 @@ bool Pause_Update(bool isPlayerAlive) {
 		}
 		else if (pauseScreen == PAUSE_CONFIRM_RESTART) {
 			if (yesButton.hovered) {
+				SaveSystem_ClearSave();
 				paused = false;
 				pauseScreen = PAUSE_MAIN;
 				g_PlayerAttackCharges = DEFAULT_ATTACK_CHARGES;

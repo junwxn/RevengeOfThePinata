@@ -1,3 +1,13 @@
+/*************************************************************************
+@file		MainMenu.cpp
+@Author		Chiu Jun Wen j.chiu@digipen.edu
+@Co-authors	nil
+@brief		This file contains the function definitions for managing the
+			main menu, including its initialization, updating, and rendering.
+
+Copyright © 2026 DigiPen, All rights reserved.
+*************************************************************************/
+
 #include "pch.h"
 #include "MainMenu.h"
 #include "GameStateManager.h"
@@ -7,6 +17,7 @@
 #include "EventSystem.h"
 #include "Player.h"
 #include "Transition.h"
+#include "SaveSystem.h"
 
 // --- Enums & Structs ---
 enum MenuScreen { MENU_MAIN, MENU_CONTROLS, MENU_CREDITS, MENU_TUTORIAL_PROMPT, MENU_SETTINGS, MENU_CONFIRMATION };
@@ -37,7 +48,9 @@ static s8 fontTitle = -1;
 static s8 fontBody = -1;
 
 static MenuScreen menuScreen;
-static Button mainButtons[5];
+static Button mainButtons[6];
+static bool hasSaveFile = false;
+static int mainButtonCount = 5;
 static Button backButton;
 static Button yesButton;
 static Button noButton;
@@ -121,15 +134,20 @@ void MainMenu_Load() {
 
 // ========== INIT ==========
 void MainMenu_Init() {
-	g_Augments.Reset();
-	g_Events.ClearAll();
 	menuScreen = MENU_MAIN;
 	AEGfxSetCamPosition(0.0f, 0.0f);
 
-	const char* labels[] = { "Play", "Controls", "Credits", "Settings", "Quit" };
-	for (int i = 0; i < 5; i++) {
+	hasSaveFile = SaveSystem_HasSave();
+
+	const char* labels6[] = { "Continue", "Play", "Controls", "Credits", "Settings", "Quit" };
+	const char* labels5[] = { "Play", "Controls", "Credits", "Settings", "Quit" };
+	const char** labels = hasSaveFile ? labels6 : labels5;
+	mainButtonCount = hasSaveFile ? 6 : 5;
+
+	float startY = hasSaveFile ? 60.0f : -20.0f;
+	for (int i = 0; i < mainButtonCount; i++) {
 		mainButtons[i].x       = 0.0f;
-		mainButtons[i].y       = -20.0f - 85.0f * i;
+		mainButtons[i].y       = startY - 85.0f * i;
 		mainButtons[i].w       = 320.0f;
 		mainButtons[i].h       = 60.0f;
 		mainButtons[i].label   = labels[i];
@@ -237,21 +255,21 @@ void MainMenu_Update(float dt) {
 
 	// Hover detection
 	if (menuScreen == MENU_MAIN) {
-		for (int i = 0; i < 5; i++)
+		for (int i = 0; i < mainButtonCount; i++)
 			mainButtons[i].hovered = IsInside(worldX, worldY, mainButtons[i]);
 		backButton.hovered = false;
 		yesButton.hovered = false;
 		noButton.hovered = false;
 	}
 	else if (menuScreen == MENU_TUTORIAL_PROMPT) {
-		for (int i = 0; i < 5; i++)
+		for (int i = 0; i < mainButtonCount; i++)
 			mainButtons[i].hovered = false;
 		backButton.hovered = IsInside(worldX, worldY, backButton);
 		yesButton.hovered = IsInside(worldX, worldY, yesButton);
 		noButton.hovered = IsInside(worldX, worldY, noButton);
 	}
 	else if (menuScreen == MENU_CONFIRMATION) {
-		for (int i = 0; i < 5; i++)
+		for (int i = 0; i < mainButtonCount; i++)
 			mainButtons[i].hovered = false;
 
 		backButton.hovered = false;
@@ -259,7 +277,7 @@ void MainMenu_Update(float dt) {
 		noButton.hovered = IsInside(worldX, worldY, noButton);
 	}
 	else if (menuScreen == MENU_SETTINGS) {
-		for (int i = 0; i < 5; i++)
+		for (int i = 0; i < mainButtonCount; i++)
 			mainButtons[i].hovered = false;
 
 		// Start dragging when mouse clicks slider
@@ -295,7 +313,7 @@ void MainMenu_Update(float dt) {
 		noButton.hovered = false;
 	}
 	else {
-		for (int i = 0; i < 5; i++)
+		for (int i = 0; i < mainButtonCount; i++)
 			mainButtons[i].hovered = false;
 		backButton.hovered = IsInside(worldX, worldY, backButton);
 		yesButton.hovered = false;
@@ -306,7 +324,7 @@ void MainMenu_Update(float dt) {
 	muteButton.hovered = IsInside(worldX, worldY, muteButton);
 
 	// Smooth hover transitions
-	for (int i = 0; i < 5; i++) {
+	for (int i = 0; i < mainButtonCount; i++) {
 		mainButtons[i].hoverT += (mainButtons[i].hovered ? 1.0f : -1.0f) * dt * 6.0f;
 		mainButtons[i].hoverT = Clamp01(mainButtons[i].hoverT);
 	}
@@ -326,15 +344,31 @@ void MainMenu_Update(float dt) {
 			muteButton.label = gAudio.IsMuted() ? "Unmute" : "Mute";
 		}
 		if (menuScreen == MENU_MAIN) {
-			if (mainButtons[0].hovered) menuScreen = MENU_TUTORIAL_PROMPT;
-			if (mainButtons[1].hovered) menuScreen = MENU_CONTROLS;
-			if (mainButtons[2].hovered) menuScreen = MENU_CREDITS;
-			if (mainButtons[3].hovered) menuScreen = MENU_SETTINGS;
-			if (mainButtons[4].hovered) menuScreen = MENU_CONFIRMATION;
+			int idx = 0;
+			if (hasSaveFile) {
+				if (mainButtons[idx].hovered) {
+					int savedLevel = SaveSystem_Load();
+					if (savedLevel >= GS_TUTORIAL && savedLevel <= GS_BOSSLEVEL) {
+						Transition_Start(static_cast<GS_STATES>(savedLevel));
+					}
+				}
+				idx++;
+			}
+			if (mainButtons[idx].hovered) {
+				SaveSystem_ClearSave();
+				g_Augments.Reset();
+				g_Events.ClearAll();
+				g_PlayerAttackCharges = DEFAULT_ATTACK_CHARGES;
+				menuScreen = MENU_TUTORIAL_PROMPT;
+			}
+			if (mainButtons[idx + 1].hovered) menuScreen = MENU_CONTROLS;
+			if (mainButtons[idx + 2].hovered) menuScreen = MENU_CREDITS;
+			if (mainButtons[idx + 3].hovered) menuScreen = MENU_SETTINGS;
+			if (mainButtons[idx + 4].hovered) menuScreen = MENU_CONFIRMATION;
 		}
 		else if (menuScreen == MENU_TUTORIAL_PROMPT) {
-			if (yesButton.hovered) { g_PlayerAttackCharges = DEFAULT_ATTACK_CHARGES; /*next = GS_TUTORIAL;*/ Transition_Start(GS_TUTORIAL); }
-			if (noButton.hovered) { g_PlayerAttackCharges = DEFAULT_ATTACK_CHARGES; /*next = GS_LEVEL1;*/ Transition_Start(GS_LEVEL1, TransitionSheet::LEVEL1); }
+			if (yesButton.hovered) { /*next = GS_TUTORIAL;*/ Transition_Start(GS_TUTORIAL); }
+			if (noButton.hovered) { /*next = GS_LEVEL1;*/ Transition_Start(GS_LEVEL1, TransitionSheet::LEVEL1); }
 			if (backButton.hovered) menuScreen = MENU_MAIN;
 		}
 		else if (menuScreen == MENU_CONFIRMATION) {
@@ -462,10 +496,14 @@ void MainMenu_Draw() {
 	if (menuScreen == MENU_MAIN) {
 		// Panel behind buttons
 		float panelEase = Smoothstep(entranceTimer * 2.5f);
-		DrawPanel(0, -150, 400, 380, panelEase);
+		float btnStartY = hasSaveFile ? 60.0f : -20.0f;
+		float btnEndY = btnStartY - 85.0f * (mainButtonCount - 1);
+		float panelH = (btnStartY - btnEndY) + 120.0f;
+		float panelY = (btnStartY + btnEndY) * 0.5f;
+		DrawPanel(0, panelY, 400, panelH, panelEase);
 
 		// Styled buttons with entrance stagger
-		for (int i = 0; i < 5; i++) {
+		for (int i = 0; i < mainButtonCount; i++) {
 			float delay = i * 0.08f;
 			float ease = Smoothstep((entranceTimer - delay) * 2.5f);
 			float yOff = (1.0f - ease) * 30.0f;
@@ -538,7 +576,7 @@ void MainMenu_Draw() {
 
 	if (menuScreen == MENU_MAIN) {
 		// Button labels with entrance stagger
-		for (int i = 0; i < 5; i++) {
+		for (int i = 0; i < mainButtonCount; i++) {
 			float delay = i * 0.08f;
 			float ease = Smoothstep((entranceTimer - delay) * 2.5f);
 			float yOff = (1.0f - ease) * 30.0f;
@@ -874,5 +912,5 @@ void MainMenu_Unload() {
 		AEGfxTextureUnload(digipenLogo);
 		digipenLogo = nullptr;
 	}
-	AEAudioStopGroup(gAudio.audioGroup.BGM);
+	AEAudioStopGroup(gAudio.m_audioGroup.BGM);
 }

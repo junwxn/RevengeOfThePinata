@@ -13,6 +13,7 @@
 #include "HUD.h"
 #include "Audio.h"
 #include "Debug.h"
+#include "SaveSystem.h"
 #include "Shadow.h"
 #include "Projectile.h"
 #include "Transition.h"
@@ -149,6 +150,7 @@ void Level2_Init() {
 
 void Level2_Update(float dt) {
 	if (!AESysDoesWindowExist()) {
+		SaveSystem_Save(GS_LEVEL2);
 		Transition_StartImmediate(GS_QUIT);
 		return;
 	}
@@ -323,7 +325,11 @@ void Level2_Draw() {
 }
 
 void Level2_Free() {
-	g_PlayerAttackCharges = player.GetAttackCharges();
+	if (Transition_GetState() != current)
+		g_PlayerAttackCharges = player.GetAttackCharges();
+	int nextState = Transition_GetState();
+	if (nextState >= GS_TUTORIAL && nextState <= GS_BOSSLEVEL)
+		SaveSystem_Save(nextState);
 	Wave1.clear();
 	Wave2.clear();
 	player.Free();
@@ -343,5 +349,5 @@ void Level2_Unload() {
 	Pause_Unload();
 	HUD_Unload();
 	Debug_Unload();
-	AEAudioStopGroup(gAudio.audioGroup.BGM);
+	AEAudioStopGroup(gAudio.m_audioGroup.BGM);
 }
