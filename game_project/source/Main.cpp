@@ -5,7 +5,7 @@
 @brief		This file contains the entry point and main loop for the game,
             including initialization, updating, rendering, and cleanup.
 
-Copyright © 2026 DigiPen, All rights reserved.
+Copyright ï¿½ 2026 DigiPen, All rights reserved.
 *************************************************************************/
 #include "pch.h"
 #include "Audio.h"
@@ -24,6 +24,14 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
     AESysInit(hInstance, nCmdShow, 1600, 900, 0, 60, true, NULL);
     AESysSetWindowTitle("Revenge of the Pinata");
+
+    // Set custom window icon from embedded resource
+    HICON hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(101));
+    if (hIcon) {
+        HWND hwnd = AESysGetWindowHandle();
+        SendMessage(hwnd, WM_SETICON, ICON_BIG, (LPARAM)hIcon);
+        SendMessage(hwnd, WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
+    }
 
     gAudio.Audio_Init();
 
