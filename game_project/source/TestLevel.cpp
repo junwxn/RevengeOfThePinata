@@ -49,7 +49,7 @@ void TestLevel_Load() {
 
 void TestLevel_Init() {
 	player.Init();
-	player.SetAttackCharges(DEFAULT_ATTACK_CHARGES);
+	//player.SetAttackCharges(DEFAULT_ATTACK_CHARGES);
 	player.SetMap(&gameMap);
 
 	camera.Init(player.GetX(), player.GetY());

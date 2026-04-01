@@ -126,7 +126,7 @@ void Level1_Load() {
 void Level1_Init() {
 
 	player.Init();
-	player.SetAttackCharges(g_PlayerAttackCharges);
+	//player.SetAttackCharges(g_PlayerAttackCharges);
 	player.SetMap(&gameMap); // Enable player-map collision
 
 	// camera init
@@ -262,6 +262,7 @@ void Level1_Update(float dt) {
 			wave2Active = false;
 			endofwave = true;
 			augments.SetPosition(player.GetX(), player.GetY());
+			gAudio.PlayFireworksSFX();
 		}
 	}
 
@@ -314,6 +315,7 @@ void Level1_Update(float dt) {
 	}
 
 	if (endofwave) {
+		
 		augments.Update(player.GetX(), player.GetY(), dt);
 		if (augments.GetChoose()) {
 			preventingmovement = true;

@@ -1121,16 +1121,48 @@ void Dasher::Draw()
         0.0f, 210, 70, 75, 255);
 
     // Damaging Mark
-    if (m_marked && !m_markDetonating && m_markMesh) {
-        float bobOffset = sinf(m_markTimer * 5.0f) * 4.0f;
-        float daggerY = m_pos.y + m_size + 40.0f + bobOffset;
-        DrawMesh(m_markMesh, 14.0f, 20.0f, m_pos.x, daggerY, 0.0f, 255, 255, 255, 255);
-    }
-    else if (m_markDetonating && m_markMesh) {
-        float t = m_markDetonateTimer / 0.3f;
-        float hoverY = m_pos.y + m_size + 40.0f;
-        float daggerY = m_pos.y + (hoverY - m_pos.y) * t;
-        DrawMesh(m_markMesh, 14.0f, 20.0f, m_pos.x, daggerY, 0.0f, 255, 80, 80, 255);
+    //if (m_marked && !m_markDetonating && m_markMesh) {
+    //    float bobOffset = sinf(m_markTimer * 5.0f) * 4.0f;
+    //    float daggerY = m_pos.y + m_size + 40.0f + bobOffset;
+    //    DrawMesh(m_markMesh, 14.0f, 20.0f, m_pos.x, daggerY, 0.0f, 255, 255, 255, 255);
+    //}
+    //else if (m_markDetonating && m_markMesh) {
+    //    float t = m_markDetonateTimer / 0.3f;
+    //    float hoverY = m_pos.y + m_size + 40.0f;
+    //    float daggerY = m_pos.y + (hoverY - m_pos.y) * t;
+    //    DrawMesh(m_markMesh, 14.0f, 20.0f, m_pos.x, daggerY, 0.0f, 255, 80, 80, 255);
+    //}
+
+        // Damaging Mark visual
+    if (m_marked) {
+        if (!m_markDetonating) {
+            // Hovering bomb sprite with gentle bob
+            float bobOffset = sinf(m_markTimer * 5.0f) * 4.0f;
+            float detonateY = m_pos.y + m_size + 40.0f + bobOffset;
+
+            DrawDetonateSprite(
+                m_DetonateMesh,
+                m_DetonateTexture,
+                m_pos.x,
+                detonateY,
+                55.0f,
+                m_markTimer,
+                3.0f,
+                0   // first row = bomb
+            );
+        }
+        else {
+            DrawDetonateSprite(
+                m_DetonateMesh,
+                m_DetonateTexture,
+                m_pos.x,
+                m_pos.y + 15.0f,
+                95.0f,
+                m_markDetonateTimer,
+                0.3f,
+                1   // second row = explosion
+            );
+        }
     }
 }
 

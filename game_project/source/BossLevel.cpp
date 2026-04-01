@@ -80,7 +80,7 @@ void BossLevel_Load() {
 
 void BossLevel_Init() {
 	player.Init();
-	player.SetAttackCharges(g_PlayerAttackCharges);
+	//player.SetAttackCharges(g_PlayerAttackCharges);
 	player.SetMap(&gameMap);
 
 	camera.Init(player.GetX(), player.GetY());

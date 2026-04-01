@@ -37,6 +37,7 @@ void Player::Init()
     m_DashCharges = 1;
     m_DashRechargeTime = 5.0f;  // ~1.67s per charge
     m_DashRechargeTimer = 0.0f;
+    m_AttackCharges = 5;
 
     m_CurrentState = PlayerState::STATE_IDLE;
 
