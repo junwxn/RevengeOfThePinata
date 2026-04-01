@@ -156,6 +156,22 @@ void Audio::PlayGeneralSFX(GeneralSFX generalSound)
 	{
 		AEAudioPlay(m_generalSFX[GENERAL_TRUMPET], m_audioGroup.general, 1.0f, 1.0f, 0);
 	}
+	if (generalSound == GENERAL_AUGMENT)
+	{
+		AEAudioPlay(m_generalSFX[GENERAL_AUGMENT], m_audioGroup.general, 4.0f, 1.0f, 0);
+	}
+	if (generalSound == GENERAL_BOSS_DASH)
+	{
+		AEAudioPlay(m_generalSFX[GENERAL_BOSS_DASH], m_audioGroup.general, 2.0f, 1.0f, 0);
+	}
+	if (generalSound == GENERAL_BOSS_PHASE_CHANGE)
+	{
+		AEAudioPlay(m_generalSFX[GENERAL_BOSS_PHASE_CHANGE], m_audioGroup.general, 4.0f, 1.0f, 0);
+	}
+	if (generalSound == GENERAL_BOSS_PHASE3_GUN)
+	{
+		AEAudioPlay(m_generalSFX[GENERAL_BOSS_PHASE3_GUN], m_audioGroup.general, 4.0f, 1.0f, 0);
+	}
 }
 
 void Audio::PlayFireworksSFX()

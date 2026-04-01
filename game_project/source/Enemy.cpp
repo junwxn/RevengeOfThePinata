@@ -1534,6 +1534,11 @@ void Boss::TriggerPhaseTwo(std::vector<std::unique_ptr<Enemy>>& enemies)
     m_PhaseBlinkTimer = 0.0f;
     m_PhaseBlinkVisible = true;
 
+    if (!m_Phase2ChangeSFXPlayed) {
+        gAudio.PlayGeneralSFX(GENERAL_BOSS_PHASE_CHANGE);
+        m_Phase2ChangeSFXPlayed = true;
+    }
+
     // do NOT swap yet
     m_UsePhaseTwoSprite = false;
 
@@ -1643,6 +1648,13 @@ void Boss::UpdatePhaseThree(f32 dt, Player& player, std::vector<std::unique_ptr<
         m_AttackActive = false;
         m_WindingUp = false;
         m_KnockbackVelocity = { 0.0f, 0.0f };
+
+        if (m_Phase3ReachedCenter &&
+            !m_Phase3PreHealSFXPlayed &&
+            m_Phase3BlinkTimer >= (m_Phase3BlinkDuration - 1.3f)) {
+            gAudio.PlayGeneralSFX(GENERAL_BOSS_PHASE_CHANGE);
+            m_Phase3PreHealSFXPlayed = true;
+        }
 
         if (m_Phase3ReachedCenter && m_Phase3BlinkTimer >= m_Phase3BlinkDuration) {
             m_Phase3Blinking = false;
@@ -2271,6 +2283,10 @@ void Thrower::ThrowProjectile(AEVec2 const& targetPos) {
 
     m_projectiles.back().SetType(m_projectileType);
     m_projectiles.back().Init();
+
+    if (m_HideBody) {
+        gAudio.PlayGeneralSFX(GENERAL_BOSS_PHASE3_GUN);
+    }
 }
 
 // Projectile collision check

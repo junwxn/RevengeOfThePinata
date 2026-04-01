@@ -69,6 +69,10 @@ Fireworks none fireworks Fireworks8.wav
 General none general Announcement.wav
 General none general GameOver.wav
 General none general General1.wav
+General none general AugmentDrop.wav
+General none general BossDash.wav
+General none general NextPhase.wav
+General none general Phase3Gun.wav
 
 Player death player Death1.wav
 Player death player Death2.wav

@@ -417,6 +417,7 @@ protected:
     bool m_PhaseBlinkVisible = true;
     bool m_UsePhaseTwoSprite = false;
     bool m_PhaseTransitioning = false;
+    bool m_Phase2ChangeSFXPlayed = false;
 
     // Phase 3
     bool m_Phase3Triggered = false;
@@ -434,6 +435,8 @@ protected:
     float m_Phase3HealTarget = 0.0f;
     float m_Phase3RunToCenterSpeed = 420.0f;
     float m_Phase3ThrowerMoveSpeed = 60.0f;
+
+    bool m_Phase3PreHealSFXPlayed = false;
 
     // phase 4
     enum class BossFinalState {

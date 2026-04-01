@@ -230,12 +230,12 @@ static void DrawBossHealthBar(float camX, float camY)
 
 	float tw = 0.0f;
 	float th = 0.0f;
-	AEGfxGetPrintSize(s_bossFont, "DE BOSS BABY", 0.8f, &tw, &th);
+	AEGfxGetPrintSize(s_bossFont, "DA BOSS BABY", 0.8f, &tw, &th);
 
 	float centerX = barX + barW * 0.5f;
 	AEGfxPrint(
 		s_bossFont,
-		"DE BOSS BABY",
+		"DA BOSS BABY",
 		centerX / 800.0f - tw * 0.5f,
 		(barY - 60.0f) / 450.0f,
 		0.8f,
@@ -290,6 +290,8 @@ void BossLevel_Init()
 	bossPhase4DropActive = false;
 	bossPhase4FightActive = false;
 	bossPhase4CanDie = false;
+
+	gAudio.PlayBGM(BGM_BOSS);
 
 	Debug_Init();
 	DebugContext dbgCtx = {};
@@ -394,6 +396,8 @@ void BossLevel_Update(float dt)
 				augments.SetPosition(ballPos.x, ballPos.y);
 				augments.SetSpawnAnim(true);
 				bossPhase4DropActive = true;
+
+				gAudio.PlayGeneralSFX(GENERAL_AUGMENT);
 			}
 		}
 
@@ -786,4 +790,6 @@ void Boss::PreparePhase4DashTarget(Player& player)
 	m_Phase4DashTravelled = 0.0f;
 	m_Phase4CurrentDashSpeed = 0.0f;
 	m_Phase4DashHitPlayer = false;
+
+	gAudio.PlayGeneralSFX(GENERAL_BOSS_DASH);
 }
