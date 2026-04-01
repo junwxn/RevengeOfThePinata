@@ -73,6 +73,7 @@ General none general AugmentDrop.wav
 General none general BossDash.wav
 General none general NextPhase.wav
 General none general Phase3Gun.wav
+General none general GameVictory.wav
 
 Player death player Death1.wav
 Player death player Death2.wav

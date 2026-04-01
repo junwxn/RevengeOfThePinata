@@ -172,6 +172,10 @@ void Audio::PlayGeneralSFX(GeneralSFX generalSound)
 	{
 		AEAudioPlay(m_generalSFX[GENERAL_BOSS_PHASE3_GUN], m_audioGroup.general, 4.0f, 1.0f, 0);
 	}
+	if (generalSound == GENERAL_GAMEVICTORY)
+	{
+		AEAudioPlay(m_generalSFX[GENERAL_GAMEVICTORY], m_audioGroup.general, 4.0f, 1.0f, 0);
+	}
 }
 
 void Audio::PlayFireworksSFX()

@@ -1674,7 +1674,7 @@ void Boss::UpdatePhaseThree(f32 dt, Player& player, std::vector<std::unique_ptr<
     }
 
     if (!m_Phase4Triggered &&
-        m_CombatStats.health <= m_CombatStats.maxHealth * 0.01f) {
+        m_CombatStats.health <= m_CombatStats.maxHealth * 0.001f) {
         TriggerPhaseFour(enemies);
         return;
     }
@@ -1944,7 +1944,7 @@ void Boss::UpdatePhase4TripleDash(f32 dt, Player& player)
         AreCirclesIntersecting(player.GetX(), player.GetY(), player.GetSize(),
             m_pos.x, m_pos.y, m_size)) {
 
-        f32 dashDamage = m_Phase4Damage;
+        f32 dashDamage = 10.0f;
         player.DeductHealth(dashDamage);
         player.SetHDP(dashDamage);
 
@@ -1967,7 +1967,7 @@ void Boss::UpdatePhase4TripleDash(f32 dt, Player& player)
 
         // Knockback force
         float kbForce = 420.0f;
-        kbForce += m_Phase4CurrentDashSpeed * 0.25f;
+        kbForce += m_Phase4CurrentDashSpeed * 0.40f;
 
         AEVec2 forward;
         AEVec2Scale(&forward, &m_Phase4LockedDashDir, 120.0f);
@@ -2040,6 +2040,7 @@ void Boss::UpdatePhase4RecoveryPattern(f32 dt, Player& player)
     case 2:
     {
         m_EnableMelee = false;
+        m_AllowAttack = false;
         m_AttackActive = false;
         m_WindingUp = false;
 

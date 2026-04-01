@@ -683,7 +683,7 @@ void Player::Draw()
     // Draw using Utils helper
     // Color: Black (0,0,0) with full alpha (255)
     // Player Mesh
-    DrawMesh(m_pMesh, m_Size, isoHeight, m_PosX, m_PosY, 0.0f, 44, 145, 57, 255);
+    //DrawMesh(m_pMesh, m_Size, isoHeight, m_PosX, m_PosY, 0.0f, 44, 145, 57, 255);
 
     // Aiming Pointer
     //if (!m_AttackActive) {

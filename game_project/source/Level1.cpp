@@ -42,6 +42,7 @@ static bool wave2Spawned{};
 static f32 Barcount{ 0 };
 static f32 MinibarWidth = 100;
 static u8 CurrentBars{ 0 };
+static bool pendingAugmentDrop = false;
 
 // if wave ends
 static bool endofwave{};
@@ -66,7 +67,7 @@ static void SpawnWave1() {
 	// Thrower
 	for (int i = 0; i < 0; ++i) {
 		AEVec2 p3 = GetRandomSpawnPos(gameMap, playerPos, 200.0f, ENEMY_SIZE);
-		Wave1.push_back(std::make_unique<Thrower>(p3, ENEMY_SIZE, 80.0f, 100.0f));
+		Wave1.push_back(std::make_unique<Thrower>(p3, ENEMY_SIZE, 100.0f, 100.0f));
 	}
 
 
@@ -97,7 +98,7 @@ static void SpawnWave2() {
 	// Thrower
 	for (int i = 0; i < 2; ++i) {
 		AEVec2 p3 = GetRandomSpawnPos(gameMap, playerPos, 200.0f, ENEMY_SIZE);
-		Wave2.push_back(std::make_unique<Thrower>(p3, ENEMY_SIZE, 80.0f, 100.0f));
+		Wave2.push_back(std::make_unique<Thrower>(p3, ENEMY_SIZE, 100.0f, 100.0f));
 	}
 
 	for (auto& enemy : Wave2) {
@@ -146,6 +147,7 @@ void Level1_Init() {
 	wave2Spawned = false;
 	endofwave = false;
 	preventingmovement = false;
+	pendingAugmentDrop = false;
 
 	SpawnWave1();
 	wave1Active = true;
@@ -261,10 +263,7 @@ void Level1_Update(float dt) {
 
 		if (Wave2.empty()) {
 			wave2Active = false;
-			endofwave = true;
-			augments.SetPosition(player.GetX(), player.GetY());
-			//gAudio.PlayFireworksSFX();
-			gAudio.PlayGeneralSFX(GENERAL_AUGMENT);
+			pendingAugmentDrop = true;
 			gAudio.PlayFireworksSFX();
 			m_ClearSprite.StartClearAnimation(3.0f, 0.12f);
 		}
@@ -350,6 +349,14 @@ void Level1_Update(float dt) {
 	}
 
 	m_ClearSprite.Sprite_Update(dt);
+
+	if (pendingAugmentDrop && !m_ClearSprite.IsClearAnimationActive()) {
+		pendingAugmentDrop = false;
+		endofwave = true;
+
+		augments.SetPosition(player.GetX(), player.GetY());
+		gAudio.PlayGeneralSFX(GENERAL_AUGMENT);
+	}
 }
 
 void Level1_Draw() {
@@ -406,7 +413,6 @@ void Level1_Draw() {
 	Debug_DrawWorld(camera.GetX(), camera.GetY());
 
 	HUD_Draw(&player, camera.GetX(), camera.GetY());
-	Pause_Draw(camera.GetX(), camera.GetY());
 	Debug_DrawHUD();
 
 	// Clear Animation
@@ -416,6 +422,8 @@ void Level1_Draw() {
 	}
 
 	DrawClearOverlay(m_ClearSprite);
+	Pause_Draw(camera.GetX(), camera.GetY());
+
 }
 
 void Level1_Free() {

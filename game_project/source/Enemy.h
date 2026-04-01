@@ -208,13 +208,13 @@ protected:
     int m_DefendStopFrames{};
     Combat::CombatStats m_CombatStats
     {
-        100.0f,
-        30.0f,
-        5.0f,
-        0.0f,
-        0.0f,
-        0.0f,
-        100.0f
+        100.0f, // health
+        85.0f, // attack
+        0.0f, // defense
+        0.0f, // crit chance
+        0.0f, // crit multiplier
+        0.0f, // attack multiplier
+        100.0f // max health
     };
 
     float m_AttackFrameAccumulator{};
@@ -252,7 +252,7 @@ protected:
         6,      // active
         8,      // recovery
         17,     // total
-        20      // damage
+        100      // damage
     };
 
 
@@ -411,9 +411,9 @@ protected:
     f32 m_BaseAttackRange = 0.0f;
     f32 m_BaseAttackDamage = 0.0f;
 
-    f32 m_SizeGrowthPerHit = 3.0f;
-    f32 m_RangeGrowthPerHit = 6.0f;
-    f32 m_DamageGrowthPerHit = 3.0f;
+    f32 m_SizeGrowthPerHit = 5.0f;
+    f32 m_RangeGrowthPerHit = 15.0f;
+    f32 m_DamageGrowthPerHit = 15.0f;
 
     f32 m_PopBonus = 0.0f;
     bool m_WasGotHit = false;
@@ -492,7 +492,7 @@ protected:
 
     f32 m_Phase4Speed = 150.0f;
     f32 m_Phase4RangeBonus = 120.0f;
-    f32 m_Phase4Damage = 40.0f; 
+    f32 m_Phase4Damage = 130.0f; 
     bool m_Phase4BuffApplied = false;
 
     f32 m_Phase4PreDashBlinkTimer = 0.0f;
@@ -541,10 +541,11 @@ public:
     void Draw() override;
 
     void SetHideBody(bool hide) { m_HideBody = hide; }
-    void SetProjectileStats(float speed, float radius, float damage) {
+    void SetProjectileStats(float speed, float radius, float damage, float maxRange) {
         m_projectileSpeed = speed;
         m_projectileRadius = radius;
         m_projectileDamage = damage;
+        m_maxThrowRange = maxRange;
     }
 
 protected:
@@ -564,7 +565,7 @@ protected:
     f32 m_maxThrowRange{ 500.0f };
     f32 m_projectileSpeed{ 500.0f };
     f32 m_projectileRadius{ 8.0f };
-    f32 m_projectileDamage{ 50.0f };
+    f32 m_projectileDamage{ 60.0f };
     f32 m_projectileLifetime{ 3.0f };
     ProjectileType m_projectileType{ ProjectileType::Reflect };
     bool m_HideBody = false;

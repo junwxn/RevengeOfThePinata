@@ -14,6 +14,7 @@ Copyright © 2026 DigiPen, All rights reserved.
 #include "Utils.h"
 #include "Transition.h"
 #include "SaveSystem.h"
+#include "Audio.h"
 #include <cstdlib>
 
 static AEGfxVertexList* rectMesh = nullptr;
@@ -70,6 +71,7 @@ void Victory_Init() {
 	entranceTimer = 0.0f;
 	for (int i = 0; i < NUM_CONFETTI; i++)
 		SpawnConfetti(confetti[i], true);
+	gAudio.PlayGeneralSFX(GENERAL_GAMEVICTORY);
 }
 
 void Victory_Update(float dt) {
@@ -179,4 +181,5 @@ void Victory_Unload() {
 		AEGfxDestroyFont(fontBody);
 		fontBody = -1;
 	}
+	AEAudioStopGroup(gAudio.m_audioGroup.BGM);
 }

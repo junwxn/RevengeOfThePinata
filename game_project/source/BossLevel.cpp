@@ -173,7 +173,7 @@ static void SpawnBossWave()
 
 	// spawn boss on a valid tile
 	AEVec2 bossPos = GetRandomSpawnPos(gameMap, playerPos, 200.0f, BOSS_SIZE);
-	Wave1.push_back(std::make_unique<Boss>(bossPos, 20.0f, 800.0f, 150.0f));
+	Wave1.push_back(std::make_unique<Boss>(bossPos, 20.0f, 1000.0f, 150.0f));
 
 	for (auto& enemy : Wave1) {
 		enemy->Init();
@@ -320,19 +320,35 @@ void BossLevel_Update(float dt)
 
 	// debug keys
 	Debug_Update();
-	Debug_Update();
 
 	if (AEInputCheckTriggered(AEVK_K)) {
 		Boss* boss = GetBoss();
 
 		if (boss) {
+			// Do not allow debug skipping while the boss is already transitioning
+			bool bossBusy =
+				boss->IsPhaseTransitioning() ||
+				boss->IsPhaseBlinking() ||
+				boss->IsPhase3Transitioning() ||
+				boss->IsPhase3Blinking() ||
+				boss->IsPhase4Transitioning() ||
+				boss->IsPhase4Blinking() ||
+				boss->IsPhase4BallVisible();
+
+			if (bossBusy) {
+				return;
+			}
+
+			// Phase 1 -> Phase 2
 			if (!bossPhase2Triggered) {
 				boss->SetHealth(0.0f);
 			}
+			// Phase 2 -> Phase 3
 			else if (!boss->IsPhase3Triggered()) {
 				float maxHP = boss->GetCombatStats().maxHealth;
 				boss->SetHealth(maxHP * 0.20f);
 			}
+			// Phase 3 -> Phase 4
 			else if (!boss->IsPhase4Triggered()) {
 				bossPhase4DropActive = false;
 				bossPhase4FightActive = false;
@@ -341,6 +357,7 @@ void BossLevel_Update(float dt)
 
 				boss->SetHealth(0.0f);
 			}
+			// Phase 4 orb pickup shortcut
 			else if (!bossPhase4FightActive) {
 				bossPhase4DropActive = false;
 				bossPhase4FightActive = true;
@@ -352,6 +369,7 @@ void BossLevel_Update(float dt)
 
 				boss->ConsumePhase4Pickup();
 			}
+			// Final kill
 			else {
 				bossPhase4CanDie = true;
 				boss->SetHealth(0.0f);
@@ -618,7 +636,7 @@ void BossLevel_Update(float dt)
 				bossPhase3Gun->Init();
 				bossPhase3Gun->SetMap(&gameMap);
 				bossPhase3Gun->SetHideBody(true);
-				bossPhase3Gun->SetProjectileStats(1000.0f, 20.0f, 30.0f);
+				bossPhase3Gun->SetProjectileStats(1200.0f, 20.0f, 150.0f, 10000.0f);
 			}
 
 			bossPhase2Active = false;
@@ -770,8 +788,9 @@ void BossLevel_Draw()
 		augments.Draw(camera.GetX(), camera.GetY());
 	}
 
-	Pause_Draw(camera.GetX(), camera.GetY());
 	Debug_DrawHUD();
+	Pause_Draw(camera.GetX(), camera.GetY());
+
 }
 
 void BossLevel_Free()

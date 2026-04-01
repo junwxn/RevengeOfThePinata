@@ -39,6 +39,7 @@ static bool wave1Active{};
 static bool wave2Active{};
 static bool wave1Spawned{};
 static bool wave2Spawned{};
+static bool pendingAugmentDrop = false;
 
 
 // wave state
@@ -64,7 +65,7 @@ static void SpawnWave1_L2() {
 	// Thrower
 	for (int i = 0; i < 0; ++i) {
 		AEVec2 p3 = GetRandomSpawnPos(gameMap, playerPos, 200.0f, ENEMY_SIZE);
-		Wave1.push_back(std::make_unique<Thrower>(p3, ENEMY_SIZE, 80.0f, 100.0f));
+		Wave1.push_back(std::make_unique<Thrower>(p3, ENEMY_SIZE, 100.0f, 100.0f));
 	}
 
 	for (auto& enemy : Wave1) {
@@ -135,6 +136,7 @@ void Level2_Init() {
 	wave2Active = false;
 	wave1Spawned = false;
 	wave2Spawned = false;
+	pendingAugmentDrop = false;
 	endofwave = false;
 	preventingmovement = false;
 
@@ -226,10 +228,8 @@ void Level2_Update(float dt) {
 
 		if (Wave2.empty()) {
 			wave2Active = false;
-			endofwave = true;
-			augments.SetPosition(player.GetX(), player.GetY());
-			//gAudio.PlayFireworksSFX();
-			gAudio.PlayGeneralSFX(GENERAL_AUGMENT);
+			pendingAugmentDrop = true;
+
 			gAudio.PlayFireworksSFX();
 			m_ClearSprite.StartClearAnimation(3.0f, 0.12f);
 		}
@@ -296,6 +296,14 @@ void Level2_Update(float dt) {
 	}
 
 	m_ClearSprite.Sprite_Update(dt);
+
+	if (pendingAugmentDrop && !m_ClearSprite.IsClearAnimationActive()) {
+		pendingAugmentDrop = false;
+		endofwave = true;
+
+		augments.SetPosition(player.GetX(), player.GetY());
+		gAudio.PlayGeneralSFX(GENERAL_AUGMENT);
+	}
 }
 
 void Level2_Draw() {
@@ -341,7 +349,6 @@ void Level2_Draw() {
 	Debug_DrawWorld(camera.GetX(), camera.GetY());
 
 	HUD_Draw(&player, camera.GetX(), camera.GetY());
-	Pause_Draw(camera.GetX(), camera.GetY());
 	Debug_DrawHUD();
 
 	AugmentEffects_Draw(camera.GetX(), camera.GetY());
@@ -350,6 +357,8 @@ void Level2_Draw() {
 	}
 
 	DrawClearOverlay(m_ClearSprite);
+	Pause_Draw(camera.GetX(), camera.GetY());
+
 }
 
 void Level2_Free() {
