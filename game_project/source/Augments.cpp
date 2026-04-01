@@ -238,7 +238,7 @@ void Augments::Update(f32 playerX, f32 playerY, f32 dt) {
                 // cardsInPosition prevents picking all 3 at once
 
                 if (AEInputCheckTriggered(AEVK_LBUTTON)) {
-                    if (IsMouseInside(mouseWX, mouseWY, cards_x1 + (cardWidth * 0.5), cards_y, cardWidth, cardHeight))
+                    if (IsMouseInside(mouseWX, mouseWY, cards_x1 + (cardWidth * 0.5f), cards_y, cardWidth, cardHeight))
                     {
                         std::cout << "Red picked\n";
                         g_Augments.Choose(m_currentSet, m_cardIDs[0]);
@@ -247,7 +247,7 @@ void Augments::Update(f32 playerX, f32 playerY, f32 dt) {
                         choose = false;
                     }
 
-                    if (IsMouseInside(mouseWX, mouseWY, cards_x2 + (cardWidth * 0.5), cards_y, cardWidth, cardHeight))
+                    if (IsMouseInside(mouseWX, mouseWY, cards_x2 + (cardWidth * 0.5f), cards_y, cardWidth, cardHeight))
                     {
                         std::cout << "Blue picked\n";
                         g_Augments.Choose(m_currentSet, m_cardIDs[1]);
@@ -256,7 +256,7 @@ void Augments::Update(f32 playerX, f32 playerY, f32 dt) {
                         choose = false;
                     }
 
-                    if (IsMouseInside(mouseWX, mouseWY, cards_x3 + (cardWidth * 0.5), cards_y, cardWidth, cardHeight))
+                    if (IsMouseInside(mouseWX, mouseWY, cards_x3 + (cardWidth * 0.5f), cards_y, cardWidth, cardHeight))
                     {
                         std::cout << "Green picked\n";
                         g_Augments.Choose(m_currentSet, m_cardIDs[2]);
@@ -337,8 +337,8 @@ void Augments::Draw(float camX, float camY) {
             0,                          // currentDirection/frame (0 = one frame)
             candyMesh,                  // mesh
             m_candyTex,                 // candy texture
-            augSize * 1.75,             // width of candy
-            augSize * 1.75,             // height of candy
+            augSize * 1.75f,             // width of candy
+            augSize * 1.75f,             // height of candy
             augPosX,                    // x position
             hoverPosY + hoverOffset,    // y position with hover
             0.0f,                       // rotation (0 = no rotation)
