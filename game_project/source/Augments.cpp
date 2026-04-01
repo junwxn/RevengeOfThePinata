@@ -141,7 +141,7 @@ void Augments::Update(f32 playerX, f32 playerY, f32 dt) {
         //std::cout << "beamY: " << beamY << std::endl; // mesh draw
     }
 
-    if (beamY < 50.f) {
+    if (beamY < 25.f) {
         // spawning augment ball
         spawn_anim = true;
     }
@@ -149,7 +149,7 @@ void Augments::Update(f32 playerX, f32 playerY, f32 dt) {
     // augment ball spawn
     if (spawn_anim) {
 
-        beamX -= 300.0f * deltaTime;
+        beamX -= 500.0f * deltaTime;
         if (beamX <= 0.0f)
         {
             beamX = 0.0f;
