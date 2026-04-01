@@ -368,7 +368,7 @@ void MainMenu_Update(float dt) {
 		}
 		else if (menuScreen == MENU_TUTORIAL_PROMPT) {
 			if (yesButton.hovered) { /*next = GS_TUTORIAL;*/ Transition_Start(GS_TUTORIAL); }
-			if (noButton.hovered) { /*next = GS_LEVEL1;*/ Transition_Start(GS_BOSSLEVEL, TransitionSheet::LEVEL1); }
+			if (noButton.hovered) { /*next = GS_LEVEL1;*/ Transition_Start(GS_LEVEL1, TransitionSheet::LEVEL1); }
 			if (backButton.hovered) menuScreen = MENU_MAIN;
 		}
 		else if (menuScreen == MENU_CONFIRMATION) {
