@@ -456,6 +456,36 @@ void Enemy::Draw() {
         }
     }
 
+    // Plus One visual when enemy gets parried
+    if (m_CombatFlags.parried)
+    {
+        m_EnemySprite.SetPlusOneFrame(0); // choose frame here
+
+        AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
+        AEGfxSetColorToMultiply(1.0f, 1.0f, 1.0f, 1.0f);
+        AEGfxSetColorToAdd(0.0f, 0.0f, 0.0f, 0.0f);
+        AEGfxSetBlendMode(AE_GFX_BM_BLEND);
+        AEGfxSetTransparency(1.0f);
+
+        AEGfxTextureSet(
+            m_EnemySprite.GetPlusOneSpriteSheet(),
+            m_EnemySprite.GetPlusOneU(),
+            m_EnemySprite.GetPlusOneV()
+        );
+
+        AEMtx33 scale, rot, trans, final;
+        AEMtx33Scale(&scale, 55.0f, 55.0f);
+        AEMtx33Rot(&rot, 0.0f);
+        AEMtx33Trans(&trans, m_pos.x, m_pos.y + m_size + 70.0f);
+
+        AEMtx33Concat(&final, &rot, &scale);
+        AEMtx33Concat(&final, &trans, &final);
+
+        AEGfxSetTransform(final.m);
+        AEGfxMeshDraw(m_EnemySprite.GetPlusOneSpriteMesh(), AE_GFX_MDM_TRIANGLES);
+        m_EnemySprite.ResetPlusOneAnimation();
+    }
+
     
 
     // ENEMY SPRITE DRAWING
@@ -1163,6 +1193,22 @@ void Dasher::Draw()
                 1   // second row = explosion
             );
         }
+    }
+
+    // Plus One visual when enemy gets parried
+    if (m_CombatFlags.parried)
+    {
+        DrawTexture(
+            m_EnemySprite,
+            m_EnemySprite.GetPlusOneSpriteMesh(),
+            m_EnemySprite.GetPlusOneSpriteSheet(),
+            55.0f, 55.0f,
+            m_pos.x,
+            m_pos.y + m_size + 70.0f,
+            0.0f,
+            1.0f
+        );
+        m_DasherSprite.ResetPlusOneAnimation();
     }
 }
 

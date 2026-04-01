@@ -43,6 +43,11 @@ class Sprite
 
 		AEGfxTexture* GetPlayerCombatSpriteSheet() { return m_pPlayerCombatSpriteSheet; }
 		AEGfxVertexList* GetPlayerCombatSpriteMesh() { return m_pPlayerCombatSpriteMesh; }
+
+		// Plus One
+		AEGfxTexture* GetPlusOneSpriteSheet() { return m_pPlusOneSpriteSheet; }
+		AEGfxVertexList* GetPlusOneSpriteMesh() { return m_pPlusOneSpriteMesh; }
+
 		float GetPixelScale() const { return m_pixelScale; }
 
 		float GetU() const { return m_u0; }
@@ -92,6 +97,38 @@ class Sprite
 			SetTextureV(rowIndex);
 		}
 
+		int GetPlusOneFrame() const { return m_plusOneFrame; }
+
+		void SetPlusOneTextureU() { m_plusOneU0 = m_plusOneFrame * m_plusOneFrameUSize; }
+		void SetPlusOneTextureV(int row) { m_plusOneRow = row; m_plusOneV0 = m_plusOneRow * m_plusOneFrameVSize; }
+
+		float GetPlusOneU() const { return m_plusOneU0; }
+		float GetPlusOneV() const { return m_plusOneV0; }
+
+		void SetPlusOneFrame(int frame, int row = 0)
+		{
+			m_plusOneFrame = frame;
+			m_plusOneRow = row;
+			m_plusOneFrameUSize = 1.0f / 8.0f; // change if not 8
+			m_plusOneFrameVSize = 1.0f / 1.0f;
+			SetPlusOneTextureU();
+			SetPlusOneTextureV(row);
+		}
+
+		float GetPlusOneFrameSpeed() const { return m_plusOneFrameSpeed; }
+		void SetPlusOneFrameSpeed(float speed) { m_plusOneFrameSpeed = speed; }
+
+		void ResetPlusOneAnimation()
+		{
+			m_plusOneFrame = 0;
+			m_plusOneRow = 0;
+			m_plusOneFrameTimer = 0.0f;
+			m_plusOneFrameUSize = 1.0f / 8.0f;
+			m_plusOneFrameVSize = 1.0f / 1.0f;
+			SetPlusOneTextureU();
+			SetPlusOneTextureV(0);
+		}
+
 	private:
 		// Enemy Spritesheet
 		// Base
@@ -131,6 +168,10 @@ class Sprite
 		AEGfxTexture* m_pPlayerCombatSpriteSheet{ nullptr };
 		AEGfxVertexList* m_pPlayerCombatSpriteMesh{ nullptr };
 
+		// Plus One
+		AEGfxTexture* m_pPlusOneSpriteSheet{ nullptr };
+		AEGfxVertexList* m_pPlusOneSpriteMesh{ nullptr };
+
 		float m_pixelScale{ 64.0f };
 
 		int m_frame{};
@@ -155,4 +196,13 @@ class Sprite
 
 		float m_p_u0{ m_pFrame * m_pFrameUSize };
 		float m_p_v0{ m_pRow * m_pFrameVSize };
+
+		int m_plusOneFrame{};
+		int m_plusOneRow{};
+		float m_plusOneFrameUSize{ 1.0f / 8.0f };
+		float m_plusOneFrameVSize{ 1.0f / 1.0f };
+		float m_plusOneU0{ 0.0f };
+		float m_plusOneV0{ 0.0f };
+		float m_plusOneFrameTimer{};
+		float m_plusOneFrameSpeed{ 0.50f };
 };
