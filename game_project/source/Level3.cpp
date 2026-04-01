@@ -30,6 +30,7 @@ static MapSystem gameMap;
 static Augments augments{};
 
 // update variables
+static WaveTimers waveControl;
 static Combat::System CombatSystem;
 static std::vector<std::unique_ptr<Enemy>> Wave1{};
 static std::vector<std::unique_ptr<Enemy>> Wave2{};
@@ -201,9 +202,12 @@ void Level3_Update(float dt) {
 	if (wave1Active) {
 		Wave1.erase(
 			std::remove_if(Wave1.begin(), Wave1.end(),
-				[](const std::unique_ptr<Enemy>& e) { return e->GetCombatStats().health <= 0.0f; }),
+				[](const std::unique_ptr<Enemy>& e) {
+					return e->GetCombatStats().health <= 0.0f;
+				}),
 			Wave1.end()
 		);
+
 		for (auto& enemy : Wave1) {
 			enemy->Update(dt, CombatSystem, player, Wave1);
 			CombatSystem.Update(player, *enemy, camera, dt);
@@ -211,11 +215,24 @@ void Level3_Update(float dt) {
 
 		if (Wave1.empty()) {
 			wave1Active = false;
-			if (!wave2Spawned) {
-				SpawnWave2_L3();
-				wave2Active = true;
-				wave2Spawned = true;
-			}
+		}
+	}
+
+	// --- Delayed spawn Wave 2 ---
+	if (!wave1Active && !wave2Spawned)
+	{
+		waveControl.SetWaveTimer(dt);
+
+		std::cout << "Wave 2 Timer: " << waveControl.GetWaveTimer()
+			<< " / " << waveControl.GetWaveTrigger() << std::endl;
+
+		if (waveControl.GetWaveTimer() >= waveControl.GetWaveTrigger())
+		{
+			std::cout << "SPAWNING WAVE 2" << std::endl;
+			SpawnWave2_L3();
+			wave2Active = true;
+			wave2Spawned = true;
+			waveControl.ResetWaveTimer();
 		}
 	}
 
@@ -223,9 +240,12 @@ void Level3_Update(float dt) {
 	if (wave2Active) {
 		Wave2.erase(
 			std::remove_if(Wave2.begin(), Wave2.end(),
-				[](const std::unique_ptr<Enemy>& e) { return e->GetCombatStats().health <= 0.0f; }),
+				[](const std::unique_ptr<Enemy>& e) {
+					return e->GetCombatStats().health <= 0.0f;
+				}),
 			Wave2.end()
 		);
+
 		for (auto& enemy : Wave2) {
 			enemy->Update(dt, CombatSystem, player, Wave2);
 			CombatSystem.Update(player, *enemy, camera, dt);
@@ -233,11 +253,24 @@ void Level3_Update(float dt) {
 
 		if (Wave2.empty()) {
 			wave2Active = false;
-			if (!wave3Spawned) {
-				SpawnWave3_L3();
-				wave3Active = true;
-				wave3Spawned = true;
-			}
+		}
+	}
+
+	// --- Delayed spawn Wave 3 ---
+	if (!wave2Active && wave2Spawned && !wave3Spawned)
+	{
+		waveControl.SetWaveTimer(dt);
+
+		std::cout << "Wave 3 Timer: " << waveControl.GetWaveTimer()
+			<< " / " << waveControl.GetWaveTrigger() << std::endl;
+
+		if (waveControl.GetWaveTimer() >= waveControl.GetWaveTrigger())
+		{
+			std::cout << "SPAWNING WAVE 3" << std::endl;
+			SpawnWave3_L3();
+			wave3Active = true;
+			wave3Spawned = true;
+			waveControl.ResetWaveTimer();
 		}
 	}
 

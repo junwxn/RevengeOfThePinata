@@ -31,6 +31,7 @@ static MapSystem gameMap;
 static Augments augments{};
 
 // update variables
+static WaveTimers waveControl;
 static Combat::System CombatSystem;
 static std::vector<std::unique_ptr<Enemy>> Wave1{};
 static std::vector<std::unique_ptr<Enemy>> Wave2{};
@@ -166,10 +167,13 @@ void Level2_Update(float dt) {
 	player.Update(dt, CombatSystem, activeWave, camera.GetX(), camera.GetY(), preventingmovement);
 
 	// --- Wave 1 logic ---
+// --- Wave 1 logic ---
 	if (wave1Active) {
 		Wave1.erase(
 			std::remove_if(Wave1.begin(), Wave1.end(),
-				[](const std::unique_ptr<Enemy>& e) { return e->GetCombatStats().health <= 0.0f; }),
+				[](const std::unique_ptr<Enemy>& e) {
+					return e->GetCombatStats().health <= 0.0f;
+				}),
 			Wave1.end()
 		);
 
@@ -178,15 +182,26 @@ void Level2_Update(float dt) {
 			CombatSystem.Update(player, *enemy, camera, dt);
 		}
 
-
 		if (Wave1.empty()) {
 			wave1Active = false;
-			// Spawn wave 2 if not yet spawned
-			if (!wave2Spawned) {
-				SpawnWave2_L2();
-				wave2Active = true;
-				wave2Spawned = true;
-			}
+		}
+	}
+
+	// --- Wave 2 delayed spawn logic ---
+	if (!wave1Active && !wave2Spawned)
+	{
+		waveControl.SetWaveTimer(dt);
+
+		std::cout << "Timer: " << waveControl.GetWaveTimer()
+			<< " / " << waveControl.GetWaveTrigger() << std::endl;
+
+		if (waveControl.GetWaveTimer() >= waveControl.GetWaveTrigger())
+		{
+			std::cout << "SPAWNING WAVE 2" << std::endl;
+			SpawnWave2_L2();
+			wave2Active = true;
+			wave2Spawned = true;
+			waveControl.ResetWaveTimer();
 		}
 	}
 

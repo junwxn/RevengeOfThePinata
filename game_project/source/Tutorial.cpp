@@ -53,15 +53,15 @@ static s8 tutorialFont = -1;
 // All offsets are in screen pixels from camera center
 static const float PINATA_OFFSET_X  = -700.0f;  // pinata X (negative = left)
 static const float PINATA_OFFSET_Y  =  200.0f;  // pinata Y (negative = down)
-static const float PINATA_W         =  500.0f;   // pinata draw width
-static const float PINATA_H         =  500.0f;   // pinata draw height
+static const float PINATA_W         =  320.0f;   // pinata draw width
+static const float PINATA_H         =  320.0f;   // pinata draw height
 
-static const float SPEECH_OFFSET_X  =  380.0f;  // speech bubble X offset from pinata
-static const float SPEECH_OFFSET_Y  =  140.0f;  // speech bubble Y offset from pinata
+static const float SPEECH_OFFSET_X  =  340.0f;  // speech bubble X offset from pinata
+static const float SPEECH_OFFSET_Y  =  100.0f;  // speech bubble Y offset from pinata
 static const float SPEECH_W         =  450.0f;   // speech bubble width
 static const float SPEECH_H         =  250.0f;   // speech bubble height
 
-static const float TEXT_OFFSET_X    =  160.0f;   // text fine-tune X inside bubble (pixels)
+static const float TEXT_OFFSET_X    =  180.0f;   // text fine-tune X inside bubble (pixels)
 static const float TEXT_OFFSET_Y    =   15.0f;   // text fine-tune Y inside bubble (pixels)
 static const float TEXT_SCALE       =    0.72f;  // main text scale
 static const float SUBTEXT_OFFSET_Y =  -25.0f;   // subtext Y offset from bubble center

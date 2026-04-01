@@ -69,7 +69,7 @@ public:
 
     void AutoAttackCharge(float dt)
     {
-        std::cout << "m_AttackChargeTimer: " << m_AttackChargeTimer << std::endl;
+        //std::cout << "m_AttackChargeTimer: " << m_AttackChargeTimer << std::endl;
         m_AttackChargeTimer += dt;
         if (m_AttackChargeTimer > m_ResetAttackChargeTimer)
         {
@@ -239,6 +239,8 @@ private:
     float m_AttackDuration{ 0.15f };
 
     float m_AttackFrameAccumulator{};
+    float m_AttackStopAccumulator{};
+    float m_ParryStopAccumulator{};
     int m_AttackCurrentFrame{};
 
     int m_AttackChainIterator{};

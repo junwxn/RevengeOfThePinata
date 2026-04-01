@@ -64,10 +64,16 @@ void Augments::Init() {
     choiceCameraX = 0;
     choiceCameraY = 0;
 
+    beamStartY = augPosY + 1000.0f;  // high in the sky
+    beamX = 200;
+    beamY = beamStartY;
+    beamTargetY = augPosY;
+
     // Free any existing resources before creating new ones (prevents leaks on restart)
     if (interactMesh) { AEGfxMeshFree(interactMesh); interactMesh = nullptr; }
     if (augmentMesh) { AEGfxMeshFree(augmentMesh); augmentMesh = nullptr; }
     if (cardMesh)    { AEGfxMeshFree(cardMesh);    cardMesh    = nullptr; }
+    if (beamMesh) { AEGfxMeshFree(beamMesh);    beamMesh = nullptr; }
     if (m_cardFont != -1) { AEGfxDestroyFont(m_cardFont); m_cardFont = -1; }
     if (m_candyTex) { AEGfxTextureUnload(m_candyTex); m_candyTex = nullptr; }
     if (m_amplifieddamageTex) { AEGfxTextureUnload(m_amplifieddamageTex); m_amplifieddamageTex = nullptr; }
@@ -80,9 +86,11 @@ void Augments::Init() {
     if (m_quickparryTex) { AEGfxTextureUnload(m_quickparryTex); m_quickparryTex = nullptr; }
     if (m_shielddashTex) { AEGfxTextureUnload(m_shielddashTex); m_shielddashTex = nullptr; }
     if (interactTex) { AEGfxTextureUnload(interactTex); interactTex = nullptr; }
+    if (beamTex) { AEGfxTextureUnload(beamTex); beamTex = nullptr; }
 
     m_candyTex = AEGfxTextureLoad("Assets/Cards/candy.png");
     interactTex = AEGfxTextureLoad("Assets/Cards/pressXtointeract.png");
+    beamTex = AEGfxTextureLoad("Assets/Cards/beam.png"); //
 
     m_amplifieddamageTex = AEGfxTextureLoad("Assets/Cards/amplifieddamage2.png"); // 2 versions
     m_attackmomentumTex = AEGfxTextureLoad("Assets/Cards/attackmomentum.png");
@@ -97,6 +105,7 @@ void Augments::Init() {
     augmentMesh = CreateCircleMesh(1, 16, 0x000000);
     candyMesh = CreateSpriteRectMesh(0x000000, 1.0, 1.0);
     interactMesh = CreateSpriteRectMesh(0x000000, 1.0f, 1.0f);
+    beamMesh = CreateSpriteRectMesh(0x000000, 1.0f, 1.0f);
 
     cardMesh = CreateRectMesh(0x000000);
     m_cardFont = AEGfxCreateFont("Assets/fonts/Stick-Regular.ttf", 24);
@@ -120,17 +129,35 @@ void Augments::Init() {
 
 void Augments::Update(f32 playerX, f32 playerY, f32 dt) {
 
-    if (AEInputCheckTriggered(AEVK_L)) {
-        spawn_anim = true;
-        printf("spawnanim is true\n");
+    deltaTime = dt;
+
+    // start beam animation
+    if (startingAnimation) {
+        float distance = beamTargetY - beamY;
+        beamY += distance * 10.0f * deltaTime; // tweak speed
+
+        //std::cout << "beamTargetY: " << beamTargetY << std::endl;
+        //std::cout << "distance: " << distance << std::endl;
+        //std::cout << "beamY: " << beamY << std::endl; // mesh draw
     }
 
+    if (beamY < 25.f) {
+        // spawning augment ball
+        spawn_anim = true;
+    }
 
+    // augment ball spawn
     if (spawn_anim) {
+
+        beamX -= 500.0f * deltaTime;
+        if (beamX <= 0.0f)
+        {
+            beamX = 0.0f;
+            startingAnimation = false;
+        }
 
         float dx = playerX;
         float dy = playerY;
-        deltaTime = dt;
 
         s32 mouseX, mouseY;
         AEInputGetCursorPosition(&mouseX, &mouseY);
@@ -159,7 +186,7 @@ void Augments::Update(f32 playerX, f32 playerY, f32 dt) {
             std::cout << "mouseWY: " << mouseWY << std::endl;
         }
 
-        if (playerballdist < interactRange && !choose) {
+        if (playerballdist < interactRange && !choose && !startingAnimation) {
             printf("PRESS X TO INTERACT\n");
 
             if (AEInputCheckTriggered(AEVK_X)) {
@@ -240,26 +267,6 @@ void Augments::Update(f32 playerX, f32 playerY, f32 dt) {
                 }
             }
 
-            // temp
-            /*if (IsMouseInside(mouseWX, mouseWY, cards_x1 + (cardWidth * 0.5), cards_y, cardWidth, cardHeight))
-            {
-                std::cout << "Red picked\n";
-            }
-
-            if (IsMouseInside(mouseWX, mouseWY, cards_x2 + (cardWidth * 0.5), cards_y, cardWidth, cardHeight))
-            {
-                std::cout << "Blue picked\n";
-            }
-
-            if (IsMouseInside(mouseWX, mouseWY, cards_x3 + (cardWidth * 0.5), cards_y, cardWidth, cardHeight))
-            {
-                std::cout << "Green picked\n";
-            }*/
-
-            //DrawMesh(cardMesh, 400, 600, cards_x1, playerY - cards_y, 0.0f, 255, 0, 0, 255); // Red Card (Left)
-            //DrawMesh(cardMesh, 400, 600, cards_x2, playerY - cards_y, 0.0f, 0, 0, 255, 255); // Blue Card (Right)
-            //DrawMesh(cardMesh, 400, 600, playerX - 200, playerY - cards_y, 0.0f, 0, 255, 0, 255); // Green Card (Middle)
-
 
             // Updates location, draw all at once in the end
             if (fabs(distanceY) > 2.f) {
@@ -298,10 +305,7 @@ void Augments::Draw(float camX, float camY) {
     // AUGMENT SPAWNS AFTER LAST ENEMY DEATH (store enemy last location (wave is a vector) when size of wave = 1)
     // Ensure Color Mode is set
 
-    if (!spawn_anim) {
-
-    }
-    else {
+    if (spawn_anim) {
 
         AEGfxSetRenderMode(AE_GFX_RM_COLOR);
 
@@ -343,7 +347,7 @@ void Augments::Draw(float camX, float camY) {
 
         //DrawMesh(candyMesh, augSize, augSize, augPosX, augPosY, 0.0f, 255, 255, 255, 255);
 
-        if (playerballdist < interactRange && !choose) {
+        if (playerballdist < interactRange && !choose && !startingAnimation) {
             /*printf("I SUMMON THEE");*/
             AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
             AEGfxSetColorToMultiply(1.0f, 1.0f, 1.0f, 1.0f);
@@ -435,6 +439,31 @@ void Augments::Draw(float camX, float camY) {
 
         }
 
+
+    }
+
+    if (beamX > 0) {
+        startingAnimation = true;
+
+        AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
+        AEGfxSetColorToMultiply(1.0f, 1.0f, 1.0f, 1.0f);
+        AEGfxSetColorToAdd(0.0f, 0.0f, 0.0f, 0.0f);
+        AEGfxSetBlendMode(AE_GFX_BM_BLEND);
+        AEGfxSetTransparency(1.0f);
+        AEGfxTextureSet(beamTex, 0.0f, 0.0f);
+
+        DrawTexture(
+            beamSprite,
+            0,
+            beamMesh,
+            beamTex,
+            beamX,
+            1000,
+            augPosX,
+            augPosY + beamY + 400,
+            0.0f,
+            1.0f
+        );
     }
 }
 
@@ -454,6 +483,10 @@ void Augments::Free() {
     if (interactMesh) {
         AEGfxMeshFree(interactMesh);
         interactMesh = nullptr;
+    }
+    if (beamMesh) {
+        AEGfxMeshFree(beamMesh);
+        beamMesh = nullptr;
     }
     if (m_cardFont != -1) {
         AEGfxDestroyFont(m_cardFont);
@@ -503,6 +536,10 @@ void Augments::Free() {
     if (interactTex) {
         AEGfxTextureUnload(interactTex);
         interactTex = nullptr;
+    }
+    if (beamTex) {
+        AEGfxTextureUnload(beamTex);
+        beamTex = nullptr;
     }
 }
 

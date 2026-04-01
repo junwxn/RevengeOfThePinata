@@ -37,6 +37,19 @@ struct RectData {
     f32 max, min, current, var;
 };
 
+class WaveTimers
+{
+    public:
+        void ResetWaveTimer() { waveTimer = 0; }
+        float GetWaveTimer() { return waveTimer; }
+        float GetWaveTrigger() { return nextWaveTrigger; }
+        void SetWaveTimer(float dt) { waveTimer += dt; }
+
+    private:
+        float nextWaveTrigger{ 2.0 };
+        float waveTimer{};
+};
+
 // --- Math Helpers ---
 // Converts Grid (Iso) coordinates to Screen (Cartesian) coordinates
 Vec2 GridToScreen(int gridX, int gridY);
