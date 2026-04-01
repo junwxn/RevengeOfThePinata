@@ -22,7 +22,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     UNREFERENCED_PARAMETER(hPrevInstance);
     UNREFERENCED_PARAMETER(lpCmdLine);
 
-    AESysInit(hInstance, nCmdShow, 1600, 900, 1, 60, true, NULL);
+    AESysInit(hInstance, nCmdShow, 1600, 900, 0, 60, true, NULL);
     AESysSetWindowTitle("Revenge of the Pinata");
 
     gAudio.Audio_Init();
