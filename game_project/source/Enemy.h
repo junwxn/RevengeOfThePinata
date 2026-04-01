@@ -385,8 +385,11 @@ public:
             m_FinalState == BossFinalState::Reviving;
     }
     AEVec2 GetPhase4BallPos() const { return m_Phase4BallPos; }
+
+    void SetHealth(float hp) { m_CombatStats.health = hp; }
     void TriggerPhaseThree();
     void ConsumePhase4Pickup();
+    void ForceGrowthHits(int hits);
 
 
 protected:

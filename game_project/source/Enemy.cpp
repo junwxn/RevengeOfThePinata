@@ -1183,6 +1183,9 @@ void Boss::ChildUpdate(f32 dt, Combat::System& combat, Player& player,
         m_CombatStats.health = m_CombatStats.maxHealth * 0.5f;
         m_CombatFlags.isAlive = true;
 
+        // Make boss fully reach the 5-hit grown state first
+        ForceGrowthHits(5);
+
         TriggerPhaseTwo(enemies);
         return;
     }
@@ -2019,6 +2022,16 @@ void Boss::ConsumePhase4Pickup()
     m_Phase4ReviveBlinkTimer = 0.0f;
 
     m_FinalState = BossFinalState::Reviving;
+}
+
+void Boss::ForceGrowthHits(int hits)
+{
+    if (m_GrowthHits >= hits) {
+        return;
+    }
+
+    m_GrowthHits = hits;
+    ApplyGrowthFromHits();
 }
 
 // ------------------------
