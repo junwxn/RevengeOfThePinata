@@ -292,7 +292,7 @@ void Level2_Update(float dt) {
 	}
 
 	if (AEInputCheckTriggered(AEVK_N)) {
-		Transition_Start(GS_LEVEL3);
+		Transition_Start(GS_LEVEL3, TransitionSheet::LEVEL3);
 	}
 
 	m_ClearSprite.Sprite_Update(dt);

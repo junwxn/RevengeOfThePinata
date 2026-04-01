@@ -1,8 +1,8 @@
 {
   "version": 1,
-  "attackCharges": 2,
-  "augment0": 2,
+  "attackCharges": 5,
+  "augment0": 0,
   "augment1": 0,
   "augment2": 0,
-  "currentLevel": 3
+  "currentLevel": 5
 }
