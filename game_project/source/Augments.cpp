@@ -460,7 +460,7 @@ void Augments::Draw(float camX, float camY) {
             beamX,
             1000,
             augPosX,
-            beamY + 400,
+            augPosY + beamY + 400,
             0.0f,
             1.0f
         );
