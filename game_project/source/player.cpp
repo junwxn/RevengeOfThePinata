@@ -679,11 +679,11 @@ void Player::Draw()
     //    DrawMesh(m_AttackRangeMesh, 1.0f, 5.0f, m_PosX, m_PosY, m_CurrentAngle, 255, 255, 53, 255);
     //}
 
-    if (m_BlockActive)
-    {
-        float blockAngle = m_ParryActive ? m_CurrentAngle : m_AimAngle;
-        DrawMesh(m_BlockRangeMesh, 1.0f, 5.0f, m_PosX, m_PosY, blockAngle, 255, 0, 0, 255);
-    }
+    //if (m_BlockActive)
+    //{
+    //    float blockAngle = m_ParryActive ? m_CurrentAngle : m_AimAngle;
+    //    DrawMesh(m_BlockRangeMesh, 1.0f, 5.0f, m_PosX, m_PosY, blockAngle, 255, 0, 0, 255);
+    //}
     // Player health bar
     f32 barWidth = m_Size * 2.0f * (m_CombatStats.health / m_CombatStats.maxHealth);
     f32 barHeight = m_Size / 3.0f;
