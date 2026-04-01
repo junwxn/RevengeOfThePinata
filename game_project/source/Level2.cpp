@@ -114,7 +114,7 @@ void Level2_Load() {
 
 void Level2_Init() {
 	player.Init();
-	player.SetAttackCharges(g_PlayerAttackCharges);
+	//player.SetAttackCharges(g_PlayerAttackCharges);
 	player.SetMap(&gameMap);
 
 	camera.Init(player.GetX(), player.GetY());
@@ -222,6 +222,7 @@ void Level2_Update(float dt) {
 			wave2Active = false;
 			endofwave = true;
 			augments.SetPosition(player.GetX(), player.GetY());
+			gAudio.PlayFireworksSFX();
 		}
 	}
 
@@ -259,12 +260,13 @@ void Level2_Update(float dt) {
 
 	// Augments — triggers after all waves cleared
 	if (endofwave) {
+		
 		augments.Update(player.GetX(), player.GetY(), dt);
 		if (augments.GetChoose()) {
 			preventingmovement = true;
 		}
 		if (augments.GetAugmentSelected()) {
-			Transition_Start(GS_LEVEL3);
+			Transition_Start(GS_LEVEL3, TransitionSheet::LEVEL3);
 		}
 	}
 	else {

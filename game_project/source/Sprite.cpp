@@ -127,6 +127,16 @@ Sprite::~Sprite()
 		AEGfxTextureUnload(m_pPlayerCombatSpriteSheet);
 		m_pPlayerCombatSpriteSheet = nullptr;
 	}
+
+	// Plus One
+	if (m_pPlusOneSpriteMesh) {
+		AEGfxMeshFree(m_pPlusOneSpriteMesh);
+		m_pPlusOneSpriteMesh = nullptr;
+	}
+	if (m_pPlusOneSpriteSheet) {
+		AEGfxTextureUnload(m_pPlusOneSpriteSheet);
+		m_pPlusOneSpriteSheet = nullptr;
+	}
 }
 
 void Sprite::Sprite_Load()
@@ -284,6 +294,19 @@ void Sprite::Sprite_Load()
 		return;
 	}
 
+	// Plus One
+	if (m_pPlusOneSpriteSheet) {
+		AEGfxTextureUnload(m_pPlusOneSpriteSheet);
+		m_pPlusOneSpriteSheet = nullptr;
+	}
+
+	m_pPlusOneSpriteSheet = AEGfxTextureLoad("Assets/Sprites/PlusOne.png");
+	if (!m_pPlusOneSpriteSheet)
+	{
+		std::cout << "ERROR LOADING PLUS ONE SPRITE SHEET" << std::endl;
+		return;
+	}
+
 	//////////////////////
 	// PLAYER SPRITE SHEET
 	//////////////////////
@@ -376,6 +399,12 @@ void Sprite::Sprite_Init()
 		m_pBossAttack_SpriteMesh = nullptr;
 	}
 
+	// Plus One
+	if (m_pPlusOneSpriteMesh) {
+		AEGfxMeshFree(m_pPlusOneSpriteMesh);
+		m_pPlusOneSpriteMesh = nullptr;
+	}
+
 	/////////////////////
 	// Player Spritesheet
 	/////////////////////
@@ -417,12 +446,16 @@ void Sprite::Sprite_Init()
 	m_pPlayerSpriteMesh = CreateSpriteRectMesh(0xAEF359, 10.0f, 8.0f);
 	// Player Combat Spritesheet
 	m_pPlayerCombatSpriteMesh = CreateSpriteRectMesh(0xAEF359, 10.0f, 8.0f);
+
+	// Plus One Sprite
+	m_pPlusOneSpriteMesh = CreateSpriteRectMesh(0xFFFFFFFF, 8.0f, 1.0f);
 }
 
 void Sprite::Sprite_Update(float dt)
 {
 	m_frameTimer += dt;
 	m_pFrameTimer += dt;
+	m_plusOneFrameTimer += dt;
 
 	if (m_frameTimer > m_frameSpeed)
 	{
@@ -436,5 +469,16 @@ void Sprite::Sprite_Update(float dt)
 		m_pFrame++;
 		m_pFrame %= 10;   // 10 frames
 		m_pFrameTimer = 0;
+	}
+
+	if (m_plusOneFrameTimer > m_plusOneFrameSpeed)
+	{
+		if (m_plusOneFrame < 7)
+		{
+			++m_plusOneFrame;
+			SetPlusOneTextureU();
+		}
+
+		m_plusOneFrameTimer = 0.0f;
 	}
 }

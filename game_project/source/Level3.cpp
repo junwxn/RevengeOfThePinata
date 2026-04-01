@@ -142,7 +142,7 @@ void Level3_Load() {
 
 void Level3_Init() {
 	player.Init();
-	player.SetAttackCharges(g_PlayerAttackCharges);
+	//player.SetAttackCharges(g_PlayerAttackCharges);
 	player.SetMap(&gameMap);
 
 	camera.Init(player.GetX(), player.GetY());
@@ -290,6 +290,7 @@ void Level3_Update(float dt) {
 			wave3Active = false;
 			endofwave = true;
 			augments.SetPosition(player.GetX(), player.GetY());
+			gAudio.PlayFireworksSFX();
 		}
 	}
 
@@ -332,7 +333,7 @@ void Level3_Update(float dt) {
 			preventingmovement = true;
 		}
 		if (augments.GetAugmentSelected()) {
-			Transition_Start(GS_BOSSLEVEL);
+			Transition_Start(GS_BOSSLEVEL, TransitionSheet::BOSSLEVEL);
 		}
 	}
 	else {
@@ -350,7 +351,7 @@ void Level3_Update(float dt) {
 	}
 
 	if (AEInputCheckTriggered(AEVK_N)) {
-		Transition_Start(GS_BOSSLEVEL);
+		Transition_Start(GS_BOSSLEVEL, TransitionSheet::BOSSLEVEL);
 	}
 }
 
@@ -414,6 +415,7 @@ void Level3_Draw() {
 	AugmentEffects_Draw(camera.GetX(), camera.GetY());
 	if (endofwave) {
 		augments.Draw(camera.GetX(), camera.GetY());
+		
 	}
 
 	//AESysFrameEnd();

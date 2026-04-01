@@ -228,7 +228,7 @@ void Tutorial_Load() {
 
 void Tutorial_Init() {
 	player.Init();
-	player.SetAttackCharges(g_PlayerAttackCharges);
+	//player.SetAttackCharges(g_PlayerAttackCharges);
 	player.SetMap(&gameMap);
 	camera.Init(player.GetX(), player.GetY());
 	Pause_Init();
