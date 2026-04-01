@@ -320,6 +320,47 @@ void BossLevel_Update(float dt)
 
 	// debug keys
 	Debug_Update();
+	Debug_Update();
+
+	if (AEInputCheckTriggered(AEVK_K)) {
+		Boss* boss = GetBoss();
+
+		if (boss) {
+			if (!bossPhase2Triggered) {
+				boss->SetHealth(0.0f);
+			}
+			else if (!boss->IsPhase3Triggered()) {
+				float maxHP = boss->GetCombatStats().maxHealth;
+				boss->SetHealth(maxHP * 0.20f);
+			}
+			else if (!boss->IsPhase4Triggered()) {
+				bossPhase4DropActive = false;
+				bossPhase4FightActive = false;
+				bossPhase4CanDie = false;
+				augments.SetSpawnAnim(false);
+
+				boss->SetHealth(0.0f);
+			}
+			else if (!bossPhase4FightActive) {
+				bossPhase4DropActive = false;
+				bossPhase4FightActive = true;
+				bossPhase4CanDie = false;
+				augments.SetSpawnAnim(false);
+
+				bossDefeated = false;
+				wave1Active = true;
+
+				boss->ConsumePhase4Pickup();
+			}
+			else {
+				bossPhase4CanDie = true;
+				boss->SetHealth(0.0f);
+			}
+		}
+	}
+	if (AEInputCheckTriggered(AEVK_N)) {
+		bossDefeated = true;
+	}
 
 	// player death
 	if (!player.GetIsAlive()) {
