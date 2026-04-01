@@ -259,9 +259,32 @@ void Player::Update(float dt, Combat::System& combat, std::vector<std::unique_pt
     // CHAIN ATTACK TEST
     if (m_AttackActive)
     {
+        //if (m_AttackStopFrames > 0)
+        //{
+        //    m_AttackStopFrames -= dt;
+        //    if (g_Augments.Has(AugmentID::CHAIN_ATTACK)
+        //        && AEInputCheckTriggered(AEVK_LBUTTON)
+        //        && m_AttackChainIterator < m_AttackChain.size() - 1
+        //        && m_AttackCharges > 1)
+        //    {
+        //        m_CombatFlags.attackQueued = true;
+        //        --m_AttackCharges;
+        //        if (m_AttackCharges < m_MaxAttackCharge && m_AttackChargeTimer <= 0.0f)
+        //        {
+        //            m_AttackChargeTimer = 0.0f;
+        //        }
+        //        m_AttackChainIterator++;
+        //    }
         if (m_AttackStopFrames > 0)
         {
-            m_AttackStopFrames -= dt;
+            m_AttackStopAccumulator += dt;
+
+            while (m_AttackStopAccumulator >= m_combatSystem.GetOneFPS())
+            {
+                --m_AttackStopFrames;
+                m_AttackStopAccumulator -= static_cast<float>(m_combatSystem.GetOneFPS());
+            }
+
             if (g_Augments.Has(AugmentID::CHAIN_ATTACK)
                 && AEInputCheckTriggered(AEVK_LBUTTON)
                 && m_AttackChainIterator < m_AttackChain.size() - 1
@@ -269,10 +292,12 @@ void Player::Update(float dt, Combat::System& combat, std::vector<std::unique_pt
             {
                 m_CombatFlags.attackQueued = true;
                 --m_AttackCharges;
+
                 if (m_AttackCharges < m_MaxAttackCharge && m_AttackChargeTimer <= 0.0f)
                 {
                     m_AttackChargeTimer = 0.0f;
                 }
+
                 m_AttackChainIterator++;
             }
         }
@@ -285,7 +310,7 @@ void Player::Update(float dt, Combat::System& combat, std::vector<std::unique_pt
 
         while (m_AttackFrameAccumulator >= m_combatSystem.GetOneFPS() && m_AttackCurrentFrame <= m_AttackBasic.total) {
             ++m_AttackCurrentFrame;
-            m_AttackFrameAccumulator -= m_combatSystem.GetOneFPS();
+            m_AttackFrameAccumulator -= static_cast<float>(m_combatSystem.GetOneFPS());
         }
 
         // For normalized value between 0.0 - 1.0 range
@@ -382,17 +407,26 @@ void Player::Update(float dt, Combat::System& combat, std::vector<std::unique_pt
 
         m_CurrentState = PlayerState::STATE_BLOCK;
 
-        if (m_ParryStopFrames > 0) m_ParryStopFrames -= dt;
+        if (m_ParryStopFrames > 0)
+        {
+            m_ParryStopAccumulator += dt;
 
-        if (m_ParryStopFrames <= 0) m_BlockFrameAccumulator += dt;
+            while (m_ParryStopAccumulator >= m_combatSystem.GetOneFPS())
+            {
+                --m_ParryStopFrames;
+                m_ParryStopAccumulator -= static_cast<float>(m_combatSystem.GetOneFPS());
+            }
+        }
+
+        if (m_ParryStopFrames <= 0)
+            m_BlockFrameAccumulator += dt;
 
         if (m_BlockCurrentFrame < m_BlockData.startUp + m_BlockData.parry)
         {
-            //std::cout << "WHILE 1" << std::endl;
             while (m_BlockFrameAccumulator >= m_combatSystem.GetOneFPS())
             {
                 ++m_BlockCurrentFrame;
-                m_BlockFrameAccumulator -= m_combatSystem.GetOneFPS();
+                m_BlockFrameAccumulator -= static_cast<float>(m_combatSystem.GetOneFPS());
             }
         }
         else/* if (m_BlockCurrentFrame < m_BlockData.total)*/
@@ -406,7 +440,7 @@ void Player::Update(float dt, Combat::System& combat, std::vector<std::unique_pt
             {
                 //std::cout << "RESTARTED" << std::endl;
                 if (!m_BlockState.held) ++m_BlockCurrentFrame;
-                m_BlockFrameAccumulator -= m_combatSystem.GetOneFPS();
+                m_BlockFrameAccumulator -= static_cast<float>(m_combatSystem.GetOneFPS());
             }
             //}
         }
@@ -424,8 +458,11 @@ void Player::Update(float dt, Combat::System& combat, std::vector<std::unique_pt
 
             for (auto& enemy : wave)
             {
-                if (enemy->GetCombatFlag().parried) m_ParryStopFrames = m_combatSystem.GetParryStopFrames();
-
+                if (enemy->GetCombatFlag().parried)
+                {
+                    m_ParryStopFrames = m_combatSystem.GetParryStopFrames();
+                    m_ParryStopAccumulator = 0.0f;
+                }
             }
 
             blockProgress = float(m_BlockCurrentFrame - m_BlockData.startUp) / (m_BlockData.parry - 1);
@@ -547,7 +584,7 @@ void Player::Update(float dt, Combat::System& combat, std::vector<std::unique_pt
                 if (m_DashCurrentFrame > m_MovementData.total)
                     m_DashCurrentFrame = m_MovementData.total;
 
-                m_DashFrameAccumulator -= m_combatSystem.GetOneFPS();
+                m_DashFrameAccumulator -= static_cast<float>(m_combatSystem.GetOneFPS());
 
                 if (m_DashCurrentFrame >= m_MovementData.startUp
                     && m_DashCurrentFrame < m_MovementData.startUp + m_MovementData.active)

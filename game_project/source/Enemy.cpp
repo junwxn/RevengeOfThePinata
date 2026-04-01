@@ -218,7 +218,7 @@ void Enemy::BaseUpdate(f32 dt, Combat::System& combat, Player& player) {
 
         while (m_AttackFrameAccumulator >= m_CombatSystem.GetOneFPS() && m_AttackCurrentFrame != m_AttackTotalFrames) {
             ++m_AttackCurrentFrame;
-            m_AttackFrameAccumulator -= m_CombatSystem.GetOneFPS();
+            m_AttackFrameAccumulator -= static_cast<float>(m_CombatSystem.GetOneFPS());
         }
 
         float m_attackProgress{};

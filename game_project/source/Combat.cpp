@@ -172,7 +172,7 @@ namespace Combat {
 		double dx = player.GetX() - enemy.GetX();
 		double dy = player.GetY() - enemy.GetY();
 
-		double s_DistMagPE = Vectors::magnitude(dx, dy);
+		double s_DistMagPE = Vectors::magnitude(static_cast<f32>(dx), static_cast<f32>(dy));
 
 		return s_DistMagPE <= enemy.GetAttackRange();
 	}
@@ -194,14 +194,14 @@ namespace Combat {
 		double dx = enemy.GetX() - player.GetX();
 		double dy = enemy.GetY() - player.GetY();
 
-		double dist = Vectors::magnitude(dx, dy);
+		double dist = Vectors::magnitude(static_cast<f32>(dx), static_cast<f32>(dy));
 
 		// Outside attack radius
 		if (dist > player.GetAttackRange())
 			return false;
 
 		// Angle to enemy
-		float enemyAngle = atan2f(dy, dx);
+		float enemyAngle = atan2f(static_cast<float>(dy), static_cast<f32>(dx));
 
 		float start = player.GetStartAngle();
 		float current = player.GetCurrentAngle();
@@ -268,7 +268,7 @@ namespace Combat {
 	{
 		AEVec2 knockbackDir{ enemy.GetX() - player.GetX(), enemy.GetY() - player.GetY() };
 		AEVec2Normalize(&knockbackDir, &knockbackDir);
-		AEVec2Scale(&knockbackDir, &knockbackDir, multiplier);
+		AEVec2Scale(&knockbackDir, &knockbackDir, static_cast<f32>(multiplier));
 		enemy.SetKnockbackVelocity(knockbackDir);
 
 		gAudio.PlayEnemySFX(ENEMY_VOCAL);
