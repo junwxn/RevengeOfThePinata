@@ -289,6 +289,93 @@ void DrawTexturePlayer(Sprite& spriteObj, int currentDirection,
     AEGfxMeshDraw(pMesh, AE_GFX_MDM_TRIANGLES);
 }
 
+void DrawFullscreenColorOverlay(float r, float g, float b, float a)
+{
+    static AEGfxVertexList* s_FullscreenMesh = nullptr;
+
+    if (!s_FullscreenMesh)
+    {
+        AEGfxMeshStart();
+
+        AEGfxTriAdd(
+            -0.5f, 0.5f, 0xFFFFFFFF, 0.0f, 0.0f,
+            -0.5f, -0.5f, 0xFFFFFFFF, 0.0f, 1.0f,
+            0.5f, -0.5f, 0xFFFFFFFF, 1.0f, 1.0f);
+
+        AEGfxTriAdd(
+            -0.5f, 0.5f, 0xFFFFFFFF, 0.0f, 0.0f,
+            0.5f, -0.5f, 0xFFFFFFFF, 1.0f, 1.0f,
+            0.5f, 0.5f, 0xFFFFFFFF, 1.0f, 0.0f);
+
+        s_FullscreenMesh = AEGfxMeshEnd();
+    }
+
+    AEGfxSetCamPosition(0.0f, 0.0f);
+    AEGfxSetRenderMode(AE_GFX_RM_COLOR);
+    AEGfxSetColorToMultiply(r, g, b, 1.0f);
+    AEGfxSetColorToAdd(0.0f, 0.0f, 0.0f, 0.0f);
+    AEGfxSetBlendMode(AE_GFX_BM_BLEND);
+    AEGfxSetTransparency(a);
+
+    AEMtx33 scale{}, trans{}, final{};
+    AEMtx33Scale(&scale,
+        static_cast<float>(AEGfxGetWindowWidth()),
+        static_cast<float>(AEGfxGetWindowHeight()));
+    AEMtx33Trans(&trans, 0.0f, 0.0f);
+    AEMtx33Concat(&final, &trans, &scale);
+
+    AEGfxSetTransform(final.m);
+    AEGfxMeshDraw(s_FullscreenMesh, AE_GFX_MDM_TRIANGLES);
+
+    AEGfxSetTransparency(1.0f);
+    AEGfxSetBlendMode(AE_GFX_BM_NONE);
+}
+
+void DrawClearOverlay(Sprite& clearSprite)
+{
+    if (!clearSprite.IsClearAnimationActive())
+        return;
+
+    if (!clearSprite.GetClearSpriteMesh() || !clearSprite.GetClearSpriteSheet())
+        return;
+
+    // Force screen-space drawing exactly like Transition_Draw()
+    AEGfxSetCamPosition(0.0f, 0.0f);
+
+    AEMtx33 scale{};
+    AEMtx33 trans{};
+    AEMtx33 final{};
+
+    AEMtx33Scale(&scale,
+        static_cast<float>(AEGfxGetWindowWidth()),
+        static_cast<float>(AEGfxGetWindowHeight()));
+
+    AEMtx33Trans(&trans, 0.0f, 0.0f);
+    AEMtx33Concat(&final, &trans, &scale);
+
+    // Optional dark overlay behind it
+    DrawFullscreenColorOverlay(0.0f, 0.0f, 0.0f, 0.8f);
+
+    // Draw selected CLEAR frame as fullscreen page
+    AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
+    AEGfxSetColorToMultiply(1.0f, 1.0f, 1.0f, 1.0f);
+    AEGfxSetColorToAdd(0.0f, 0.0f, 0.0f, 0.0f);
+    AEGfxSetBlendMode(AE_GFX_BM_BLEND);
+    AEGfxSetTransparency(1.0f);
+
+    AEGfxTextureSet(
+        clearSprite.GetClearSpriteSheet(),
+        clearSprite.GetClearU(),
+        clearSprite.GetClearV()
+    );
+
+    AEGfxSetTransform(final.m);
+    AEGfxMeshDraw(clearSprite.GetClearSpriteMesh(), AE_GFX_MDM_TRIANGLES);
+
+    AEGfxSetTransparency(1.0f);
+    AEGfxSetBlendMode(AE_GFX_BM_NONE);
+}
+
 f32 ClampFloat(f32 t)
 {
     if (t < 0.0f) return 0.0f;

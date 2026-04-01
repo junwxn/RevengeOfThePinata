@@ -45,6 +45,7 @@ static bool wave3Spawned{};
 // wave state
 static bool endofwave{};
 static bool preventingmovement{};
+static Sprite m_ClearSprite;
 
 static void SpawnWave1_L3() {
 	Wave1.clear();
@@ -71,6 +72,8 @@ static void SpawnWave1_L3() {
 		enemy->Init();
 		enemy->SetMap(&gameMap);
 	}
+
+	gAudio.PlayGeneralSFX(GENERAL_ANNOUNCEMENT);
 }
 
 static void SpawnWave2_L3() {
@@ -98,6 +101,8 @@ static void SpawnWave2_L3() {
 		enemy->Init();
 		enemy->SetMap(&gameMap);
 	}
+
+	gAudio.PlayGeneralSFX(GENERAL_TRUMPET);
 }
 
 static void SpawnWave3_L3() {
@@ -141,6 +146,7 @@ void Level3_Load() {
 }
 
 void Level3_Init() {
+	m_ClearSprite.Sprite_Init();
 	player.Init();
 	//player.SetAttackCharges(g_PlayerAttackCharges);
 	player.SetMap(&gameMap);
@@ -293,6 +299,8 @@ void Level3_Update(float dt) {
 			//gAudio.PlayFireworksSFX();
 			gAudio.PlayGeneralSFX(GENERAL_AUGMENT);
 
+			gAudio.PlayFireworksSFX();
+			m_ClearSprite.StartClearAnimation(3.0f, 0.12f);
 		}
 	}
 
@@ -355,6 +363,8 @@ void Level3_Update(float dt) {
 	if (AEInputCheckTriggered(AEVK_N)) {
 		Transition_Start(GS_BOSSLEVEL, TransitionSheet::BOSSLEVEL);
 	}
+
+	m_ClearSprite.Sprite_Update(dt);
 }
 
 void Level3_Draw() {
@@ -420,7 +430,7 @@ void Level3_Draw() {
 		
 	}
 
-	//AESysFrameEnd();
+	DrawClearOverlay(m_ClearSprite);
 }
 
 void Level3_Free() {

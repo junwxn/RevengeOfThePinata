@@ -87,4 +87,8 @@ void DrawTexture(Sprite& spriteObj,
     float width, float height, float x, float y, float rot, float sizeMultiplier); 
 void DrawTexturePlayer(Sprite& spriteObj, int currentDirection, AEGfxVertexList* pMesh, AEGfxTexture* pTexture, float width, float height, float x, float y, float rot, float sizeMultiplier);
 
+void DrawFullscreenColorOverlay(float r, float g, float b, float a);
+
+void DrawClearOverlay(Sprite& clearSprite);
+
 f32 ClampFloat(f32 t);

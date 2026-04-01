@@ -44,6 +44,7 @@ static bool wave2Spawned{};
 // wave state
 static bool endofwave{};
 static bool preventingmovement{};
+static Sprite m_ClearSprite;
 
 static void SpawnWave1_L2() {
 	Wave1.clear();
@@ -70,6 +71,8 @@ static void SpawnWave1_L2() {
 		enemy->Init();
 		enemy->SetMap(&gameMap);
 	}
+
+	gAudio.PlayGeneralSFX(GENERAL_ANNOUNCEMENT);
 }
 
 static void SpawnWave2_L2() {
@@ -97,6 +100,8 @@ static void SpawnWave2_L2() {
 		enemy->Init();
 		enemy->SetMap(&gameMap);
 	}
+
+	gAudio.PlayGeneralSFX(GENERAL_TRUMPET);
 }
 
 void Level2_Load() {
@@ -113,6 +118,7 @@ void Level2_Load() {
 }
 
 void Level2_Init() {
+	m_ClearSprite.Sprite_Init();
 	player.Init();
 	//player.SetAttackCharges(g_PlayerAttackCharges);
 	player.SetMap(&gameMap);
@@ -224,6 +230,8 @@ void Level2_Update(float dt) {
 			augments.SetPosition(player.GetX(), player.GetY());
 			//gAudio.PlayFireworksSFX();
 			gAudio.PlayGeneralSFX(GENERAL_AUGMENT);
+			gAudio.PlayFireworksSFX();
+			m_ClearSprite.StartClearAnimation(3.0f, 0.12f);
 		}
 	}
 
@@ -286,6 +294,8 @@ void Level2_Update(float dt) {
 	if (AEInputCheckTriggered(AEVK_N)) {
 		Transition_Start(GS_LEVEL3);
 	}
+
+	m_ClearSprite.Sprite_Update(dt);
 }
 
 void Level2_Draw() {
@@ -339,7 +349,7 @@ void Level2_Draw() {
 		augments.Draw(camera.GetX(), camera.GetY());
 	}
 
-	//AESysFrameEnd();
+	DrawClearOverlay(m_ClearSprite);
 }
 
 void Level2_Free() {

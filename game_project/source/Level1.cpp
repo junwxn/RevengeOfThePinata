@@ -46,6 +46,7 @@ static u8 CurrentBars{ 0 };
 // if wave ends
 static bool endofwave{};
 static bool preventingmovement{};
+static Sprite m_ClearSprite;
 
 static void SpawnWave1() {
 	Wave1.clear();
@@ -124,7 +125,7 @@ void Level1_Load() {
 	Shadow_Init();
 }
 void Level1_Init() {
-
+	m_ClearSprite.Sprite_Init();
 	player.Init();
 	//player.SetAttackCharges(g_PlayerAttackCharges);
 	player.SetMap(&gameMap); // Enable player-map collision
@@ -264,6 +265,8 @@ void Level1_Update(float dt) {
 			augments.SetPosition(player.GetX(), player.GetY());
 			//gAudio.PlayFireworksSFX();
 			gAudio.PlayGeneralSFX(GENERAL_AUGMENT);
+			gAudio.PlayFireworksSFX();
+			m_ClearSprite.StartClearAnimation(3.0f, 0.12f);
 		}
 	}
 
@@ -345,7 +348,10 @@ void Level1_Update(float dt) {
 	if (AEInputCheckTriggered(AEVK_N)) {
 		Transition_Start(GS_LEVEL2, TransitionSheet::LEVEL2);
 	}
+
+	m_ClearSprite.Sprite_Update(dt);
 }
+
 void Level1_Draw() {
 	//AESysFrameStart();
 	AEGfxSetBackgroundColor(0.68f, 0.85f, 0.90f);
@@ -403,13 +409,15 @@ void Level1_Draw() {
 	Pause_Draw(camera.GetX(), camera.GetY());
 	Debug_DrawHUD();
 
+	// Clear Animation
 	AugmentEffects_Draw(camera.GetX(), camera.GetY());
 	if (endofwave) {
 		augments.Draw(camera.GetX(), camera.GetY());
 	}
 
-	//AESysFrameEnd();
+	DrawClearOverlay(m_ClearSprite);
 }
+
 void Level1_Free() {
 	std::cout << "FREEING LEVEL 1" << std::endl;
 	if (Transition_GetState() != current)

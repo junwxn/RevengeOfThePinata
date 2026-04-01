@@ -41,6 +41,9 @@ AEGfxVertexList* Sprite::s_pPlayerCombatSpriteMesh = nullptr;
 AEGfxTexture* Sprite::s_pPlusOneSpriteSheet = nullptr;
 AEGfxVertexList* Sprite::s_pPlusOneSpriteMesh = nullptr;
 
+AEGfxTexture* Sprite::s_pClearSpriteSheet = nullptr;
+AEGfxVertexList* Sprite::s_pClearSpriteMesh = nullptr;
+
 Sprite::~Sprite()
 {
 	if (!m_initialized) return;
@@ -90,6 +93,10 @@ Sprite::~Sprite()
 	// Plus One
 	if (s_pPlusOneSpriteMesh) { AEGfxMeshFree(s_pPlusOneSpriteMesh); s_pPlusOneSpriteMesh = nullptr; }
 	if (s_pPlusOneSpriteSheet) { AEGfxTextureUnload(s_pPlusOneSpriteSheet); s_pPlusOneSpriteSheet = nullptr; }
+
+	// Clear
+	if (s_pClearSpriteMesh) { AEGfxMeshFree(s_pClearSpriteMesh); s_pClearSpriteMesh = nullptr; }
+	if (s_pClearSpriteSheet) { AEGfxTextureUnload(s_pClearSpriteSheet); s_pClearSpriteSheet = nullptr; }
 }
 
 void Sprite::Sprite_Load()
@@ -215,6 +222,14 @@ void Sprite::Sprite_Load()
 		std::cout << "ERROR LOADING PLAYER COMBAT SPRITE SHEET" << std::endl;
 		return;
 	}
+
+	// Clear
+	s_pClearSpriteSheet = AEGfxTextureLoad("Assets/Sprites/Level_Clear_Spritesheet.png");
+	if (!s_pClearSpriteSheet)
+	{
+		std::cout << "ERROR LOADING CLEAR SPRITE SHEET" << std::endl;
+		return;
+	}
 }
 
 void Sprite::Sprite_Init()
@@ -256,6 +271,9 @@ void Sprite::Sprite_Init()
 
 	// Plus One Sprite
 	s_pPlusOneSpriteMesh = CreateSpriteRectMesh(0xFFFFFFFF, 8.0f, 1.0f);
+
+	// Clear Sprite
+	s_pClearSpriteMesh = CreateSpriteRectMesh(0xFFFFFFFF, 8.0f, 1.0f);
 }
 
 void Sprite::Sprite_Update(float dt)
@@ -267,14 +285,14 @@ void Sprite::Sprite_Update(float dt)
 	if (m_frameTimer > m_frameSpeed)
 	{
 		m_frame++;
-		m_frame %= 8;   // 8 frames
+		m_frame %= 8;
 		m_frameTimer = 0;
 	}
 
 	if (m_pFrameTimer > m_pFrameSpeed)
 	{
 		m_pFrame++;
-		m_pFrame %= 10;   // 10 frames
+		m_pFrame %= 10;
 		m_pFrameTimer = 0;
 	}
 
@@ -287,5 +305,25 @@ void Sprite::Sprite_Update(float dt)
 		}
 
 		m_plusOneFrameTimer = 0.0f;
+	}
+
+	// CLEAR animation
+	if (m_clearActive)
+	{
+		m_clearTimer -= dt;
+		m_clearFrameTimer += dt;
+
+		if (m_clearFrameTimer >= m_clearFrameSpeed)
+		{
+			m_clearFrameTimer = 0.0f;
+			++m_clearFrame;
+			m_clearFrame %= 8; // loop through all 8 frames continuously
+			SetClearTextureU();
+		}
+
+		if (m_clearTimer <= 0.0f)
+		{
+			StopClearAnimation();
+		}
 	}
 }

@@ -136,6 +136,44 @@ class Sprite
 			SetPlusOneTextureV(0);
 		}
 
+		// CLEAR popup
+		AEGfxTexture* GetClearSpriteSheet() { return s_pClearSpriteSheet; }
+		AEGfxVertexList* GetClearSpriteMesh() { return s_pClearSpriteMesh; }
+
+		void StartClearAnimation(float duration = 3.0f, float frameSpeed = 0.12f)
+		{
+			m_clearActive = true;
+			m_clearTimer = duration;
+			m_clearDuration = duration;
+			m_clearFrameSpeed = frameSpeed;
+			m_clearFrameTimer = 0.0f;
+			m_clearFrame = 0;
+			m_clearRow = 0;
+			m_clearFrameUSize = 1.0f / 8.0f;
+			m_clearFrameVSize = 1.0f / 1.0f;
+			SetClearTextureU();
+			SetClearTextureV(0);
+		}
+
+		void StopClearAnimation()
+		{
+			m_clearActive = false;
+			m_clearTimer = 0.0f;
+			m_clearFrameTimer = 0.0f;
+			m_clearFrame = 0;
+			m_clearRow = 0;
+			SetClearTextureU();
+			SetClearTextureV(0);
+		}
+
+		bool IsClearAnimationActive() const { return m_clearActive; }
+
+		float GetClearU() const { return m_clearU0; }
+		float GetClearV() const { return m_clearV0; }
+
+		void SetClearTextureU() { m_clearU0 = m_clearFrame * m_clearFrameUSize; }
+		void SetClearTextureV(int row) { m_clearRow = row; m_clearV0 = m_clearRow * m_clearFrameVSize; }
+
 	private:
 		static void Sprite_Load();
 
@@ -228,4 +266,22 @@ class Sprite
 		float m_plusOneV0{ 0.0f };
 		float m_plusOneFrameTimer{};
 		float m_plusOneFrameSpeed{ 0.50f };
+
+		// Clear
+		static AEGfxTexture* s_pClearSpriteSheet;
+		static AEGfxVertexList* s_pClearSpriteMesh;
+
+		bool m_clearActive{ false };
+		float m_clearTimer{ 0.0f };
+		float m_clearDuration{ 3.0f };
+
+		int m_clearFrame{};
+		int m_clearRow{};
+		float m_clearFrameTimer{};
+		float m_clearFrameSpeed{ 0.12f };
+
+		float m_clearFrameUSize{ 1.0f / 8.0f };
+		float m_clearFrameVSize{ 1.0f / 1.0f };
+		float m_clearU0{ 0.0f };
+		float m_clearV0{ 0.0f };
 };
