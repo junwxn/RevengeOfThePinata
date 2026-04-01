@@ -131,11 +131,7 @@ void Augments::Update(f32 playerX, f32 playerY, f32 dt) {
 
     deltaTime = dt;
 
-    if (AEInputCheckTriggered(AEVK_L)) {
-        spawn_anim = true;
-        printf("spawnanim is true\n");
-    }
-
+    // start beam animation
     if (startingAnimation) {
         float distance = beamTargetY - beamY;
         beamY += distance * 10.0f * deltaTime; // tweak speed
@@ -146,9 +142,11 @@ void Augments::Update(f32 playerX, f32 playerY, f32 dt) {
     }
 
     if (beamY < 50.f) {
+        // spawning augment ball
         spawn_anim = true;
     }
 
+    // augment ball spawn
     if (spawn_anim) {
 
         beamX -= 300.0f * deltaTime;
