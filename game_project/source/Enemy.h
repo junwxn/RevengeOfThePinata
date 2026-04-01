@@ -272,6 +272,16 @@ protected:
 
     const MapSystem* m_pMap = nullptr;
 
+    // Static shared resources (loaded once for all enemies)
+    static AEGfxVertexList* s_enemyMesh;
+    static AEGfxVertexList* s_healthBarMesh;
+    static AEGfxVertexList* s_markMesh;
+    static AEGfxVertexList* s_batMesh;
+    static AEGfxTexture*    s_batTexture;
+    static AEGfxVertexList* s_detonateMesh;
+    static AEGfxTexture*    s_detonateTexture;
+    static int s_sharedRefCount;
+
     // A* pathfinding
     std::vector<AEVec2> m_path;
     int m_pathIndex{ 0 };
