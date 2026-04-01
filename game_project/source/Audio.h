@@ -107,4 +107,4 @@ class Audio
 		bool m_muted = false;
 };
 
-extern Audio gAudio;
+extern Audio gAudio{};

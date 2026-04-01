@@ -104,11 +104,11 @@ private:
     AEGfxVertexList* beamMesh = nullptr;
     s8 m_cardFont = -1;
 
-    Sprite interactSprite;
-    Sprite candySprite;
+    Sprite interactSprite{};
+    Sprite candySprite{};
 
-    Sprite beamSprite;
+    Sprite beamSprite{};
 
-    Sprite cardSprite;
+    Sprite cardSprite{};
 
 };
