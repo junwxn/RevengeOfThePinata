@@ -584,6 +584,7 @@ void Player::Update(float dt, Combat::System& combat, std::vector<std::unique_pt
             // --- 4. Dash Logic ---
             if (AEInputCheckTriggered(AEVK_SPACE) && m_DashCharges > 0 && !m_DashActive && m_InputCanDash)
             {
+                gAudio.PlayGeneralSFX(GENERAL_BOSS_DASH);
                 StartDash(moveX, moveY, dirX, dirY);
             }
         }

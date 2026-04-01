@@ -290,7 +290,9 @@ void Level3_Update(float dt) {
 			wave3Active = false;
 			endofwave = true;
 			augments.SetPosition(player.GetX(), player.GetY());
-			gAudio.PlayFireworksSFX();
+			//gAudio.PlayFireworksSFX();
+			gAudio.PlayGeneralSFX(GENERAL_AUGMENT);
+
 		}
 	}
 
