@@ -127,8 +127,9 @@ void Augments::Init() {
 
 }
 
-void Augments::Update(f32 playerX, f32 playerY, f32 dt) {
-
+void Augments::Update(f32 pX, f32 pY, f32 dt) {
+    playerX = pX;
+    playerY = pY;
     deltaTime = dt;
 
     // start beam animation
@@ -441,7 +442,8 @@ void Augments::Draw(float camX, float camY) {
 
 
     }
-
+    (void)camX;
+    (void)camY;
     if (beamX > 0) {
         startingAnimation = true;
 

@@ -19,10 +19,6 @@ static std::ostream& operator<<(std::ostream& os, CombatOutcome outcome) {
 	return os << static_cast<int>(outcome);
 }
 
-static std::ostream& operator<<(std::ostream& os, AEVec2 vector) {
-	return os << vector.x << " " << vector.y << std::endl;
-}
-
 namespace Combat {
 	double const System::ONE_FRAME{ 1.0f / 60.0f };
 
@@ -230,6 +226,7 @@ namespace Combat {
 
 	bool System::isPlayerParrying(const Player& player, const Enemy& enemy) const {
 		return player.GetBlockStatus() && player.GetParryStatus();
+		(void)enemy;
 	}
 
 	CombatOutcome System::EvaluateAttack(const Player& player, const Enemy& enemy, float attackProgress) const {
@@ -239,6 +236,7 @@ namespace Combat {
 		else if (player.IsBlocking()) return CombatOutcome::OUTCOME_BLOCKED;
 
 		return CombatOutcome::OUTCOME_HIT;
+		(void)enemy;
 	}
 
 	//void System::ApplyParryReaction_Enemy(Player& player, Enemy& enemy) {

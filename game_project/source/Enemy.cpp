@@ -111,6 +111,7 @@ void Enemy::Init() {
 }
 
 void Enemy::BaseUpdate(f32 dt, Combat::System& combat, Player& player) {
+    
 
     if (m_CombatStats.health <= 0) m_CombatFlags.isAlive = false;
     //std::cout << "BASE RUNNING" << std::endl;
@@ -163,7 +164,7 @@ void Enemy::BaseUpdate(f32 dt, Combat::System& combat, Player& player) {
             ResolveCollision(m_pos.x, m_pos.y, frameMove.x, frameMove.y, m_size, *m_pMap);
         }
     }
-
+    (void)combat;
     AEVec2Scale(&m_KnockbackVelocity, &m_KnockbackVelocity, 0.85f);
 
     // Damaging Mark: tick detonation animation
@@ -224,7 +225,7 @@ void Enemy::BaseUpdate(f32 dt, Combat::System& combat, Player& player) {
             m_AttackFrameAccumulator -= static_cast<float>(m_CombatSystem.GetOneFPS());
         }
 
-        float m_attackProgress{};
+        m_attackProgress = 0.0f;
 
         if (m_AttackCurrentFrame < m_AttackStartUpFrames)
         {
@@ -327,7 +328,7 @@ void Enemy::Draw() {
 
     // Calculate isometric squashed height for drawing
         //f32 isoHeight = m_size * (GRID_H / GRID_W); // Squashed
-        f32 isoHeight = m_size; // Normal
+        //f32 isoHeight = m_size; // Normal
         float spriteScale = m_sizeMultiplier;
         float shadowY = m_pos.y;
 
@@ -1065,7 +1066,7 @@ void Dasher::Draw()
 
     AEGfxSetRenderMode(AE_GFX_RM_COLOR);
 
-    f32 isoHeight = m_size;
+    //f32 isoHeight = m_size;
     f32 spriteScale = m_sizeMultiplier * (m_size / ENEMY_SIZE);
 
 
@@ -1359,7 +1360,6 @@ void Boss::ChildUpdate(f32 dt, Combat::System& combat, Player& player,
 
 void Boss::Draw()
 {
-    f32 dt = (f32)AEFrameRateControllerGetFrameTime();
     AEGfxSetRenderMode(AE_GFX_RM_COLOR);
 
     // Phase 4 ball form
@@ -1739,7 +1739,7 @@ void Boss::TriggerPhaseFour(std::vector<std::unique_ptr<Enemy>>& enemies)
     m_Phase4CurrentDashSpeed = 0.0f;
     m_Phase4RecoveryTimer = 0.0f;
     m_Phase4RecoveryStep = 0;
-
+    (void)enemies;
     m_FinalState = BossFinalState::WaitingPickup;
 }
 

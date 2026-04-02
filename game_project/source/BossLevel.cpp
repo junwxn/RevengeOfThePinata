@@ -830,8 +830,9 @@ void BossLevel_Unload()
 	AEAudioStopGroup(gAudio.m_audioGroup.BGM);
 }
 
-void Boss::PreparePhase4DashTarget(Player& player)
+void Boss::PreparePhase4DashTarget(Player& p)
 {
+	player = p;
 	AEVec2 toPlayer{ player.GetX() - m_pos.x, player.GetY() - m_pos.y };
 	float len = AEVec2Length(&toPlayer);
 

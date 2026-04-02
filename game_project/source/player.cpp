@@ -162,7 +162,7 @@ void Player::Update(float dt, Combat::System& combat, std::vector<std::unique_pt
     // Convert mouse to world space if needed (camera offset later)
 
     //std::cout << m_CurrentState << std::endl;
-
+    (void)combat;
 
     if (AEInputCheckTriggered(AEVK_C)) GainAttackCharge();
     if(m_AttackCharges < m_MaxAttackCharge) AutoAttackCharge(dt);
@@ -678,7 +678,7 @@ void Player::Draw()
     AEGfxSetRenderMode(AE_GFX_RM_COLOR);
 
     // Calculate isometric squashed height for drawing
-    float isoHeight = m_Size * (GRID_H / GRID_W);
+    //float isoHeight = m_Size * (GRID_H / GRID_W);
 
     // Draw using Utils helper
     // Color: Black (0,0,0) with full alpha (255)
@@ -1025,6 +1025,7 @@ void Player::StartBlock(Combat::CombatData::BlockData& blockData, std::vector<st
     m_PreviousParryAngle = m_CurrentAngle;
     m_StartAngle = m_AimAngle + AEDegToRad(blockData.startAngle);
     m_EndAngle = m_AimAngle - AEDegToRad(blockData.endAngle);
+    (void)wave;
 }
 
 void Player::StartDash(float moveX, float moveY, float dirX, float dirY)
@@ -1042,9 +1043,6 @@ void Player::StartDash(float moveX, float moveY, float dirX, float dirY)
     // Dash particles
     SpawnDashParticles(200);
 
-    // Store pre-dash position for poison trail
-    float preDashX = m_PosX;
-    float preDashY = m_PosY;
 
     float blinkDist = 0.0f;
 

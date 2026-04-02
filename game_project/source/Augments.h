@@ -8,7 +8,7 @@ public:
     void SetAugmentSet(AugmentSet set);
 
     void Init();
-    void Update(f32 playerX, f32 playerY, f32 dt);
+    void Update(f32 pX, f32 pY, f32 dt);
     void Draw(float camX, float camY);
     void Free();
 
