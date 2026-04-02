@@ -1,3 +1,19 @@
+/*************************************************************************
+@file		Augments.h
+
+@Author		Charles Yap, charles.y@digipen.edu
+
+@Co-authors	Chiu Jun Wen j.chiu@digipen.edu (Help with the headers of the
+            Augment values, Augment Select and for applying the Augments
+            to the player and enemies)
+
+@brief		This file contains the function declarations for the Augment Ball,
+            including its initialization, updating, rendering, and cleanup
+            for each round.
+
+Copyright © 2026 DigiPen, All rights reserved.
+*************************************************************************/
+
 #pragma once
 #include "Utils.h" // Access to AE system and Grid constants
 #include "AugmentData.h"
@@ -7,29 +23,33 @@ class Augments
 public:
     void SetAugmentSet(AugmentSet set);
 
+    // Initialization
     void Init();
+
+    // Update
     void Update(f32 pX, f32 pY, f32 dt);
+
+    // Draw
     void Draw(float camX, float camY);
+
+    // Free
     void Free();
 
-    //// Getters allowing Game.cpp to access position for Camera/Collisions
-    //float GetX() const { return m_PosX; }
-    //float GetY() const { return m_PosY; }
-    //float GetSize() const { return m_Size; }
-
-    // Set the world position where the augment sphere spawns
+    // Set the world position where the Augment Ball spawns
     void SetPosition(float x, float y) { augPosX = x; augPosY = y; hoverPosY = y; }
     void SetSpawnAnim(bool active) { spawn_anim = active; }
 
-    // takes choose from private
+    // Takes 'choose' from private
     bool GetChoose() const {
         return choose;
     }
 
+    // Takes 'augmentSelected' from private
     bool GetAugmentSelected() const {
         return augmentSelected;
     }
 
+    // Textures for the cards
     AEGfxTexture* GetTextureForCard(AugmentID id) {
         switch (id) {
         case AugmentID::AMPLIFIED_DAMAGE: return m_amplifieddamageTex;
@@ -48,7 +68,10 @@ public:
     void Reset();
 
 private:
+    
+    // If the augment has been selected
     bool augmentSelected = false;
+
     // Position & Stats
     float augPosX, augPosY;
     float augSize;
@@ -56,23 +79,32 @@ private:
     float playerX, playerY;
     float deltaTime;
 
+    // The 'hover' for the ball itself
     float isoHeight, hoverPosY, hoverTime, hoverPower, hoverSpeed;
 
+    // The individual values for each aspect of the ball
     float windowTintX, windowTintY;
     float cardWidth, cardHeight;
     float cards_y, cards_x1, cards_x2, cards_x3, distanceY;
     float choiceCameraX;
     float choiceCameraY;
 
+    // Distance between player and ball
     float playerballdist;
 
+    // Boolean for the animation for spawning the ball
     bool spawn_anim = false;
+
+    // If the player picked a card
     bool choose = false;
 
+    // Starting the Card picking animation
     bool startingAnimation = false;
 
+    // If cards are in place, allow the player to pick the card
     bool cardsInPosition = false;
 
+    // Individual values for the Beam spawning animation right before the ball spawns
     float beamStartY;
     float beamX;
     float beamY;
@@ -95,7 +127,6 @@ private:
     AEGfxTexture* m_poisontrailTex = nullptr;
     AEGfxTexture* m_quickparryTex = nullptr;
     AEGfxTexture* m_shielddashTex = nullptr;
-
 
     AEGfxVertexList* augmentMesh = nullptr;
     AEGfxVertexList* candyMesh = nullptr;
