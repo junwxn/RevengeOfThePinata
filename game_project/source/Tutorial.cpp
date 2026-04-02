@@ -357,6 +357,10 @@ void Tutorial_Update(float dt) {
 		break;
 
 	case TUT_PARRY:
+		// Keep charges below max so parry gain is detectable
+		if (player.GetAttackCharges() >= player.GetMaxAttackCharge()) {
+			player.SetAttackCharges(player.GetMaxAttackCharge() - 1);
+		}
 		// Snapshot charges before this frame's combat so we detect any gain
 		chargesBeforeParry = player.GetAttackCharges();
 
