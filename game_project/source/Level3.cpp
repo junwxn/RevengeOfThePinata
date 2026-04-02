@@ -1,3 +1,14 @@
+/*************************************************************************
+@file       Level3.cpp
+@Author     Nigel Lim, nigelkaiyu.lim@digipen.edu
+@Co-authors nil
+@brief      This file contains the implementation of Level 3, including
+			wave spawning, combat updates, augment drop handling,
+			rendering, level cleanup, and transition logic.
+
+Copyright © 2026 DigiPen, All rights reserved.
+*************************************************************************/
+
 #include "pch.h"
 #include "Utils.h"
 #include "Player.h"
@@ -48,6 +59,7 @@ static bool endofwave{};
 static bool preventingmovement{};
 static Sprite m_ClearSprite;
 
+// spawn wave 1 enemies
 static void SpawnWave1_L3() {
 	Wave1.clear();
 	AEVec2 playerPos = { player.GetX(), player.GetY() };
@@ -57,6 +69,7 @@ static void SpawnWave1_L3() {
 		AEVec2 p1 = GetRandomSpawnPos(gameMap, playerPos, 200.0f, ENEMY_SIZE);
 		Wave1.push_back(std::make_unique<Walker>(p1, ENEMY_SIZE_2, 140.0f, 200.0f));
 	}
+
 	// Dasher
 	for (int i = 0; i < 0; ++i) {
 		AEVec2 p2 = GetRandomSpawnPos(gameMap, playerPos, 200.0f, ENEMY_SIZE);
@@ -69,6 +82,7 @@ static void SpawnWave1_L3() {
 		Wave1.push_back(std::make_unique<Thrower>(p3, ENEMY_SIZE, 80.0f, 100.0f));
 	}
 
+	// initialize all wave 1 enemies
 	for (auto& enemy : Wave1) {
 		enemy->Init();
 		enemy->SetMap(&gameMap);
@@ -77,6 +91,7 @@ static void SpawnWave1_L3() {
 	gAudio.PlayGeneralSFX(GENERAL_ANNOUNCEMENT);
 }
 
+// spawn wave 2 enemies
 static void SpawnWave2_L3() {
 	Wave2.clear();
 	AEVec2 playerPos = { player.GetX(), player.GetY() };
@@ -86,6 +101,7 @@ static void SpawnWave2_L3() {
 		AEVec2 p1 = GetRandomSpawnPos(gameMap, playerPos, 200.0f, ENEMY_SIZE);
 		Wave2.push_back(std::make_unique<Walker>(p1, ENEMY_SIZE_2, 140.0f, 200.0f));
 	}
+
 	// Dasher
 	for (int i = 0; i < 8; ++i) {
 		AEVec2 p2 = GetRandomSpawnPos(gameMap, playerPos, 200.0f, ENEMY_SIZE);
@@ -98,6 +114,7 @@ static void SpawnWave2_L3() {
 		Wave2.push_back(std::make_unique<Thrower>(p3, ENEMY_SIZE, 80.0f, 100.0f));
 	}
 
+	// initialize all wave 2 enemies
 	for (auto& enemy : Wave2) {
 		enemy->Init();
 		enemy->SetMap(&gameMap);
@@ -106,6 +123,7 @@ static void SpawnWave2_L3() {
 	gAudio.PlayGeneralSFX(GENERAL_TRUMPET);
 }
 
+// spawn wave 3 enemies
 static void SpawnWave3_L3() {
 	Wave3.clear();
 	AEVec2 playerPos = { player.GetX(), player.GetY() };
@@ -115,6 +133,7 @@ static void SpawnWave3_L3() {
 		AEVec2 p1 = GetRandomSpawnPos(gameMap, playerPos, 200.0f, ENEMY_SIZE);
 		Wave3.push_back(std::make_unique<Walker>(p1, ENEMY_SIZE_2, 140.0f, 200.0f));
 	}
+
 	// Dasher
 	for (int i = 0; i < 4; ++i) {
 		AEVec2 p2 = GetRandomSpawnPos(gameMap, playerPos, 200.0f, ENEMY_SIZE);
@@ -127,6 +146,7 @@ static void SpawnWave3_L3() {
 		Wave3.push_back(std::make_unique<Thrower>(p3, ENEMY_SIZE, 100.0f, 100.0f));
 	}
 
+	// initialize all wave 3 enemies
 	for (auto& enemy : Wave3) {
 		enemy->Init();
 		enemy->SetMap(&gameMap);
@@ -134,6 +154,7 @@ static void SpawnWave3_L3() {
 }
 
 void Level3_Load() {
+	// load textures, meshes, map, and shared systems
 	TexBlock2 = AEGfxTextureLoad("Assets/block2.png");
 	TexBlock = AEGfxTextureLoad("Assets/block.png");
 	CircleMesh = CreateCircleMesh(1.0f, 32, 0xFFFFFFFF);
@@ -147,11 +168,13 @@ void Level3_Load() {
 }
 
 void Level3_Init() {
+	// initialize sprite, player, and map references
 	m_ClearSprite.Sprite_Init();
 	player.Init();
 	//player.SetAttackCharges(g_PlayerAttackCharges);
 	player.SetMap(&gameMap);
 
+	// initialize camera, pause, augments, and augment effects
 	camera.Init(player.GetX(), player.GetY());
 	Pause_Init();
 	augments.Init();
@@ -159,6 +182,7 @@ void Level3_Init() {
 	AugmentEffects_Init(&player);
 	AugmentEffects_Register();
 
+	// reset wave state
 	wave1Active = false;
 	wave2Active = false;
 	wave3Active = false;
@@ -169,42 +193,50 @@ void Level3_Init() {
 	preventingmovement = false;
 	pendingAugmentDrop = false;
 
-
+	// start level with wave 1
 	SpawnWave1_L3();
 	wave1Active = true;
 	wave1Spawned = true;
 
 	gAudio.PlayBGM(BGM_WAVE);
+
+	// initialize debug context
 	Debug_Init();
 	DebugContext dbgCtx = {};
-	dbgCtx.player    = &player;
-	dbgCtx.camera    = &camera;
-	dbgCtx.map       = &gameMap;
-	dbgCtx.waves[0]  = &Wave1;
-	dbgCtx.waves[1]  = &Wave2;
-	dbgCtx.waves[2]  = &Wave3;
+	dbgCtx.player = &player;
+	dbgCtx.camera = &camera;
+	dbgCtx.map = &gameMap;
+	dbgCtx.waves[0] = &Wave1;
+	dbgCtx.waves[1] = &Wave2;
+	dbgCtx.waves[2] = &Wave3;
 	dbgCtx.waveCount = 3;
 	dbgCtx.levelName = "Level 3";
 	Debug_Register(dbgCtx);
 }
 
 void Level3_Update(float dt) {
+	// handle window close
 	if (!AESysDoesWindowExist()) {
 		SaveSystem_Save(GS_LEVEL3);
 		Transition_StartImmediate(GS_QUIT);
 		return;
 	}
 
+	// pause and debug update
 	if (Pause_Update(true)) return;
 	Debug_Update();
 
-	// Player death -> Game Over screen
-	if (!player.GetIsAlive()) { Transition_Start(GS_GAMEOVER); return; }
+	// player death -> game over
+	if (!player.GetIsAlive()) {
+		Transition_Start(GS_GAMEOVER);
+		return;
+	}
 
-	// Pick the active wave for player combat
+	// pick the currently active wave for player combat
 	std::vector<std::unique_ptr<Enemy>>* activeWavePtr = &Wave1;
 	if (wave2Active) activeWavePtr = &Wave2;
 	if (wave3Active) activeWavePtr = &Wave3;
+
 	player.Update(dt, CombatSystem, *activeWavePtr, camera.GetX(), camera.GetY(), preventingmovement);
 
 	// --- Wave 1 ---
@@ -222,21 +254,20 @@ void Level3_Update(float dt) {
 			CombatSystem.Update(player, *enemy, camera, dt);
 		}
 
+		// wave 1 completed
 		if (Wave1.empty()) {
 			wave1Active = false;
 		}
 	}
 
 	// --- Delayed spawn Wave 2 ---
-	if (!wave1Active && !wave2Spawned)
-	{
+	if (!wave1Active && !wave2Spawned) {
 		waveControl.SetWaveTimer(dt);
 
 		std::cout << "Wave 2 Timer: " << waveControl.GetWaveTimer()
 			<< " / " << waveControl.GetWaveTrigger() << std::endl;
 
-		if (waveControl.GetWaveTimer() >= waveControl.GetWaveTrigger())
-		{
+		if (waveControl.GetWaveTimer() >= waveControl.GetWaveTrigger()) {
 			std::cout << "SPAWNING WAVE 2" << std::endl;
 			SpawnWave2_L3();
 			wave2Active = true;
@@ -260,21 +291,20 @@ void Level3_Update(float dt) {
 			CombatSystem.Update(player, *enemy, camera, dt);
 		}
 
+		// wave 2 completed
 		if (Wave2.empty()) {
 			wave2Active = false;
 		}
 	}
 
 	// --- Delayed spawn Wave 3 ---
-	if (!wave2Active && wave2Spawned && !wave3Spawned)
-	{
+	if (!wave2Active && wave2Spawned && !wave3Spawned) {
 		waveControl.SetWaveTimer(dt);
 
 		std::cout << "Wave 3 Timer: " << waveControl.GetWaveTimer()
 			<< " / " << waveControl.GetWaveTrigger() << std::endl;
 
-		if (waveControl.GetWaveTimer() >= waveControl.GetWaveTrigger())
-		{
+		if (waveControl.GetWaveTimer() >= waveControl.GetWaveTrigger()) {
 			std::cout << "SPAWNING WAVE 3" << std::endl;
 			SpawnWave3_L3();
 			wave3Active = true;
@@ -290,11 +320,13 @@ void Level3_Update(float dt) {
 				[](const std::unique_ptr<Enemy>& e) { return e->GetCombatStats().health <= 0.0f; }),
 			Wave3.end()
 		);
+
 		for (auto& enemy : Wave3) {
 			enemy->Update(dt, CombatSystem, player, Wave3);
 			CombatSystem.Update(player, *enemy, camera, dt);
 		}
 
+		// wave 3 completed, prepare clear animation and augment drop
 		if (Wave3.empty()) {
 			wave3Active = false;
 			pendingAugmentDrop = true;
@@ -303,7 +335,7 @@ void Level3_Update(float dt) {
 		}
 	}
 
-	// map boundaries
+	// keep player inside map boundaries
 	float halfW = GRID_W * 0.5f;
 	float halfH = GRID_H * 0.5f;
 	float invX = player.GetX() / halfW;
@@ -329,18 +361,20 @@ void Level3_Update(float dt) {
 		player.SetPosition(newScreenX, newScreenY);
 	}
 
+	// update camera after player movement
 	camera.Update(dt, player.GetX(), player.GetY(), preventingmovement);
 
-	// Update augment effects
+	// update active augment effects
 	AugmentEffects_Update(dt, player, *activeWavePtr);
 
-
-	// Augments
+	// augment selection state after final wave
 	if (endofwave) {
 		augments.Update(player.GetX(), player.GetY(), dt);
+
 		if (augments.GetChoose()) {
 			preventingmovement = true;
 		}
+
 		if (augments.GetAugmentSelected()) {
 			Transition_Start(GS_BOSSLEVEL, TransitionSheet::BOSSLEVEL);
 		}
@@ -349,22 +383,27 @@ void Level3_Update(float dt) {
 		preventingmovement = false;
 	}
 
+	// fallback quit check
 	if (0 == AESysDoesWindowExist()) {
 		Transition_StartImmediate(GS_QUIT);
 	}
 
+	// debug clear waves
 	if (AEInputCheckTriggered(AEVK_K)) {
 		Wave1.clear();
 		Wave2.clear();
 		Wave3.clear();
 	}
 
+	// debug skip to boss
 	if (AEInputCheckTriggered(AEVK_N)) {
 		Transition_Start(GS_BOSSLEVEL, TransitionSheet::BOSSLEVEL);
 	}
 
+	// update clear animation
 	m_ClearSprite.Sprite_Update(dt);
 
+	// drop augment after clear animation finishes
 	if (pendingAugmentDrop && !m_ClearSprite.IsClearAnimationActive()) {
 		pendingAugmentDrop = false;
 		endofwave = true;
@@ -383,7 +422,6 @@ void Level3_Draw() {
 	AEGfxSetBlendMode(AE_GFX_BM_BLEND);
 	AEGfxSetTransparency(1.0f);
 
-
 	// map
 	AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
 	AEGfxSetColorToMultiply(1.0f, 1.0f, 1.0f, 1.0f);
@@ -393,6 +431,7 @@ void Level3_Draw() {
 
 	gameMap.Draw("Tile Layer 1");
 
+	// build render queue for depth sorting
 	std::vector<RenderNode> renderQueue;
 	renderQueue.push_back({ player.GetY(), [&]() { player.Draw(); } });
 
@@ -402,12 +441,14 @@ void Level3_Draw() {
 			renderQueue.push_back({ ePtr->GetY(), [ePtr]() { ePtr->Draw(); } });
 		}
 	}
+
 	if (wave2Active) {
 		for (auto& enemy : Wave2) {
 			Enemy* ePtr = enemy.get();
 			renderQueue.push_back({ ePtr->GetY(), [ePtr]() { ePtr->Draw(); } });
 		}
 	}
+
 	if (wave3Active) {
 		for (auto& enemy : Wave3) {
 			Enemy* ePtr = enemy.get();
@@ -415,38 +456,43 @@ void Level3_Draw() {
 		}
 	}
 
+	// queue wall layer into render order
 	gameMap.QueueLayer("Tile Layer 2", renderQueue);
 
 	std::sort(renderQueue.begin(), renderQueue.end(), [](const RenderNode& a, const RenderNode& b) {
 		return a.y > b.y;
-	});
+		});
 
 	for (auto& node : renderQueue) {
 		node.drawCall();
 	}
 
+	// draw world and HUD elements
 	Debug_DrawWorld(camera.GetX(), camera.GetY());
 
 	HUD_Draw(&player, camera.GetX(), camera.GetY());
 	Debug_DrawHUD();
 
 	AugmentEffects_Draw(camera.GetX(), camera.GetY());
+
 	if (endofwave) {
 		augments.Draw(camera.GetX(), camera.GetY());
-		
 	}
 
 	DrawClearOverlay(m_ClearSprite);
 	Pause_Draw(camera.GetX(), camera.GetY());
-
 }
 
 void Level3_Free() {
+	// preserve attack charges when transitioning away
 	if (Transition_GetState() != current)
 		g_PlayerAttackCharges = player.GetAttackCharges();
+
 	int nextState = Transition_GetState();
 	if (nextState >= GS_TUTORIAL && nextState <= GS_BOSSLEVEL)
 		SaveSystem_Save(nextState);
+
+	// free runtime objects for this level
 	Wave1.clear();
 	Wave2.clear();
 	Wave3.clear();
@@ -458,11 +504,12 @@ void Level3_Free() {
 }
 
 void Level3_Unload() {
+	// unload textures, meshes, map, and systems
 	Shadow_Free();
-	if (TexBlock)  { AEGfxTextureUnload(TexBlock);  TexBlock  = nullptr; }
+	if (TexBlock) { AEGfxTextureUnload(TexBlock); TexBlock = nullptr; }
 	if (TexBlock2) { AEGfxTextureUnload(TexBlock2); TexBlock2 = nullptr; }
 	AEGfxMeshFree(CircleMesh); CircleMesh = nullptr;
-	AEGfxMeshFree(RectMesh);  RectMesh  = nullptr;
+	AEGfxMeshFree(RectMesh); RectMesh = nullptr;
 	gameMap.Unload();
 	Pause_Unload();
 	HUD_Unload();

@@ -1,3 +1,14 @@
+/*************************************************************************
+@file       BossLevel.cpp
+@Author     Nigel Lim, nigelkaiyu.lim@digipen.edu
+@Co-authors nil
+@brief      This file contains the implementation of the boss level,
+			including level setup, boss phase handling, enemy spawning,
+			update logic, rendering, cleanup, and phase-specific helpers.
+
+Copyright © 2026 DigiPen, All rights reserved.
+*************************************************************************/
+
 #include "pch.h"
 #include "Utils.h"
 #include "Player.h"
@@ -31,7 +42,7 @@ static std::vector<std::unique_ptr<Enemy>> Wave1{};
 static bool wave1Active{};
 static bool bossDefeated{};
 static bool preventingmovement{};
-static float s_bossLagHP = 0.0f; // lags behind real HP
+static float s_bossLagHP = 0.0f; // lags behind real HP for boss HP UI
 
 // phase 2 state
 static bool bossPhase2Active = false;
@@ -64,6 +75,7 @@ static void SpawnPhase3Thrower();
 static void SpawnBossWave();
 static void DrawBossHealthBar(float camX, float camY);
 
+// finds and returns the boss from the current wave
 static Boss* GetBoss()
 {
 	for (auto& enemy : Wave1) {
@@ -74,6 +86,7 @@ static Boss* GetBoss()
 	return nullptr;
 }
 
+// counts all living non-boss enemies in the wave
 static int CountBossMinions()
 {
 	int count = 0;
@@ -88,6 +101,7 @@ static int CountBossMinions()
 	return count;
 }
 
+// spawns a random minion near the boss on a valid tile
 static void SpawnBossMinionNearBoss()
 {
 	Boss* boss = GetBoss();
@@ -103,6 +117,7 @@ static void SpawnBossMinionNearBoss()
 	AEVec2 spawnPos{};
 	bool found = false;
 
+	// try multiple times to find a valid nearby spawn point
 	for (int i = 0; i < 16; ++i) {
 		float angle = AERandFloat() * 2.0f * PI;
 		float dist = minSpawnDist + AERandFloat() * (maxSpawnDist - minSpawnDist);
@@ -122,6 +137,7 @@ static void SpawnBossMinionNearBoss()
 
 	int roll = rand() % 10;
 
+	// randomly choose what enemy type to spawn
 	if (roll < 4) {
 		Wave1.push_back(std::make_unique<Walker>(spawnPos, ENEMY_SIZE_2, 140.0f, 200.0f));
 	}
@@ -137,6 +153,7 @@ static void SpawnBossMinionNearBoss()
 	spawned->SetMap(&gameMap);
 }
 
+// spawns an extra thrower around the player during phase 3
 static void SpawnPhase3Thrower()
 {
 	AEVec2 playerPos{ player.GetX(), player.GetY() };
@@ -166,6 +183,7 @@ static void SpawnPhase3Thrower()
 	spawned->SetMap(&gameMap);
 }
 
+// clears the wave and spawns the boss
 static void SpawnBossWave()
 {
 	Wave1.clear();
@@ -186,6 +204,7 @@ static void SpawnBossWave()
 	}
 }
 
+// draws the boss health bar at the top of the screen
 static void DrawBossHealthBar(float camX, float camY)
 {
 	Boss* boss = GetBoss();
@@ -245,6 +264,7 @@ static void DrawBossHealthBar(float camX, float camY)
 
 void BossLevel_Load()
 {
+	// load shared boss level assets
 	RectMesh = CreateRectMesh(0xFFFFFFFF);
 	gameMap.Init("Assets/bossmap.tmx", "tilesheet_complete", "Assets/tilesheet_complete.png");
 	gameMap.BuildCollisionGrid("Tile Layer 2");
@@ -258,33 +278,41 @@ void BossLevel_Load()
 
 void BossLevel_Init()
 {
+	// initialize player and map references
 	player.Init();
 	//player.SetAttackCharges(g_PlayerAttackCharges);
 	player.SetMap(&gameMap);
 
+	// initialize camera and pause system
 	camera.Init(player.GetX(), player.GetY());
 	Pause_Init();
 
+	// initialize augments and currently active augment effects
 	augments.Init();
 	augments.SetAugmentSet(AugmentSet::SET_PARRY);
 	AugmentEffects_Init(&player);
 	AugmentEffects_Register();
 
+	// reset boss level state
 	wave1Active = false;
 	bossDefeated = false;
 	preventingmovement = false;
 
+	// spawn boss fight
 	SpawnBossWave();
 	wave1Active = true;
 
+	// reset phase 2 state
 	bossPhase2Active = false;
 	bossPhase2Triggered = false;
 	bossMinionSpawnTimer = 0.0f;
 	bossInitialMinionsSpawned = false;
 
+	// reset phase 3 state
 	bossPhase3Gun = nullptr;
 	bossPhase3SpawnTimer = 0.0f;
 
+	// reset phase 4 state
 	clearAddsForPhase4 = false;
 	phase4CleanupDone = false;
 	bossPhase4DropActive = false;
@@ -293,6 +321,7 @@ void BossLevel_Init()
 
 	gAudio.PlayBGM(BGM_BOSS);
 
+	// initialize debug context
 	Debug_Init();
 	DebugContext dbgCtx = {};
 	dbgCtx.player = &player;
@@ -321,11 +350,12 @@ void BossLevel_Update(float dt)
 	// debug keys
 	Debug_Update();
 
+	// debug phase skip / boss kill flow
 	if (AEInputCheckTriggered(AEVK_K)) {
 		Boss* boss = GetBoss();
 
 		if (boss) {
-			// Do not allow debug skipping while the boss is already transitioning
+			// do not allow debug skipping while the boss is already transitioning
 			bool bossBusy =
 				boss->IsPhaseTransitioning() ||
 				boss->IsPhaseBlinking() ||
@@ -339,16 +369,16 @@ void BossLevel_Update(float dt)
 				return;
 			}
 
-			// Phase 1 -> Phase 2
+			// phase 1 -> phase 2
 			if (!bossPhase2Triggered) {
 				boss->SetHealth(0.0f);
 			}
-			// Phase 2 -> Phase 3
+			// phase 2 -> phase 3
 			else if (!boss->IsPhase3Triggered()) {
 				float maxHP = boss->GetCombatStats().maxHealth;
 				boss->SetHealth(maxHP * 0.20f);
 			}
-			// Phase 3 -> Phase 4
+			// phase 3 -> phase 4
 			else if (!boss->IsPhase4Triggered()) {
 				bossPhase4DropActive = false;
 				bossPhase4FightActive = false;
@@ -357,7 +387,7 @@ void BossLevel_Update(float dt)
 
 				boss->SetHealth(0.0f);
 			}
-			// Phase 4 orb pickup shortcut
+			// phase 4 orb pickup shortcut
 			else if (!bossPhase4FightActive) {
 				bossPhase4DropActive = false;
 				bossPhase4FightActive = true;
@@ -369,13 +399,15 @@ void BossLevel_Update(float dt)
 
 				boss->ConsumePhase4Pickup();
 			}
-			// Final kill
+			// final kill
 			else {
 				bossPhase4CanDie = true;
 				boss->SetHealth(0.0f);
 			}
 		}
 	}
+
+	// debug force victory
 	if (AEInputCheckTriggered(AEVK_N)) {
 		bossDefeated = true;
 	}
@@ -395,23 +427,23 @@ void BossLevel_Update(float dt)
 				[](const std::unique_ptr<Enemy>& e)
 				{
 					if (Boss* boss = dynamic_cast<Boss*>(e.get())) {
-						// Let the boss class handle all pre-phase-4 death protection.
-						// Do not erase the boss before its own phase logic runs.
+						// let the boss class handle all pre-phase-4 death protection
+						// do not erase the boss before its own phase logic runs
 						if (!boss->IsPhase4Triggered()) {
 							return false;
 						}
 
-						// Fake death drop is visible: keep boss alive
+						// fake death drop is visible: keep boss alive
 						if (boss->IsPhase4BallVisible()) {
 							return false;
 						}
 
-						// Final phase started after pickup, but boss has not properly revived yet
+						// final phase started after pickup, but boss has not properly revived yet
 						if (bossPhase4FightActive && !bossPhase4CanDie) {
 							return false;
 						}
 
-						// Real final death is allowed here
+						// real final death is allowed here
 						return boss->GetCombatStats().health <= 0.0f;
 					}
 
@@ -441,7 +473,6 @@ void BossLevel_Update(float dt)
 		}
 
 		Boss* boss = GetBoss();
-
 
 		// mark phase 4 cleanup when final phase is triggered
 		if (boss && boss->IsPhase4Triggered() && !phase4CleanupDone) {
@@ -516,12 +547,12 @@ void BossLevel_Update(float dt)
 			bool growthTrigger = (boss->GetGrowthHits() >= 5);
 			bool hpTrigger = (bossHP <= bossMaxHP * 0.50f);
 
-			// If player avoids the growth-hit mechanic, force boss into the 5-hit growth state first
+			// if player avoids the growth-hit mechanic, force boss into the 5-hit growth state first
 			if (hpTrigger && !growthTrigger) {
 				boss->ForceGrowthHits(5);
 			}
 
-			// Only start phase 2 after boss is already in the 5-hit grown state
+			// only start phase 2 after boss is already in the 5-hit grown state
 			if (boss->GetGrowthHits() >= 5) {
 				bossPhase2Triggered = true;
 				bossPhase2Active = true;
@@ -655,12 +686,12 @@ void BossLevel_Update(float dt)
 		}
 	}
 
-	// boss defeated
+	// transition to victory once boss is defeated
 	if (bossDefeated) {
 		Transition_StartImmediate(GS_VICTORY);
 	}
 
-	// map boundaries
+	// keep player inside map boundaries
 	float halfW = GRID_W * 0.5f;
 	float halfH = GRID_H * 0.5f;
 	float invX = player.GetX() / halfW;
@@ -698,6 +729,7 @@ void BossLevel_Update(float dt)
 		player.SetPosition(newScreenX, newScreenY);
 	}
 
+	// update camera after player movement
 	camera.Update(dt, player.GetX(), player.GetY(), preventingmovement);
 
 	// previous augments still active
@@ -742,7 +774,7 @@ void BossLevel_Draw()
 	AEGfxSetBlendMode(AE_GFX_BM_BLEND);
 	AEGfxSetTransparency(1.0f);
 
-	// map
+	// draw map base layer
 	AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
 	AEGfxSetColorToMultiply(1.0f, 1.0f, 1.0f, 1.0f);
 	AEGfxSetColorToAdd(0.0f, 0.0f, 0.0f, 0.0f);
@@ -750,6 +782,7 @@ void BossLevel_Draw()
 	AEGfxSetTransparency(1.0f);
 	gameMap.Draw("Tile Layer 1");
 
+	// build depth-sorted render queue
 	std::vector<RenderNode> renderQueue;
 	renderQueue.push_back({ player.GetY(), [&]() { player.Draw(); } });
 
@@ -768,7 +801,7 @@ void BossLevel_Draw()
 		}
 	}
 
-	// map walls
+	// queue wall layer with depth sorting
 	gameMap.QueueLayer("Tile Layer 2", renderQueue);
 
 	std::sort(renderQueue.begin(), renderQueue.end(), [](const RenderNode& a, const RenderNode& b) {
@@ -779,6 +812,7 @@ void BossLevel_Draw()
 		node.drawCall();
 	}
 
+	// draw HUD and overlays
 	Debug_DrawWorld(camera.GetX(), camera.GetY());
 	HUD_Draw(&player, camera.GetX(), camera.GetY());
 	DrawBossHealthBar(camera.GetX(), camera.GetY());
@@ -790,11 +824,11 @@ void BossLevel_Draw()
 
 	Debug_DrawHUD();
 	Pause_Draw(camera.GetX(), camera.GetY());
-
 }
 
 void BossLevel_Free()
 {
+	// preserve player attack charges when leaving current gameplay flow
 	if (Transition_GetState() != current) {
 		g_PlayerAttackCharges = player.GetAttackCharges();
 	}
@@ -804,6 +838,7 @@ void BossLevel_Free()
 		SaveSystem_Save(nextState);
 	}
 
+	// free per-level runtime objects
 	Wave1.clear();
 	bossPhase3Gun = nullptr;
 	player.Free();
@@ -820,6 +855,7 @@ void BossLevel_Free()
 
 void BossLevel_Unload()
 {
+	// unload shared level resources
 	Shadow_Free();
 	AEGfxMeshFree(RectMesh);
 	RectMesh = nullptr;
@@ -832,6 +868,7 @@ void BossLevel_Unload()
 
 void Boss::PreparePhase4DashTarget(Player& p)
 {
+	// lock dash direction based on player position at dash start
 	player = p;
 	AEVec2 toPlayer{ player.GetX() - m_pos.x, player.GetY() - m_pos.y };
 	float len = AEVec2Length(&toPlayer);
@@ -843,6 +880,7 @@ void Boss::PreparePhase4DashTarget(Player& p)
 		m_Phase4LockedDashDir = { 1.0f, 0.0f };
 	}
 
+	// set dash target slightly beyond player position
 	float overshoot = 180.0f;
 	m_Phase4DashTarget.x = player.GetX() + m_Phase4LockedDashDir.x * overshoot;
 	m_Phase4DashTarget.y = player.GetY() + m_Phase4LockedDashDir.y * overshoot;

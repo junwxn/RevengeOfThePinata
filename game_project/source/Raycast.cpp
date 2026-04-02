@@ -1,3 +1,14 @@
+/*************************************************************************
+@file       Raycast.cpp
+@Author     Nigel Lim, nigelkaiyu.lim@digipen.edu
+@Co-authors nil
+@brief      This file contains raycasting and line-of-sight utilities,
+            including grid-based LOS checks and tile-based ray traversal
+            for detecting blocked tiles in the map.
+
+Copyright © 2026 DigiPen, All rights reserved.
+*************************************************************************/
+
 #include "pch.h"
 
 #include "Raycast.h"
@@ -5,34 +16,31 @@
 #include "Utils.h"
 
 namespace {
-    // Small number used when comparing floating point values.
-    // Prevents divide-by-zero or precision issues.
+    // small epsilon for float comparisons (avoid precision issues)
     constexpr f32 EPS = 1e-6f;
 
-    // Returns absolute value of a float.
-    // Wrapper to make the code shorter.
+    // helper absolute value wrapper for readability
     inline f32 AbsF(f32 v) {
         return std::fabs(v);
     }
 }
 
-// Returns the width of a tile in world space.
-// It checks the distance between two neighbouring tiles.
+// returns tile width in world space using adjacent tiles
 f32 TileSizeWorldX(MapSystem const& map) {
     AEVec2 tileA = map.TMXToWorld(0, 0);
     AEVec2 tileB = map.TMXToWorld(1, 0);
     return AbsF(tileB.x - tileA.x);
 }
 
-// Returns the height of a tile in world space.
+// returns tile height in world space using adjacent tiles
 f32 TileSizeWorldY(MapSystem const& map) {
     AEVec2 tileA = map.TMXToWorld(0, 0);
     AEVec2 tileB = map.TMXToWorld(0, 1);
     return AbsF(tileB.y - tileA.y);
 }
 
-// Checks if two positions can see each other without walls blocking the view.
-// The algorithm walks tile by tile from the start tile to the end tile.
+// grid-based line of sight check between two world positions
+// uses a Bresenham-style stepping across tiles
 bool HasLineOfSight_Grid(AEVec2 const& from, AEVec2 const& to, MapSystem const& map) {
     GridPos startTile = map.WorldToTMX(from.x, from.y);
     GridPos endTile = map.WorldToTMX(to.x, to.y);
@@ -42,19 +50,18 @@ bool HasLineOfSight_Grid(AEVec2 const& from, AEVec2 const& to, MapSystem const& 
     int x1 = endTile.col;
     int y1 = endTile.row;
 
-    // If start or end tile is a wall, there is no line of sight.
+    // if either tile is not walkable, LOS is blocked
     if (!map.IsWalkable(x, y)) { return false; }
     if (!map.IsWalkable(x1, y1)) { return false; }
 
     int dx = std::abs(x1 - x);
     int dy = std::abs(y1 - y);
 
-    // Direction the line moves in the grid.
-    // If tiles are equal, step becomes 0.
+    // determine stepping direction
     int stepX = (x < x1) ? 1 : (x > x1 ? -1 : 0);
     int stepY = (y < y1) ? 1 : (y > y1 ? -1 : 0);
 
-    // If both points are in the same tile, LOS is clear.
+    // same tile -> immediate LOS
     if (dx == 0 && dy == 0) { return true; }
 
     int error = dx - dy;
@@ -68,25 +75,24 @@ bool HasLineOfSight_Grid(AEVec2 const& from, AEVec2 const& to, MapSystem const& 
         bool movedX = false;
         bool movedY = false;
 
-        // Move horizontally if the line crosses a vertical boundary.
+        // horizontal step
         if (error2 > -dy) {
             error -= dy;
             x += stepX;
             movedX = (stepX != 0);
         }
 
-        // Move vertically if the line crosses a horizontal boundary.
+        // vertical step
         if (error2 < dx) {
             error += dx;
             y += stepY;
             movedY = (stepY != 0);
         }
 
-        // Check the tile we moved into.
+        // check current tile
         if (!map.IsWalkable(x, y)) { return false; }
 
-        // If the line crossed a corner, also check the two side tiles.
-        // This prevents walls from being skipped at corners.
+        // handle corner crossing (prevents clipping through corners)
         if (movedX && movedY) {
             if (!map.IsWalkable(oldX, y)) { return false; }
             if (!map.IsWalkable(x, oldY)) { return false; }
@@ -96,8 +102,7 @@ bool HasLineOfSight_Grid(AEVec2 const& from, AEVec2 const& to, MapSystem const& 
     return true;
 }
 
-// Casts a ray until it hits a wall tile or reaches max distance.
-// Returns where the ray stopped.
+// casts a ray until it hits a blocked tile or reaches max distance
 RaycastHit RaycastToBlockedTile(AEVec2 const& from, AEVec2 const& dirNorm,
     f32 maxDist, f32 radius,
     MapSystem const& map) {
@@ -105,12 +110,12 @@ RaycastHit RaycastToBlockedTile(AEVec2 const& from, AEVec2 const& dirNorm,
     RaycastHit result{};
     result.hit = false;
 
-    // Assume the ray travels full distance unless a wall is found.
+    // assume no hit initially (full distance)
     result.t = maxDist;
     result.point = { from.x + dirNorm.x * maxDist, from.y + dirNorm.y * maxDist };
     result.tile = map.WorldToTMX(result.point.x, result.point.y);
 
-    // Ensure the direction vector is normalized.
+    // normalize direction if needed
     AEVec2 rayDir = dirNorm;
     f32 dirLength = AEVec2Length(&rayDir);
 
@@ -122,7 +127,7 @@ RaycastHit RaycastToBlockedTile(AEVec2 const& from, AEVec2 const& dirNorm,
         AEVec2Normalize(&rayDir, &rayDir);
     }
 
-    // Estimate tile size in world space.
+    // calculate tile size
     const f32 tileWidth = TileSizeWorldX(map);
     const f32 tileHeight = TileSizeWorldY(map);
 
@@ -137,27 +142,27 @@ RaycastHit RaycastToBlockedTile(AEVec2 const& from, AEVec2 const& dirNorm,
     int tileX = startTile.col;
     int tileY = startTile.row;
 
-    // Determine which direction the ray moves in the grid.
+    // determine stepping direction
     const int stepX = (rayDir.x > 0.0f) ? 1 : (rayDir.x < 0.0f ? -1 : 0);
     const int stepY = (rayDir.y > 0.0f) ? 1 : (rayDir.y < 0.0f ? -1 : 0);
 
     AEVec2 tileCenter = map.TMXToWorld(tileX, tileY);
 
-    // Position of the next grid boundary in each direction.
+    // next tile boundary
     const f32 nextBoundaryX = (stepX > 0) ? (tileCenter.x + halfTileWidth) : (tileCenter.x - halfTileWidth);
     const f32 nextBoundaryY = (stepY > 0) ? (tileCenter.y + halfTileHeight) : (tileCenter.y - halfTileHeight);
 
-    // Distance along the ray until the next boundary is reached.
+    // initial t values for boundary crossing
     f32 tMaxX = (stepX == 0) ? FLT_MAX : ((nextBoundaryX - from.x) / rayDir.x);
     f32 tMaxY = (stepY == 0) ? FLT_MAX : ((nextBoundaryY - from.y) / rayDir.y);
 
-    // Distance between each boundary crossing.
+    // delta t for stepping between boundaries
     f32 tDeltaX = (stepX == 0) ? FLT_MAX : (tileWidth / AbsF(rayDir.x));
     f32 tDeltaY = (stepY == 0) ? FLT_MAX : (tileHeight / AbsF(rayDir.y));
 
     f32 t = 0.0f;
 
-    // If the starting position is already inside a wall.
+    // if starting inside a wall
     if (map.IsPositionBlocked(from.x, from.y, radius)) {
         result.hit = true;
         result.t = 0.0f;
@@ -166,10 +171,10 @@ RaycastHit RaycastToBlockedTile(AEVec2 const& from, AEVec2 const& dirNorm,
         return result;
     }
 
-    // Step through tiles until a wall is found.
+    // step through tiles using DDA
     while (t <= maxDist) {
 
-        // When the ray hits a corner, step both directions.
+        // corner case: step both axes
         if (AbsF(tMaxX - tMaxY) <= EPS) {
             tileX += stepX;
             tileY += stepY;
@@ -189,9 +194,9 @@ RaycastHit RaycastToBlockedTile(AEVec2 const& from, AEVec2 const& dirNorm,
         }
 
         AEVec2 samplePoint{ from.x + rayDir.x * t,
-                             from.y + rayDir.y * t };
+                           from.y + rayDir.y * t };
 
-        // Check if the ray collided with a blocked tile.
+        // collision check against map
         if (map.IsPositionBlocked(samplePoint.x, samplePoint.y, radius)) {
             result.hit = true;
             result.t = t;

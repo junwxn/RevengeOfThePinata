@@ -1,3 +1,16 @@
+/*************************************************************************
+@file       Enemy.h
+@Author     Nigel Lim, nigelkaiyu.lim@digipen.edu
+@Co-authors nil
+@brief      This file declares the Enemy base class and its derived enemy
+            types, including Walker, Dasher, Boss, and Thrower. It also
+            contains enemy state data, combat-related properties,
+            pathfinding support, projectile behaviour, and boss phase
+            declarations.
+
+Copyright © 2026 DigiPen, All rights reserved.
+*************************************************************************/
+
 #pragma once
 #include "pch.h"
 
