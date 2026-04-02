@@ -33,6 +33,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         HWND hwnd = AESysGetWindowHandle();
         SendMessage(hwnd, WM_SETICON, ICON_BIG, (LPARAM)hIcon);
         SendMessage(hwnd, WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
+        SetClassLongPtr(hwnd, GCLP_HICON, (LONG_PTR)hIcon);
+        SetClassLongPtr(hwnd, GCLP_HICONSM, (LONG_PTR)hIcon);
     }
 
     gAudio.Audio_Init();
