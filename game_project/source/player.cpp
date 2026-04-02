@@ -1213,7 +1213,7 @@ AEVec2 Player::GetParryDirection() const
 
 bool Player::CanParryProjectileSweep(AEVec2 const& prevPos, AEVec2 const& currPos, f32 /*projectileRadius*/) const
 {
-    if (!m_ParryActive || !m_CombatFlags.parryOn)
+    if (!m_ParryActive)
         return false;
 
     const f32 reach = GetAttackRange();
