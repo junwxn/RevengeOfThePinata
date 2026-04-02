@@ -1,9 +1,27 @@
+/*************************************************************************
+@file		Augments.cpp
+
+@Author		Charles Yap, charles.y@digipen.edu
+
+@Co-authors	Chiu Jun Wen j.chiu@digipen.edu (Help with the Augment values,
+            Augment Select and for applying the Augments to the player
+            and enemies)
+
+@brief		This file contains the Augment Ball that spawns at the end
+            of each round. Also the Sprites used with the Ball, including
+            Cards, Card hitboxes and selection, and the physical spawning
+            of the Ball itself
+
+Copyright © 2026 DigiPen, All rights reserved.
+*************************************************************************/
+
 #include "pch.h" // Has to be first file to include in .cpp
 #include "Augments.h"
 #include "AugmentData.h"
 #include "Player.h"
 #include <math.h> // For sqrt
 
+// Setting the Augments
 void Augments::SetAugmentSet(AugmentSet set) {
     m_currentSet = set;
     switch (set) {
@@ -25,49 +43,58 @@ void Augments::SetAugmentSet(AugmentSet set) {
     }
 }
 
+// Initializing all values
 void Augments::Init() {
+
+    // Augment ball position
     augPosX = 0.f;
     augPosY = 0.f;
     augSize = 50.f;
-    interactRange = 100.f;
 
+    // Range at which player can interact w the ball
+    interactRange = 100.f;
+    playerballdist = 0;
+
+    // The rate at which the ball hovers
     hoverPosY = augPosY;
     hoverTime = 0.f;
     hoverPower = 10.f;
     hoverSpeed = 2.f;
     deltaTime = 0;
 
-    // initializing these card positions
     isoHeight = 0;
 
+    // Card width and height
     cardWidth = 400;
     cardHeight = 600;
 
-
+    // The tint of the window for card selection
     windowTintX = 0;
     windowTintY = 0;
 
+    // Each individual card position
     cards_y = 0;
     cards_x1 = 0;
     cards_x2 = 0;
     cards_x3 = 0;
     distanceY = 0;
 
-    playerballdist = 0;
-
-    spawn_anim = false; // the animation for ball spawn
-    choose = false; // is choosing cards?
+    // Booleans for animations
+    spawn_anim = false; // The animation for ball spawn
+    choose = false; // Is the player choosing cards?
     augmentSelected = false;
     startingAnimation = true;
     cardsInPosition = false;
 
+    // The camera position to draw the cards
     choiceCameraX = 0;
     choiceCameraY = 0;
 
-    beamStartY = augPosY + 1000.0f;  // high in the sky
+    // The animation for the beam
+    beamStartY = augPosY + 1000.0f; // How high the beam spawns (off screen)
     beamX = 200;
     beamY = beamStartY;
-    beamTargetY = augPosY;
+    beamTargetY = augPosY; // Beam endpoint
 
     // Free any existing resources before creating new ones (prevents leaks on restart)
     if (interactMesh) { AEGfxMeshFree(interactMesh); interactMesh = nullptr; }
@@ -90,9 +117,10 @@ void Augments::Init() {
 
     m_candyTex = AEGfxTextureLoad("Assets/Cards/candy.png");
     interactTex = AEGfxTextureLoad("Assets/Cards/pressXtointeract.png");
-    beamTex = AEGfxTextureLoad("Assets/Cards/beam.png"); //
+    beamTex = AEGfxTextureLoad("Assets/Cards/beam.png");
 
-    m_amplifieddamageTex = AEGfxTextureLoad("Assets/Cards/amplifieddamage2.png"); // 2 versions
+    // Card textures
+    m_amplifieddamageTex = AEGfxTextureLoad("Assets/Cards/amplifieddamage2.png");
     m_attackmomentumTex = AEGfxTextureLoad("Assets/Cards/attackmomentum.png");
     m_chainattackTex = AEGfxTextureLoad("Assets/Cards/chainattack.png");
     m_damagingmarkTex = AEGfxTextureLoad("Assets/Cards/damagingmark.png");
@@ -102,6 +130,7 @@ void Augments::Init() {
     m_quickparryTex = AEGfxTextureLoad("Assets/Cards/quickparry.png");
     m_shielddashTex = AEGfxTextureLoad("Assets/Cards/shielddash.png");
 
+    // Meshes for the textures
     augmentMesh = CreateCircleMesh(1, 16, 0x000000);
     candyMesh = CreateSpriteRectMesh(0x000000, 1.0, 1.0);
     interactMesh = CreateSpriteRectMesh(0x000000, 1.0f, 1.0f);
@@ -110,13 +139,15 @@ void Augments::Init() {
     cardMesh = CreateRectMesh(0x000000);
     m_cardFont = AEGfxCreateFont("Assets/fonts/Stick-Regular.ttf", 24);
     
-    if (!m_shielddashTex) {
+    // Debug for if textures fail to load
+    /*if (!m_shielddashTex) {
         std::cout << "Failed to load card texture!" << std::endl;
     }
     else {
         std::cout << "card texture success" << std::endl;
-    }
+    }*/
 
+    // The U and V for each texture, set like this so it actually draws
     interactSprite.SetTextureU();
     interactSprite.SetTextureV(0);
 
@@ -128,26 +159,28 @@ void Augments::Init() {
 }
 
 void Augments::Update(f32 pX, f32 pY, f32 dt) {
+
     playerX = pX;
     playerY = pY;
     deltaTime = dt;
 
-    // start beam animation
+    // Start beam animation
     if (startingAnimation) {
         float distance = beamTargetY - beamY;
         beamY += distance * 10.0f * deltaTime; // tweak speed
 
+        // Debug
         //std::cout << "beamTargetY: " << beamTargetY << std::endl;
         //std::cout << "distance: " << distance << std::endl;
         //std::cout << "beamY: " << beamY << std::endl; // mesh draw
     }
 
     if (beamY < 25.f) {
-        // spawning augment ball
+        // Spawning augment ball
         spawn_anim = true;
     }
 
-    // augment ball spawn
+    // Augment ball spawn
     if (spawn_anim) {
 
         beamX -= 500.0f * deltaTime;
@@ -172,6 +205,7 @@ void Augments::Update(f32 pX, f32 pY, f32 dt) {
         // distance between ball and player
         playerballdist = sqrt(((dx - augPosX) * (dx - augPosX)) + ((dy - (augPosY - 65)) * (dy - (augPosY - 65))));
 
+        // Debug
         //printf("Player x: %f\n", dx);
         //printf("Player y: %f\n", dy);
         //printf("Playerballdist: %f\n", playerballdist);
@@ -215,28 +249,9 @@ void Augments::Update(f32 pX, f32 pY, f32 dt) {
 
             float distanceX1 = (choiceCameraX - 700) - cards_x1;
             float distanceX2 = (choiceCameraX + 300) - cards_x2;
-        
-            //printf("Choosing...\n");
-            // tie rand seed to THE CURRENT TIME (so that each choice is unique)
-            // choices of cards, pick and display
-            // clickbox for the cards, once picked set choose = false
 
-            //std::cout << "mouseWX: " << mouseWX << std::endl;
-            //std::cout << "mouseWY: " << mouseWY << std::endl;
-
-            //std::cout << "cards_x1: " << cards_x1 << std::endl;
-
-            // card 1
-            /*if (mouseWX > cards_x1 && mouseWX < (cards_x1 + 400) && mouseWY < (playerY - cards_y + 350) && mouseWY > (playerY - cards_y - 300)) {
-                std::cout << "Red picked" << std::endl;
-            } else if (mouseWX > cards_x2 && mouseWX < (cards_x2 + 400) && mouseWY < (playerY - cards_y + 350) && mouseWY >(playerY - cards_y - 300)) {
-                std::cout << "Blue picked" << std::endl;
-            } else if (mouseWX > (playerX - 200) && mouseWX < ((playerX - 200) + 400) && mouseWY < (playerY - cards_y + 350) && mouseWY >(playerY - cards_y - 300)) {
-                std::cout << "Green picked" << std::endl;
-            }*/
-
+            // cardsInPosition prevents picking all 3 at once
             if (cardsInPosition) {
-                // cardsInPosition prevents picking all 3 at once
 
                 if (AEInputCheckTriggered(AEVK_LBUTTON)) {
                     if (IsMouseInside(mouseWX, mouseWY, cards_x1 + (cardWidth * 0.5f), cards_y, cardWidth, cardHeight))
@@ -271,26 +286,21 @@ void Augments::Update(f32 pX, f32 pY, f32 dt) {
 
             // Updates location, draw all at once in the end
             if (fabs(distanceY) > 2.f) {
-                //DrawMesh(cardMesh, 400, 600, playerX - 200, playerY - cards_y, 0.0f, 255, 0, 0, 255); // Test
 
                 //                       v speed at which the card travels
                 cards_y += distanceY * 10.0f * deltaTime;
             }
             else {
-                //DrawMesh(cardMesh, 400, 600, playerX - 200, playerY - cards_y, 0.0f, 255, 0, 0, 255); // Test
 
                 if (fabs(distanceX1) > 2.f) {
-                    //DrawMesh(cardMesh, 400, 600, cards_x1, playerY - cards_y, 0.0f, 0, 255, 0, 255); // Test
                     cards_x1 += distanceX1 * 8.0f * deltaTime;
                 }
 
                 if (fabs(distanceX2) > 2.f) {
-                    //DrawMesh(cardMesh, 400, 600, cards_x2, playerY - cards_y, 0.0f, 0, 0, 255, 255); // Test
                     cards_x2 += distanceX2 * 8.0f * deltaTime;
                 }
             }
 
-            //std::cout << fabs((cameraX + 300) - cards_x2) << std::endl;
             cardsInPosition = fabs(distanceY) <= 2.f
                 && fabs((playerX - 700) - cards_x1) <= 2.f
                 && fabs((playerX + 300) - cards_x2) <= 2.f;
@@ -302,23 +312,17 @@ void Augments::Update(f32 pX, f32 pY, f32 dt) {
 
 void Augments::Draw(float camX, float camY) {
 
-    // AUGMENT BALL DROPS DOWN FROM THE SKY
-    // AUGMENT SPAWNS AFTER LAST ENEMY DEATH (store enemy last location (wave is a vector) when size of wave = 1)
-    // Ensure Color Mode is set
-
     if (spawn_anim) {
 
         AEGfxSetRenderMode(AE_GFX_RM_COLOR);
 
+        // For debug
         /*if (!m_candyTex)
             std::cout << "Failed to load candy texture!" << std::endl;
         else
             std::cout << "Candy texture loaded successfully" << std::endl;*/
 
         DrawMesh(augmentMesh, (augSize - 20) - sinf(hoverTime) * hoverPower, (isoHeight - 10) - (sinf(hoverTime) * hoverPower), augPosX, (augPosY - 65), 0.0f, 44, 50, 150, 128);
-
-        // Draw using Utils helper
-        // Color: Black (0,0,0) with full alpha (255)
 
         AEGfxSetRenderMode(AE_GFX_RM_TEXTURE);
         AEGfxSetColorToMultiply(1.0f, 1.0f, 1.0f, 1.0f);
@@ -327,10 +331,6 @@ void Augments::Draw(float camX, float camY) {
         AEGfxSetTransparency(1.0f);
         AEGfxTextureSet(m_candyTex, 0.0f, 0.0f);
 
-        //AEGfxMeshDraw(candyMesh, AE_GFX_MDM_TRIANGLES);
-
-        //DrawMesh(augmentMesh, augSize, augSize, augPosX, (hoverPosY + sinf(hoverTime) * hoverPower), 0.0f, 44, 50, 150, 255);
-
         float hoverOffset = sinf(hoverTime) * hoverPower;
 
         DrawTexture(
@@ -338,15 +338,13 @@ void Augments::Draw(float camX, float camY) {
             0,                          // currentDirection/frame (0 = one frame)
             candyMesh,                  // mesh
             m_candyTex,                 // candy texture
-            augSize * 1.75f,             // width of candy
-            augSize * 1.75f,             // height of candy
+            augSize * 1.75f,            // width of candy
+            augSize * 1.75f,            // height of candy
             augPosX,                    // x position
             hoverPosY + hoverOffset,    // y position with hover
             0.0f,                       // rotation (0 = no rotation)
             1.0f                        // size multiplier (1.0 = normal)
         );
-
-        //DrawMesh(candyMesh, augSize, augSize, augPosX, augPosY, 0.0f, 255, 255, 255, 255);
 
         if (playerballdist < interactRange && !choose && !startingAnimation) {
             /*printf("I SUMMON THEE");*/
@@ -381,16 +379,11 @@ void Augments::Draw(float camX, float camY) {
             AEGfxSetBlendMode(AE_GFX_BM_BLEND);
             AEGfxSetTransparency(1.0f);
 
-            // drawing the cards and moving them to their picking positions
-            //DrawMesh(cardMesh, cardWidth, cardHeight, cards_x1, cards_y, 0.0f, 255, 0, 0, 255); // Red Card (Left)
-            //DrawMesh(cardMesh, cardWidth, cardHeight, cards_x2, cards_y, 0.0f, 0, 0, 255, 255); // Blue Card (Right)
-            //DrawMesh(cardMesh, cardWidth, cardHeight, cards_x3, cards_y, 0.0f, 0, 255, 0, 255); // Green Card (Middle)
-
             for (int i = 0; i < 3; ++i) {
                 float cardX = (i == 0 ? cards_x1 : (i == 1 ? cards_x2 : cards_x3));
                 AEGfxTexture* tex = GetTextureForCard(m_cardIDs[i]);
 
-                if (!tex) continue; // skip if texture failed to load
+                if (!tex) continue; // Skip if texture failed to load
 
                 DrawTexture(
                     cardSprite,
@@ -406,44 +399,16 @@ void Augments::Draw(float camX, float camY) {
                 );
             }
 
-            // Draw augment text only after cards have settled into position
-            //if (m_cardFont != -1 && cardsInPosition) {
-            //    float cardCentersX[3] = {
-            //        (cards_x1 - camX) + cardWidth * 0.5f,
-            //        (cards_x2 - camX) + cardWidth * 0.5f,
-            //        (cards_x3 - camX) + cardWidth * 0.5f
-            //    };
-
-            //    for (int i = 0; i < 3; ++i) {
-            //        const AugmentInfo& info = GetAugmentInfo(m_cardIDs[i]);
-
-            //        // Convert screen position to normalized coords (-1 to 1)
-            //        float screenX = cardCentersX[i];
-            //        float screenY = cards_y - camY;
-
-            //        float tw, th;
-
-            //        // Title (near top of card)
-            //        AEGfxGetPrintSize(m_cardFont, info.name, 1.0f, &tw, &th);
-            //        float titleNX = screenX / 800.0f - tw * 0.5f;
-            //        float titleNY = (screenY + cardHeight * 0.3f) / 450.0f;
-            //        AEGfxPrint(m_cardFont, info.name, titleNX, titleNY, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
-
-            //        // Description (below title)
-            //        AEGfxGetPrintSize(m_cardFont, info.description, 1.0f, &tw, &th);
-            //        float descNX = screenX / 800.0f - tw * 0.5f;
-            //        float descNY = (screenY + cardHeight * 0.15f) / 450.0f;
-            //        AEGfxPrint(m_cardFont, info.description, descNX, descNY, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
-            //    }
-            //}
-
 
         }
 
 
     }
+
     (void)camX;
     (void)camY;
+
+    // The Beam animation
     if (beamX > 0) {
         startingAnimation = true;
 
@@ -469,6 +434,7 @@ void Augments::Draw(float camX, float camY) {
     }
 }
 
+// Free the assets and meshes
 void Augments::Free() {
     if (augmentMesh) {
         AEGfxMeshFree(augmentMesh);
@@ -545,6 +511,7 @@ void Augments::Free() {
     }
 }
 
+// Reset on all the initialization values
 void Augments::Reset() {
     augPosX = 0.f;
     augPosY = 0.f;
