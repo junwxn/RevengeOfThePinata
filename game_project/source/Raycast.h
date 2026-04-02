@@ -6,7 +6,7 @@
             used for detecting visibility and collisions with blocked
             tiles in the map.
 
-Copyright ï¿½ 2026 DigiPen, All rights reserved.
+Copyright © 2026 DigiPen, All rights reserved.
 *************************************************************************/
 
 #pragma once
@@ -24,3 +24,4 @@ struct RaycastHit {
 f32 TileSizeWorldX(MapSystem const& map);
 f32 TileSizeWorldY(MapSystem const& map);
 bool HasLineOfSight_Grid(AEVec2 const& from, AEVec2 const& to, MapSystem const& map);
+RaycastHit RaycastToBlockedTile(AEVec2 const& from, AEVec2 const& dirNorm, f32 maxDist, f32 radius, MapSystem const& map);
