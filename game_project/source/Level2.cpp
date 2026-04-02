@@ -100,7 +100,7 @@ static void SpawnWave2_L2() {
 		Wave2.push_back(std::make_unique<Walker>(p1, ENEMY_SIZE, 100.0f, 200.0f));
 	}
 
-	// Dasher
+	// Dasher 
 	for (int i = 0; i < 3; ++i) {
 		AEVec2 p2 = GetRandomSpawnPos(gameMap, playerPos, 200.0f, ENEMY_SIZE);
 		Wave2.push_back(std::make_unique<Dasher>(p2, ENEMY_SIZE, 100.0f, 200.0f, 3.0f));
