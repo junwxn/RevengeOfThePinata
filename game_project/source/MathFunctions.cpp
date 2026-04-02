@@ -1,3 +1,14 @@
+/*************************************************************************
+@file		MathFunctions.cpp
+@Author		Chew Zheng Hui, Timothy Caleb z.chew@digipen.edu
+@Co-authors	nil
+@brief		This file contains the implementation of helper math
+			functions. Mainly targets vector computations, lerp function
+			and get random number function
+
+Copyright ? 2026 DigiPen, All rights reserved.
+*************************************************************************/
+
 #include "pch.h"
 #include "MathFunctions.h"
 

@@ -1,3 +1,16 @@
+/*************************************************************************
+@file		Player.h
+@Author		Chew Zheng Hui, Timothy Caleb z.chew@digipen.edu
+@Co-authors	nil
+@brief		This file contains the definitions for player data,
+            including their setters, getters, enums, combatSystem,
+            combatData, cooldowns and sprites.
+            Player related initializer, loader, free, unload and 
+            update functions.
+
+Copyright � 2026 DigiPen, All rights reserved.
+*************************************************************************/
+
 #pragma once
 #include <vector>
 #include <memory>

@@ -1,3 +1,14 @@
+/*************************************************************************
+@file		Transition.cpp
+@Author		Chew Zheng Hui, Timothy Caleb z.chew@digipen.edu
+@Co-authors	nil
+@brief		This file contains the implementation of the transition system
+            mainly containing functions and pointers to the various spritesheet
+            textures. Transition sheet setters and players are available here
+
+Copyright ? 2026 DigiPen, All rights reserved.
+*************************************************************************/
+
 #include "pch.h"
 #include "Transition.h"
 #include "AEEngine.h"
