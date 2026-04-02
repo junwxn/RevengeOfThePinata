@@ -5,7 +5,7 @@
 @brief		This file contains the function declarations for utility functions,
             including their initialization, updating, rendering, and cleanup.
 
-Copyright © 2026 DigiPen, All rights reserved.
+Copyright ï¿½ 2026 DigiPen, All rights reserved.
 *************************************************************************/
 #pragma once
 #include "AEEngine.h"
@@ -89,6 +89,7 @@ void DrawTexture(Sprite& spriteObj,
 void DrawTexturePlayer(Sprite& spriteObj, int currentDirection, AEGfxVertexList* pMesh, AEGfxTexture* pTexture, float width, float height, float x, float y, float rot, float sizeMultiplier);
 
 void DrawFullscreenColorOverlay(float r, float g, float b, float a);
+void FreeFullscreenOverlay();
 
 void DrawClearOverlay(Sprite& clearSprite);
 

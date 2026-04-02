@@ -5,7 +5,7 @@
 @brief		This file contains utility function definitions for various
             operations, including math, geometry, and mesh creation.
 
-Copyright © 2026 DigiPen, All rights reserved.
+Copyright ï¿½ 2026 DigiPen, All rights reserved.
 *************************************************************************/
 
 #include "pch.h"
@@ -289,10 +289,18 @@ void DrawTexturePlayer(Sprite& spriteObj, int currentDirection,
     AEGfxMeshDraw(pMesh, AE_GFX_MDM_TRIANGLES);
 }
 
+static AEGfxVertexList* s_FullscreenMesh = nullptr;
+
+void FreeFullscreenOverlay()
+{
+    if (s_FullscreenMesh) {
+        AEGfxMeshFree(s_FullscreenMesh);
+        s_FullscreenMesh = nullptr;
+    }
+}
+
 void DrawFullscreenColorOverlay(float r, float g, float b, float a)
 {
-    static AEGfxVertexList* s_FullscreenMesh = nullptr;
-
     if (!s_FullscreenMesh)
     {
         AEGfxMeshStart();

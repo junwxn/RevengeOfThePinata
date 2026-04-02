@@ -12,6 +12,8 @@ Copyright � 2026 DigiPen, All rights reserved.
 #include "GameStateManager.h"
 #include "GameStateList.h"
 #include "Transition.h"
+#include "Utils.h"
+
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     _In_opt_ HINSTANCE hPrevInstance,
@@ -60,6 +62,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     gAudio.UnloadPlayerSFX();
     gAudio.UnloadGeneralSFX();
     gAudio.UnloadFireworksSFX();
+
+    FreeFullscreenOverlay();
 
     AESysExit();
     return 0;
