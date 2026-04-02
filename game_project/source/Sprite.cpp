@@ -1,3 +1,15 @@
+/*************************************************************************
+@file		Sprite.cpp
+@Author		Chew Zheng Hui, Timothy Caleb z.chew@digipen.edu
+@Co-authors	nil
+@brief		This file contains the implementation of the sprite system
+			containing functions and pointers to the various spritesheet
+			textures frequently used by the main entities (Player/Enemy). 
+			Sprite function initializers, loaders and updates are here
+
+Copyright � 2026 DigiPen, All rights reserved.
+*************************************************************************/
+
 #include "pch.h"
 #include "Sprite.h"
 #include "Utils.h"

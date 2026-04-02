@@ -1,3 +1,15 @@
+/*************************************************************************
+@file		Audio.cpp
+@Author		Chew Zheng Hui, Timothy Caleb z.chew@digipen.edu
+@Co-authors	nil
+@brief		This file contains the implementation of the audio system
+			structures and functions, including the global audio state,
+			a function to load audio files dynamically from a .txt file
+			and a function to retrieve and play an audio based on its group
+
+Copyright ? 2026 DigiPen, All rights reserved.
+*************************************************************************/
+
 #include "pch.h"
 #include "Audio.h"
 //#include <fstream>

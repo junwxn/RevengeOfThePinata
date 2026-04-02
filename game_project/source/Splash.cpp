@@ -1,3 +1,14 @@
+/*************************************************************************
+@file		Splash.cpp
+@Author		Chew Zheng Hui, Timothy Caleb z.chew@digipen.edu
+@Co-authors	nil
+@brief		This file contains the implementation of the Digipen Splash
+			logo appearing on start-up. Home to the base functions
+			init, load, draw, free, unload, update
+
+Copyright ? 2026 DigiPen, All rights reserved.
+*************************************************************************/
+
 #include "pch.h"
 #include "Splash.h"
 #include "GameStateManager.h"

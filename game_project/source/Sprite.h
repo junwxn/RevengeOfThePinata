@@ -1,3 +1,14 @@
+/*************************************************************************
+@file		Sprite.h
+@Author		Chew Zheng Hui, Timothy Caleb z.chew@digipen.edu
+@Co-authors	nil
+@brief		This file contains the definitions for sprite data,
+			including their setters, getters, frame, row and column 
+			counters.
+
+Copyright ? 2026 DigiPen, All rights reserved.
+*************************************************************************/
+
 #pragma once
 #include "pch.h"
 #include <fstream>

@@ -1,3 +1,12 @@
+/*************************************************************************
+@file		MathFunctions.h
+@Author		Chew Zheng Hui, Timothy Caleb z.chew@digipen.edu
+@Co-authors	nil
+@brief		This file contains the declarations for the MathFunctions data
+
+Copyright ? 2026 DigiPen, All rights reserved.
+*************************************************************************/
+
 #pragma once
 #include <AEVec2.h>
 #include <random>

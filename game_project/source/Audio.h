@@ -1,3 +1,14 @@
+/*************************************************************************
+@file		Audio.h
+@Author		Chew Zheng Hui, Timothy Caleb z.chew@digipen.edu
+@Co-authors	nil
+@brief		This file contains the definitions for audio data,
+			including their IDs, sets, play functions, and vectors
+			storing each group of audio type.
+
+Copyright ? 2026 DigiPen, All rights reserved.
+*************************************************************************/
+
 #pragma once
 #include "pch.h"
 #include <fstream>
