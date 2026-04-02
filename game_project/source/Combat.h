@@ -1,3 +1,14 @@
+/*************************************************************************
+@file		Combat.h
+@Author		Chew Zheng Hui, Timothy Caleb z.chew@digipen.edu
+@Co-authors	nil
+@brief		This file contains the declarations for the Combat system, including its
+            data structures for combat stats, flags, and data, as well as
+            the Combat::System class which handles combat logic such as damage
+			calculation, attack evaluation, and reaction application.
+Copyright © 2026 DigiPen, All rights reserved.
+*************************************************************************/
+
 #pragma once
 #include "Utils.h"
 

@@ -6,7 +6,7 @@
 			functions. Mainly targets vector computations, lerp function
 			and get random number function
 
-Copyright ? 2026 DigiPen, All rights reserved.
+Copyright © 2026 DigiPen, All rights reserved.
 *************************************************************************/
 
 #include "pch.h"

@@ -6,7 +6,7 @@
 			including their IDs, sets, play functions, and vectors
 			storing each group of audio type.
 
-Copyright ? 2026 DigiPen, All rights reserved.
+Copyright © 2026 DigiPen, All rights reserved.
 *************************************************************************/
 
 #pragma once

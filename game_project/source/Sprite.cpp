@@ -7,7 +7,7 @@
 			textures frequently used by the main entities (Player/Enemy). 
 			Sprite function initializers, loaders and updates are here
 
-Copyright � 2026 DigiPen, All rights reserved.
+Copyright © 2026 DigiPen, All rights reserved.
 *************************************************************************/
 
 #include "pch.h"

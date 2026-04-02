@@ -6,7 +6,7 @@
 			splash data, including their initializer, loader, 
 			draw, free, unload and update functions
 
-Copyright ? 2026 DigiPen, All rights reserved.
+Copyright © 2026 DigiPen, All rights reserved.
 *************************************************************************/
 
 #pragma once

@@ -4,7 +4,7 @@
 @Co-authors	nil
 @brief		This file contains the declarations for the MathFunctions data
 
-Copyright ? 2026 DigiPen, All rights reserved.
+Copyright © 2026 DigiPen, All rights reserved.
 *************************************************************************/
 
 #pragma once

@@ -7,7 +7,7 @@
 			a function to load audio files dynamically from a .txt file
 			and a function to retrieve and play an audio based on its group
 
-Copyright ? 2026 DigiPen, All rights reserved.
+Copyright © 2026 DigiPen, All rights reserved.
 *************************************************************************/
 
 #include "pch.h"

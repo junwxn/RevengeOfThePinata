@@ -5,7 +5,7 @@
 @brief		This file contains the definitions for transition data,
 			including their IDs, sets and play functions.
 
-Copyright ? 2026 DigiPen, All rights reserved.
+Copyright © 2026 DigiPen, All rights reserved.
 *************************************************************************/
 
 #pragma once

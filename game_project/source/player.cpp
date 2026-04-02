@@ -6,7 +6,7 @@
             containing functions related to player behaviour and movement.
             Base movement, dashes and combat related functions are here
 
-Copyright � 2026 DigiPen, All rights reserved.
+Copyright © 2026 DigiPen, All rights reserved.
 *************************************************************************/
 
 #include "pch.h"

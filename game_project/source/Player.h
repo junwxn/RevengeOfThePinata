@@ -8,7 +8,7 @@
             Player related initializer, loader, free, unload and 
             update functions.
 
-Copyright � 2026 DigiPen, All rights reserved.
+Copyright © 2026 DigiPen, All rights reserved.
 *************************************************************************/
 
 #pragma once

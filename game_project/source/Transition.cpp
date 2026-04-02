@@ -6,7 +6,7 @@
             mainly containing functions and pointers to the various spritesheet
             textures. Transition sheet setters and players are available here
 
-Copyright ? 2026 DigiPen, All rights reserved.
+Copyright © 2026 DigiPen, All rights reserved.
 *************************************************************************/
 
 #include "pch.h"

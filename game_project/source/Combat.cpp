@@ -1,3 +1,13 @@
+/*************************************************************************
+@file		Combat.cpp
+@Author		Chew Zheng Hui, Timothy Caleb z.chew@digipen.edu
+@Co-authors	nil
+@brief		This file contains the implementation of the Combat system,
+			including damage calculation, attack evaluation, and reaction
+			application.
+Copyright © 2026 DigiPen, All rights reserved.
+*************************************************************************/
+
 #include "pch.h"
 
 #include "Combat.h"

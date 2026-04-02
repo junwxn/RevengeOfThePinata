@@ -6,7 +6,7 @@
 			logo appearing on start-up. Home to the base functions
 			init, load, draw, free, unload, update
 
-Copyright ? 2026 DigiPen, All rights reserved.
+Copyright © 2026 DigiPen, All rights reserved.
 *************************************************************************/
 
 #include "pch.h"

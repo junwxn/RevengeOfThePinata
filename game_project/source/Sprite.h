@@ -6,7 +6,7 @@
 			including their setters, getters, frame, row and column 
 			counters.
 
-Copyright ? 2026 DigiPen, All rights reserved.
+Copyright © 2026 DigiPen, All rights reserved.
 *************************************************************************/
 
 #pragma once

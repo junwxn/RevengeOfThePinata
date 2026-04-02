@@ -1,3 +1,12 @@
+/*************************************************************************
+@file		Colors.h
+@Author		Chew Zheng Hui, Timothy Caleb z.chew@digipen.edu
+@Co-authors	nil
+@brief		This file contains the definition of color constants used
+			throughout the project.
+Copyright © 2026 DigiPen, All rights reserved.
+*************************************************************************/
+
 #pragma once
 #include "Utils.h"
 
