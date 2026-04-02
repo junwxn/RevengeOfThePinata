@@ -39,7 +39,10 @@ std::ostream& operator<<(std::ostream& os, AEVec2 vector) {
 // ---------------------
 // Base constructor
 Enemy::Enemy(AEVec2 pos, f32 size, f32 hp, f32 speed)
-    : m_pos{ pos }, m_hp{ hp }, m_speed{ speed }, m_size{ size } {}
+    : m_pos{ pos }, m_hp{ hp }, m_speed{ speed }, m_size{ size } {
+    m_CombatStats.health = hp;
+    m_CombatStats.maxHealth = hp;
+}
 
 // Base destructor
 Enemy::~Enemy() {
@@ -847,6 +850,9 @@ Dasher::Dasher(AEVec2 pos, f32 size, f32 hp, f32 speed, f32 dashCD)
     // Stagger initial timers so grouped Dashers don't all lunge at once
     m_dashTimer = static_cast<f32>(rand()) / RAND_MAX * m_dashCD;
     m_CurrentState = EnemyState::STATE_IDLE;
+
+    m_CombatStats.health = hp;
+    m_CombatStats.maxHealth = hp;
 }
 
 void Dasher::StartDash(AEVec2 const& direction, f32 distToPlayer)

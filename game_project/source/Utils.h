@@ -20,6 +20,7 @@ const f32 SPRITE_H = 128.0f;
 
 const f32 PLAYER_SIZE = 25.0f;
 const f32 ENEMY_SIZE  = 25.0f;
+const f32 ENEMY_SIZE_2 = 25.0f;
 const f32 BOSS_SIZE   = 50.0f;
 
 // --- Structs ---

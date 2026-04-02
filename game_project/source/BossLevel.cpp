@@ -123,10 +123,10 @@ static void SpawnBossMinionNearBoss()
 	int roll = rand() % 10;
 
 	if (roll < 4) {
-		Wave1.push_back(std::make_unique<Walker>(spawnPos, ENEMY_SIZE, 100.0f, 200.0f));
+		Wave1.push_back(std::make_unique<Walker>(spawnPos, ENEMY_SIZE_2, 140.0f, 200.0f));
 	}
 	else if (roll < 6) {
-		Wave1.push_back(std::make_unique<Dasher>(spawnPos, ENEMY_SIZE, 100.0f, 200.0f, 3.0f));
+		Wave1.push_back(std::make_unique<Dasher>(spawnPos, ENEMY_SIZE_2, 140.0f, 200.0f, 3.0f));
 	}
 	else {
 		Wave1.push_back(std::make_unique<Thrower>(spawnPos, ENEMY_SIZE, 80.0f, 100.0f));

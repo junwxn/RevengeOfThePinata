@@ -362,6 +362,11 @@ void Player::Update(float dt, Combat::System& combat, std::vector<std::unique_pt
                     m_AttackStopFrames = m_combatSystem.GetAttackerStopFrames();
                     m_combatSystem.ApplyDamage(*enemy, *this);
 
+                    // 3rd chain hit = apply damage one extra time
+                    if (g_Augments.Has(AugmentID::CHAIN_ATTACK) && m_AttackChainIterator == 2) {
+                        m_combatSystem.ApplyDamage(*enemy, *this);
+                    }
+
                     // Fire ON_ATTACK_HIT event for augment effects
                     EventData hitData;
                     hitData.playerX = m_PosX;

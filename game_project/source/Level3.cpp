@@ -55,12 +55,12 @@ static void SpawnWave1_L3() {
 	// Walker
 	for (int i = 0; i < 2; ++i) {
 		AEVec2 p1 = GetRandomSpawnPos(gameMap, playerPos, 200.0f, ENEMY_SIZE);
-		Wave1.push_back(std::make_unique<Walker>(p1, ENEMY_SIZE, 100.0f, 200.0f));
+		Wave1.push_back(std::make_unique<Walker>(p1, ENEMY_SIZE_2, 140.0f, 200.0f));
 	}
 	// Dasher
 	for (int i = 0; i < 0; ++i) {
 		AEVec2 p2 = GetRandomSpawnPos(gameMap, playerPos, 200.0f, ENEMY_SIZE);
-		Wave1.push_back(std::make_unique<Dasher>(p2, ENEMY_SIZE, 100.0f, 200.0f, 3.0f));
+		Wave1.push_back(std::make_unique<Dasher>(p2, ENEMY_SIZE_2, 140.0f, 200.0f, 3.0f));
 	}
 
 	// Thrower
@@ -84,12 +84,12 @@ static void SpawnWave2_L3() {
 	// Walker
 	for (int i = 0; i < 0; ++i) {
 		AEVec2 p1 = GetRandomSpawnPos(gameMap, playerPos, 200.0f, ENEMY_SIZE);
-		Wave2.push_back(std::make_unique<Walker>(p1, ENEMY_SIZE, 100.0f, 200.0f));
+		Wave2.push_back(std::make_unique<Walker>(p1, ENEMY_SIZE_2, 140.0f, 200.0f));
 	}
 	// Dasher
 	for (int i = 0; i < 8; ++i) {
 		AEVec2 p2 = GetRandomSpawnPos(gameMap, playerPos, 200.0f, ENEMY_SIZE);
-		Wave2.push_back(std::make_unique<Dasher>(p2, ENEMY_SIZE, 100.0f, 200.0f, 3.0f));
+		Wave2.push_back(std::make_unique<Dasher>(p2, ENEMY_SIZE_2, 140.0f, 200.0f, 3.0f));
 	}
 
 	// Thrower
@@ -113,12 +113,12 @@ static void SpawnWave3_L3() {
 	// Walker
 	for (int i = 0; i < 2; ++i) {
 		AEVec2 p1 = GetRandomSpawnPos(gameMap, playerPos, 200.0f, ENEMY_SIZE);
-		Wave3.push_back(std::make_unique<Walker>(p1, ENEMY_SIZE, 100.0f, 200.0f));
+		Wave3.push_back(std::make_unique<Walker>(p1, ENEMY_SIZE_2, 140.0f, 200.0f));
 	}
 	// Dasher
 	for (int i = 0; i < 4; ++i) {
 		AEVec2 p2 = GetRandomSpawnPos(gameMap, playerPos, 200.0f, ENEMY_SIZE);
-		Wave3.push_back(std::make_unique<Dasher>(p2, ENEMY_SIZE, 100.0f, 200.0f, 3.0f));
+		Wave3.push_back(std::make_unique<Dasher>(p2, ENEMY_SIZE_2, 140.0f, 200.0f, 3.0f));
 	}
 
 	// Thrower

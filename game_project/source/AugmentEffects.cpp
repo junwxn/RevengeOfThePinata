@@ -51,13 +51,13 @@ static AEGfxTexture* s_shieldTexture = nullptr;
 
 // Poison sprite settings
 static constexpr int   POISON_FRAME_COUNT = 8;
-static constexpr float POISON_FRAME_DURATION = 0.08f;
+static constexpr float POISON_FRAME_DURATION = 0.10f;
 static constexpr float POISON_CLOUD_SIZE = 80.0f;
 
 // Shield sprite settings
 static constexpr int   SHIELD_FRAME_COUNT = 8;
 static constexpr int   SHIELD_ROW_COUNT = 8;
-static constexpr float SHIELD_FRAME_DURATION = 0.0625f;
+static constexpr float SHIELD_FRAME_DURATION = 0.09f;
 static constexpr float SHIELD_DRAW_SIZE = 140.0f;
 
 // Pre-dash position for poison trail interpolation
@@ -108,7 +108,7 @@ void AugmentEffects_Register() {
     if (g_Augments.Has(AugmentID::SHIELD_DASH)) {
         g_Events.Subscribe(GameEvent::ON_DASH, [](EventData const&) {
             g_shieldActive = true;
-            g_shieldTimer = 0.5f; // 15 frames at 60fps
+            g_shieldTimer = 1.3f; // 15 frames at 60fps
 
             g_shieldFrame = 0;
             g_shieldFrameTimer = 0.0f;
@@ -247,7 +247,7 @@ void AugmentEffects_Update(float dt, Player& player, std::vector<std::unique_ptr
             float dy = enemy->GetY() - it->y;
             float distSq = dx * dx + dy * dy;
             if (distSq < 30.0f * 30.0f) {
-                enemy->DeductHealth(15.0f * dt);
+                enemy->DeductHealth(30.0f * dt);
             }
         }
         ++it;
@@ -268,7 +268,7 @@ void AugmentEffects_Update(float dt, Player& player, std::vector<std::unique_ptr
             enemy->m_markTimer -= dt;
             if (enemy->m_markTimer <= 0.0f) {
                 // Detonate: 10% max HP base + 20% of damage dealt while marked
-                float detonateDmg = enemy->GetCombatStats().maxHealth * 0.1f
+                float detonateDmg = enemy->GetCombatStats().maxHealth * 0.5f
                     + enemy->m_markAccumulatedDamage * 0.2f;
                 enemy->DeductHealth(detonateDmg);
                 enemy->m_marked = false;
@@ -338,7 +338,7 @@ void AugmentEffects_Draw(float camX, float camY) {
 
     // Draw shield bash effect while active
     if (g_shieldActive && s_player && s_shieldMesh && s_shieldTexture) {
-        float alpha = g_shieldTimer / 0.25f;
+        float alpha = g_shieldTimer / 1.2f;
         if (alpha < 0.0f) alpha = 0.0f;
         if (alpha > 1.0f) alpha = 1.0f;
 
