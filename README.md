@@ -15,10 +15,11 @@ You play as a piñata fighting back against waves of enemies using a melee comba
 - **Satisfying knockback physics** — Send enemies flying with impactful hit feedback.
 - **Wave-based encounters** — Face progressively tougher enemy compositions that test your timing and positioning.
 - **Colourful 2.5D art style** — A vibrant, hand-crafted aesthetic that contrasts with the intensity of combat.
+- **Interactive tutorial** — A 10-step guided tutorial with an animated NPC that progressively unlocks mechanics.
 
 ## Tech Highlights
 
-Built in **C/C++** on a custom engine by DigiPen Institute of Technology Singapore. The team's work focused on gameplay systems on top of the engine, including:
+Gameplay systems built on top of the engine include:
 
 - **Isometric rendering** — Screen/grid coordinate transforms with Y-sorted render queue for correct 2.5D depth ordering
 - **A\* pathfinding** — Size-aware clearance, stuck detection, and waypoint look-ahead for smooth enemy navigation
@@ -49,7 +50,7 @@ Built in **C/C++** on a custom engine by DigiPen Institute of Technology Singapo
 |-------|--------|
 | WASD | Move |
 | Left Click | Attack (consumes a charge) |
-| Right Click | Parry |
+| Right Click | Block (parries if timed early) |
 | Space | Dash |
 | X | Interact |
 
@@ -65,11 +66,6 @@ Built in **C/C++** on a custom engine by DigiPen Institute of Technology Singapo
 - Timothy
 - Nigel
 - Charles
-
-## Built With
-
-- **Language:** C / C++
-- **Engine:** Custom engine provided by DigiPen
 
 ## Acknowledgements
 
