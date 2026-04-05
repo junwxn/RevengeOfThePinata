@@ -18,17 +18,18 @@ You play as a piñata fighting back against waves of enemies using a melee comba
 
 ## Tech Highlights
 
-This game was developed in **C/C++** using a custom engine provided by DigiPen Institute of Technology Singapore. The team's work focused on gameplay systems built on top of the engine, including:
+Built in **C/C++** on a custom engine by DigiPen Institute of Technology Singapore. The team's work focused on gameplay systems on top of the engine, including:
 
-- Charge-based melee combat system
-- Parry timing and feedback system
-- Wave spawning and enemy AI
-- Upgrade and progression system
-- Knockback physics and hit feedback
-- UI and HUD
-- Tutorial system
-- Tiled map import via TMX loader
-- Autosave system
+- **Isometric rendering** — Screen/grid coordinate transforms with Y-sorted render queue for correct 2.5D depth ordering
+- **A\* pathfinding** — Size-aware clearance, stuck detection, and waypoint look-ahead for smooth enemy navigation
+- **Frame-based combat** — Startup/active/recovery frame windows with cone-based hit detection and a 3-stage combo chain
+- **Multi-phase boss** — 4-phase state machine with growth scaling, minion spawning, ranged transformation, and HP-gated transitions
+- **Knockback physics** — Exponential velocity decay with wall bounce, dampening, and impact damage on high-speed collisions
+- **Event-driven augments** — Pub/sub system lets 9 augments hook into gameplay events without coupling to combat code
+- **Projectile reflection** — Parry sweep detection with reflection grace period to prevent bounce loops
+- **Isometric collision** — Binary grid from TMX layers with axis-decomposed wall-sliding for smooth diagonal movement
+- **TMX map pipeline** — RapidXML `.tmx` loader with pre-generated per-tile meshes and multi-layer support
+- **Shared resource pooling** — Reference-counted static meshes/textures across enemy instances
 
 ## Running the Game
 
