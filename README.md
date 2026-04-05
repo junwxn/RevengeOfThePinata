@@ -18,7 +18,7 @@ You play as a piñata fighting back against waves of enemies using a melee comba
 
 ## Tech Highlights
 
-This game was developed in **C/C++** using a custom engine provided by DigiPen Institute of Technology Singapore as part of the RTIS programme. The team's work focused on gameplay systems built on top of the engine, including:
+This game was developed in **C/C++** using a custom engine provided by DigiPen Institute of Technology Singapore. The team's work focused on gameplay systems built on top of the engine, including:
 
 - Charge-based melee combat system
 - Parry timing and feedback system
