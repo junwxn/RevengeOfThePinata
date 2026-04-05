@@ -72,6 +72,6 @@ This game was developed in **C/C++** using a custom engine provided by DigiPen I
 
 ## Acknowledgements
 
-Developed as a student project at [DigiPen Institute of Technology Singapore](https://www.digipen.edu.sg/) under the RTIS programme.
+Developed as a student project at [DigiPen Institute of Technology Singapore](https://www.digipen.edu.sg/)
 
 All content © 2026 DigiPen Institute of Technology Singapore. All rights reserved.
