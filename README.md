@@ -7,7 +7,6 @@ You play as a piñata fighting back against waves of enemies using a melee comba
 <!-- TODO: Add a gameplay screenshot or GIF here -->
 <!-- ![Gameplay Screenshot](screenshots/gameplay.png) -->
 
----
 
 ## Features
 
@@ -21,7 +20,6 @@ You play as a piñata fighting back against waves of enemies using a melee comba
 | **Colourful 2.5D art style** | A vibrant, hand-crafted aesthetic that contrasts with the intensity of combat. |
 | **Interactive tutorial** | A 10-step guided tutorial with an animated NPC that progressively unlocks mechanics. |
 
----
 
 ## Tech Highlights
 
@@ -40,7 +38,6 @@ Gameplay systems built on top of the engine include:
 | **TMX map pipeline** | RapidXML `.tmx` loader with pre-generated per-tile meshes and multi-layer support |
 | **Shared resource pooling** | Reference-counted static meshes/textures across enemy instances |
 
----
 
 ## Getting Started
 
@@ -56,7 +53,6 @@ Gameplay systems built on top of the engine include:
 2. Open the `.sln` file in Visual Studio 2022
 3. Press F5 to build and run
 
----
 
 ## Controls
 
@@ -68,7 +64,6 @@ Gameplay systems built on top of the engine include:
 | `Space` | Dash |
 | `X` | Interact |
 
----
 
 ## Screenshots
 
@@ -76,7 +71,6 @@ Gameplay systems built on top of the engine include:
 <!-- ![Combat](screenshots/combat.png) -->
 <!-- ![Upgrades](screenshots/upgrades.png) -->
 
----
 
 ## Team — 4head
 
@@ -85,7 +79,6 @@ Gameplay systems built on top of the engine include:
 | Jun Wen | Timothy |
 | Nigel | Charles |
 
----
 
 ## Acknowledgements
 
