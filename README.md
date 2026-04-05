@@ -74,10 +74,10 @@ Gameplay systems built on top of the engine include:
 
 ## Team — 4head
 
-| | |
-|---|---|
-| Jun Wen | Timothy |
-| Nigel | Charles |
+- Jun Wen
+- Timothy
+- Nigel
+- Charles
 
 
 ## Acknowledgements
