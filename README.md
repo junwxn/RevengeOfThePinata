@@ -2,7 +2,7 @@
 
 > A 2.5D hack-and-slash game with roguelike elements, built in C/C++ using a custom engine provided by DigiPen Institute of Technology Singapore.
 
-You play as a piñata fighting back against waves of enemies using a melee combat system built around attack charges and a parry mechanic. Time your parries to defend against incoming attacks and replenish your charges, collect upgrades between waves, and smash your way through increasingly challenging encounters — all wrapped in a colourful, candy-coated art style.
+You play as a piñata fighting back against waves of enemies using a melee combat system built around attack charges and a parry mechanic. Time your parries to defend against incoming attacks and replenish your charges, collect upgrades between waves, and smash your way through increasingly challenging encounters.
 
 <!-- TODO: Add a gameplay screenshot or GIF here -->
 <!-- ![Gameplay Screenshot](screenshots/gameplay.png) -->
